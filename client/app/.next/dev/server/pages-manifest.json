@@ -1,0 +1,11 @@
+{
+  "/_app": "pages/_app.js",
+  "/_error": "pages/_error.js",
+  "/_document": "pages/_document.js",
+  "/contribute": "pages/contribute.js",
+  "/": "pages/index.js",
+  "/projects": "pages/projects.js",
+  "/portal-wide": "pages/portal-wide.js",
+  "/download/[project_id]": "pages/download/[project_id].js",
+  "/download": "pages/download.js"
+}

@@ -1,0 +1,55 @@
+import React, { useEffect, useState } from 'react'
+import { Box, Paragraph, Text } from 'grommet'
+import { mapRowsWithColumns } from 'helpers/mapRowsWithColumns'
+import { pluralize } from 'helpers/pluralize'
+import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
+
+export const DatasetSummary = ({ dataset, titleSize = 'large', children }) => {
+  const [totalSample, setSampleTotal] = useState(0)
+  const [totalProject, setTotalProject] = useState(0)
+
+  const diagnosesSummary = dataset.diagnoses_summary
+  const columns = ['Diagnosis', 'Samples', 'Projects']
+  const data = mapRowsWithColumns(
+    Object.entries(diagnosesSummary).map(
+      ([diagnosis, { samples, projects }]) => [diagnosis, samples, projects]
+    ),
+    columns
+  )
+
+  useEffect(() => {
+    setSampleTotal(dataset.total_sample_count || 0)
+    setTotalProject(Object.keys(dataset.data).length || 0)
+  }, [dataset])
+
+  return (
+    <Box>
+      <Box
+        border={{ side: 'bottom', color: 'border-black', size: 'small' }}
+        direction="row"
+        margin={{ bottom: 'medium' }}
+        justify="between"
+        fill
+      >
+        <Box gap="medium" pad={{ bottom: 'medium' }}>
+          <Text serif size={titleSize}>
+            Dataset Summary
+          </Text>
+          <Paragraph>
+            <Text weight="bold">
+              {pluralize(`${totalSample} Sample`, totalSample)}
+            </Text>{' '}
+            across{' '}
+            <Text weight="bold">
+              {pluralize(`${totalProject} Project`, totalProject)}
+            </Text>
+          </Paragraph>
+        </Box>
+        {children && <Box>{children}</Box>}
+      </Box>
+      <DatasetSummaryTable data={data} columns={columns} keyValue="Diagnosis" />
+    </Box>
+  )
+}
+
+export default DatasetSummary

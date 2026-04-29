@@ -1,0 +1,57 @@
+import React from 'react'
+import {
+  Button as GrommetButton,
+  Spinner as GrommetSpinner,
+  Text
+} from 'grommet'
+import { useWaitForAsync } from 'hooks/useWaitForAsync'
+import styled, { css } from 'styled-components'
+
+const ButtonText = styled(Text)`
+  ${({ show }) =>
+    css`
+      visibility: ${show ? 'hidden' : 'visible'};
+    `}
+`
+
+const ButtonSpinner = styled(GrommetSpinner)`
+  border-color: white;
+  border-width: 3px;
+  border-right-color: transparent;
+  position: absolute;
+  top: 10%;
+  left: 40%;
+  transform: translate(-10%, -40%);
+  ${({ show }) =>
+    css`
+      visibility: ${show ? 'visible' : 'hidden'};
+    `}
+`
+
+const ButtonLabel = ({ label, show }) => (
+  <>
+    <ButtonText show={show}>{label}</ButtonText>
+    <ButtonSpinner show={show} />
+  </>
+)
+
+export const Button = ({
+  label,
+  loading = false,
+  onClick = () => {},
+  ...props
+}) => {
+  const [waiting, asyncOnClick] = useWaitForAsync(onClick)
+  const disabled = waiting || loading || props.disabled
+
+  return (
+    <GrommetButton
+      {...props}
+      label={<ButtonLabel label={label} show={loading} />}
+      disabled={disabled}
+      onClick={asyncOnClick}
+    />
+  )
+}
+
+export default Button

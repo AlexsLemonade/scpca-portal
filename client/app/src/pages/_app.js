@@ -1,0 +1,53 @@
+import React from 'react'
+import * as Sentry from '@sentry/react'
+import 'regenerator-runtime/runtime'
+import { Grommet } from 'grommet'
+import { theme } from 'theme'
+import { Layout } from 'components/Layout'
+import { Reset } from 'styles/Reset'
+import { BannerContextProvider } from 'contexts/BannerContext'
+import { MyDatasetContextProvider } from 'contexts/MyDatasetContext'
+import { NotificationContextProvider } from 'contexts/NotificationContext'
+import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
+import { ScrollRestoreContextProvider } from 'contexts/ScrollRestoreContext'
+import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
+import { PageTitle } from 'components/PageTitle'
+import ErrorPage from './_error'
+
+const Fallback = (sentry) => <ErrorPage sentry={sentry} />
+
+const Portal = ({ Component, pageProps }) => {
+  // configuring sentry
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.SENTRY_ENV
+  })
+
+  return (
+    <>
+      <Reset />
+      <Grommet theme={theme}>
+        <Sentry.ErrorBoundary fallback={Fallback} showDialog>
+          <ScPCAPortalContextProvider>
+            <ScrollRestoreContextProvider>
+              <AnalyticsContextProvider>
+                <PageTitle />
+                <NotificationContextProvider>
+                  <BannerContextProvider>
+                    <MyDatasetContextProvider>
+                      <Layout>
+                        <Component {...pageProps} />
+                      </Layout>
+                    </MyDatasetContextProvider>
+                  </BannerContextProvider>
+                </NotificationContextProvider>
+              </AnalyticsContextProvider>
+            </ScrollRestoreContextProvider>
+          </ScPCAPortalContextProvider>
+        </Sentry.ErrorBoundary>
+      </Grommet>
+    </>
+  )
+}
+
+export default Portal

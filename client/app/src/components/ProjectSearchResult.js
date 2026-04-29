@@ -1,0 +1,128 @@
+import React from 'react'
+import { Box, Text } from 'grommet'
+import { Download as DownloadIcon } from 'grommet-icons'
+import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
+import { useResponsive } from 'hooks/useResponsive'
+import { formatDiagnosisCounts } from 'helpers/formatCounts'
+import { getReadable } from 'helpers/getReadable'
+import { Button } from 'components/Button'
+import { Link } from 'components/Link'
+import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
+import { ProjectHeader } from 'components/ProjectHeader'
+import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
+import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
+
+export const ProjectSearchResult = ({ project, ccdlDatasets }) => {
+  const { responsive } = useResponsive()
+
+  const ccdlDataDatasets = ccdlDatasets.filter((d) => d.format !== 'METADATA')
+  const ccdlMetadataDatasets = ccdlDatasets.filter(
+    (d) => d.format === 'METADATA'
+  )
+
+  const searchDetails = [
+    {
+      title: 'Available Modalities',
+      value:
+        Object.keys(project.modalities).length > 0 ? (
+          <Text>
+            {project.modalities.map((m) => getReadable(m)).join(', ')}
+          </Text>
+        ) : (
+          ''
+        )
+    },
+    {
+      title: 'Diagnosis',
+      value:
+        Object.keys(project.diagnoses_counts).length > 0 ? (
+          <Text>
+            {formatDiagnosisCounts(project.diagnoses_counts).join(', ')}
+          </Text>
+        ) : (
+          ''
+        )
+    },
+    {
+      title: 'Abstract',
+      value: <ProjectAbstractDetail abstract={project.abstract} />
+    },
+    {
+      title: 'Publications',
+      value:
+        project.publications.length > 0 ? (
+          <ProjectPublicationsDetail publications={project.publications} />
+        ) : (
+          ''
+        )
+    },
+    {
+      title: 'Also deposited under',
+      value:
+        project.external_accessions.length > 0 ? (
+          <ProjectExternalAccessionsDetail
+            inline
+            externalAccessions={project.external_accessions}
+          />
+        ) : (
+          ''
+        )
+    },
+    {
+      title: 'Additional Sample Metadata Fields',
+      value:
+        project.publications.length > 0 ? (
+          <Text>{project.additional_metadata_keys.join(', ')}</Text>
+        ) : (
+          ''
+        )
+    }
+  ]
+  return (
+    <Box elevation="medium" pad="medium" width="full">
+      <CCDLDatasetDownloadModalContextProvider
+        project={project}
+        datasets={ccdlDataDatasets}
+      >
+        <ProjectHeader linked project={project} />
+      </CCDLDatasetDownloadModalContextProvider>
+
+      <Box border={{ side: 'top' }} margin={{ top: 'medium' }}>
+        {searchDetails.map((d) => (
+          <Box key={d.title} pad={{ top: 'medium' }}>
+            <Text weight="bold">{d.title}</Text>
+            {d.value ? (
+              <Text>{d.value}</Text>
+            ) : (
+              <Text italic color="black-tint-30">
+                Not Specified
+              </Text>
+            )}
+          </Box>
+        ))}
+      </Box>
+      <Box
+        align={responsive('start', 'center')}
+        direction={responsive('column', 'row')}
+        gap="small"
+        pad={{ top: 'medium' }}
+      >
+        <Link href={`/projects/${project.scpca_id}#samples`}>
+          <Button label="View Samples" aria-label="View Samples" />
+        </Link>
+        <CCDLDatasetDownloadModalContextProvider
+          project={project}
+          datasets={ccdlMetadataDatasets}
+        >
+          <CCDLDatasetDownloadModal
+            label="Download Sample Metadata"
+            icon={<DownloadIcon color="brand" />}
+          />
+        </CCDLDatasetDownloadModalContextProvider>
+      </Box>
+    </Box>
+  )
+}
+
+export default ProjectSearchResult

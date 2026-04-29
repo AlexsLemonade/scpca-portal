@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="24px" height="24px" viewBox="0 0 24 24" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch 53.2 (72643) - https://sketchapp.com -->
+    <title>icons/plus</title>
+    <desc>Created with Sketch.</desc>
+    <defs>
+        <polygon id="path-1" points="24 13.599975 13.599975 13.599975 13.599975 24 10.400025 24 10.400025 13.599975 0 13.599975 0 10.400025 10.400025 10.400025 10.400025 0 13.599975 0 13.599975 10.400025 24 10.400025"></polygon>
+    </defs>
+    <g id="Guidelines" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="icons-badges-variations" transform="translate(-496.000000, -311.000000)">
+            <g id="icons/plus" transform="translate(496.000000, 311.000000)">
+                <mask id="mask-2" fill="white">
+                    <use xlink:href="#path-1"></use>
+                </mask>
+                <use id="Shape" fill="#4A4A4A" fill-rule="nonzero" xlink:href="#path-1"></use>
+                <g id="color/black-tint/0-000000" mask="url(#mask-2)" fill="#000000" fill-rule="evenodd">
+                    <g transform="translate(0.000000, -1.000000)" id="gray-70-4A4A4A">
+                        <rect x="0" y="0" width="24" height="25"></rect>
+                    </g>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>
