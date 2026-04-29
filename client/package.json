@@ -5,7 +5,7 @@
   "packageManager": "yarn@3.6.3",
   "workspaces": [
     "app",
-    ".storybook"
+    "storybook"
   ],
   "scripts": {
     "dev": "yarn workspace scpca-portal-app dev",

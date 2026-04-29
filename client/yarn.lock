@@ -9355,9 +9355,9 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"scpca-portal-storybook@workspace:.storybook":
+"scpca-portal-storybook@workspace:storybook":
   version: 0.0.0-use.local
-  resolution: "scpca-portal-storybook@workspace:.storybook"
+  resolution: "scpca-portal-storybook@workspace:storybook"
   dependencies:
     "@storybook/nextjs": ^10.2.17
     scpca-portal-app: "workspace:*"
