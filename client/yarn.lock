@@ -9315,14 +9315,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scpca-portal@workspace:.":
+"scpca-portal-app@workspace:*, scpca-portal-app@workspace:app":
   version: 0.0.0-use.local
-  resolution: "scpca-portal@workspace:."
+  resolution: "scpca-portal-app@workspace:app"
   dependencies:
     "@babel/core": ^7.15.0
     "@biomejs/biome": ^2.4.6
     "@sentry/react": ^10.37.0
-    "@storybook/nextjs": ^10.2.17
     "@svgr/webpack": ^8.1.0
     "@tanstack/match-sorter-utils": ^8.19.4
     "@tanstack/react-table": ^8.21.3
@@ -9342,11 +9341,28 @@ __metadata:
     react-ga4: ^1.4.1
     regenerator-runtime: ^0.14.0
     semver: ^7.7.3
-    storybook: ^10.2.17
     styled-components: ^5.3.0
     styled-reset: ^4.3.4
-    typescript: ^6.0.3
     yup: ^0.32.9
+  languageName: unknown
+  linkType: soft
+
+"scpca-portal-root@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "scpca-portal-root@workspace:."
+  dependencies:
+    "@biomejs/biome": ^2.4.6
+  languageName: unknown
+  linkType: soft
+
+"scpca-portal-storybook@workspace:.storybook":
+  version: 0.0.0-use.local
+  resolution: "scpca-portal-storybook@workspace:.storybook"
+  dependencies:
+    "@storybook/nextjs": ^10.2.17
+    scpca-portal-app: "workspace:*"
+    storybook: ^10.2.17
+    typescript: ^6.0.3
   languageName: unknown
   linkType: soft
 
