@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "yarn workspace scpca-portal-app dev",
     "build": "yarn workspace scpca-portal-app build",
+    "build:local": "API_HOST=https://api.scpca.alexslemonade.org API_VERSION=v1 yarn build",
     "storybook": "yarn workspace scpca-portal-storybook storybook",
     "storybook:build": "yarn workspace scpca-portal-storybook storybook:build",
     "start": "next start",
