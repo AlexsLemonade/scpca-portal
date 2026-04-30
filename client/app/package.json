@@ -5,7 +5,7 @@
   "packageManager": "yarn@3.6.3",
   "scripts": {
     "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "build": "API_HOST=https://api.scpca.alexslemonade.org API_VERSION=v1 next build --webpack",
     "start": "next start"
   },
   "dependencies": {
