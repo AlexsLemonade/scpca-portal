@@ -1,5 +1,5 @@
 {
-  "name": "scpca-portal-root",
+  "name": "@scpca-portal",
   "version": "0.1.0",
   "private": true,
   "packageManager": "yarn@3.6.3",
@@ -8,11 +8,11 @@
     "storybook"
   ],
   "scripts": {
-    "dev": "yarn workspace scpca-portal-app dev",
-    "build": "yarn workspace scpca-portal-app build",
+    "dev": "yarn workspace @scpca-portal/app dev",
+    "build": "yarn workspace @scpca-portal/app build",
     "build:local": "API_HOST=https://api.scpca.alexslemonade.org API_VERSION=v1 yarn build",
-    "storybook": "yarn workspace scpca-portal-storybook storybook",
-    "storybook:build": "yarn workspace scpca-portal-storybook storybook:build",
+    "storybook": "yarn workspace @scpca-portal/storybook storybook",
+    "storybook:build": "yarn workspace @scpca-portal/storybook storybook:build",
     "start": "next start",
     "lint": "biome lint",
     "format": "biome format --write",

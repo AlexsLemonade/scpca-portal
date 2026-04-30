@@ -1,5 +1,5 @@
 {
-  "name": "scpca-portal-storybook",
+  "name": "@scpca-portal/storybook",
   "version": "0.1.0",
   "private": true,
   "packageManager": "yarn@3.6.3",
@@ -9,7 +9,7 @@
     "storybook:update-data": "API_HOST=https://api.staging.scpca.alexslemonade.org API_VERSION=v1 node ./.storybook/scripts/update-data.js"
   },
   "dependencies": {
-    "scpca-portal-app": "workspace:*"
+    "@scpca-portal/app": "workspace:*"
   },
   "devDependencies": {
     "@storybook/nextjs": "^10.2.17",
