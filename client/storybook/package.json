@@ -4,8 +4,8 @@
   "private": true,
   "packageManager": "yarn@3.6.3",
   "scripts": {
-    "storybook": "storybook dev -p 7001",
-    "storybook:build": "storybook build",
+    "storybook": "storybook dev -p 7001 --config-dir .",
+    "storybook:build": "storybook build --config-dir .",
     "storybook:update-data": "API_HOST=https://api.staging.scpca.alexslemonade.org API_VERSION=v1 node ./.storybook/scripts/update-data.js"
   },
   "dependencies": {
