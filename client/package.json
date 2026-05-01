@@ -1,48 +1,24 @@
 {
-  "name": "scpca-portal",
+  "name": "@scpca-portal",
   "version": "0.1.0",
   "private": true,
   "packageManager": "yarn@3.6.3",
+  "workspaces": [
+    "app",
+    "storybook"
+  ],
   "scripts": {
-    "dev": "next dev --webpack",
-    "build": "next build --webpack",
+    "dev": "yarn workspace @scpca-portal/app dev",
+    "build": "yarn workspace @scpca-portal/app build",
+    "build:local": "API_HOST=https://api.scpca.alexslemonade.org API_VERSION=v1 yarn build",
+    "storybook": "yarn workspace @scpca-portal/storybook storybook",
+    "storybook:build": "yarn workspace @scpca-portal/storybook storybook:build",
     "start": "next start",
     "lint": "biome lint",
     "format": "biome format --write",
-    "check": "biome check",
-    "storybook": "storybook dev -p 7001",
-    "build-storybook": "storybook build",
-    "storybook:update-data": "API_HOST=https://api.staging.scpca.alexslemonade.org API_VERSION=v1 node ./.storybook/scripts/update-data.js"
-  },
-  "dependencies": {
-    "@sentry/react": "^10.37.0",
-    "@svgr/webpack": "^8.1.0",
-    "@tanstack/match-sorter-utils": "^8.19.4",
-    "@tanstack/react-table": "^8.21.3",
-    "grommet": "^2.53.0",
-    "grommet-icons": "^4.14.0",
-    "http-proxy-middleware": "^3.0.5",
-    "isomorphic-unfetch": "^3.1.0",
-    "next": "^16.1.6",
-    "raw-loader": "^4.0.2",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-ga4": "^1.4.1",
-    "regenerator-runtime": "^0.14.0",
-    "styled-components": "^5.3.0",
-    "styled-reset": "^4.3.4",
-    "yup": "^0.32.9"
+    "check": "biome check"
   },
   "devDependencies": {
-    "@babel/core": "^7.15.0",
-    "@biomejs/biome": "^2.4.6",
-    "@storybook/nextjs": "^10.2.17",
-    "babel-loader": "^8.2.2",
-    "babel-preset-airbnb": "^5.0.0",
-    "babel-preset-next": "^1.4.0",
-    "dotenv-webpack": "^7.1.0",
-    "globals": "^17.2.0",
-    "semver": "^7.7.3",
-    "storybook": "^10.2.17"
+    "@biomejs/biome": "^2.4.6"
   }
 }

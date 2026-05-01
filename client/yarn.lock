@@ -3586,6 +3586,57 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@scpca-portal/app@workspace:*, @scpca-portal/app@workspace:app":
+  version: 0.0.0-use.local
+  resolution: "@scpca-portal/app@workspace:app"
+  dependencies:
+    "@babel/core": ^7.15.0
+    "@biomejs/biome": ^2.4.6
+    "@sentry/react": ^10.37.0
+    "@svgr/webpack": ^8.1.0
+    "@tanstack/match-sorter-utils": ^8.19.4
+    "@tanstack/react-table": ^8.21.3
+    babel-loader: ^8.2.2
+    babel-preset-airbnb: ^5.0.0
+    babel-preset-next: ^1.4.0
+    dotenv-webpack: ^7.1.0
+    globals: ^17.2.0
+    grommet: ^2.53.0
+    grommet-icons: ^4.14.0
+    http-proxy-middleware: ^3.0.5
+    isomorphic-unfetch: ^3.1.0
+    next: ^16.1.6
+    raw-loader: ^4.0.2
+    react: ^19.2.4
+    react-dom: ^19.2.4
+    react-ga4: ^1.4.1
+    regenerator-runtime: ^0.14.0
+    semver: ^7.7.3
+    styled-components: ^5.3.0
+    styled-reset: ^4.3.4
+    yup: ^0.32.9
+  languageName: unknown
+  linkType: soft
+
+"@scpca-portal/storybook@workspace:storybook":
+  version: 0.0.0-use.local
+  resolution: "@scpca-portal/storybook@workspace:storybook"
+  dependencies:
+    "@scpca-portal/app": "workspace:*"
+    "@storybook/nextjs": ^10.2.17
+    storybook: ^10.2.17
+    typescript: ^6.0.3
+  languageName: unknown
+  linkType: soft
+
+"@scpca-portal@workspace:.":
+  version: 0.0.0-use.local
+  resolution: "@scpca-portal@workspace:."
+  dependencies:
+    "@biomejs/biome": ^2.4.6
+  languageName: unknown
+  linkType: soft
+
 "@sentry-internal/browser-utils@npm:10.38.0":
   version: 10.38.0
   resolution: "@sentry-internal/browser-utils@npm:10.38.0"
@@ -9315,40 +9366,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"scpca-portal@workspace:.":
-  version: 0.0.0-use.local
-  resolution: "scpca-portal@workspace:."
-  dependencies:
-    "@babel/core": ^7.15.0
-    "@biomejs/biome": ^2.4.6
-    "@sentry/react": ^10.37.0
-    "@storybook/nextjs": ^10.2.17
-    "@svgr/webpack": ^8.1.0
-    "@tanstack/match-sorter-utils": ^8.19.4
-    "@tanstack/react-table": ^8.21.3
-    babel-loader: ^8.2.2
-    babel-preset-airbnb: ^5.0.0
-    babel-preset-next: ^1.4.0
-    dotenv-webpack: ^7.1.0
-    globals: ^17.2.0
-    grommet: ^2.53.0
-    grommet-icons: ^4.14.0
-    http-proxy-middleware: ^3.0.5
-    isomorphic-unfetch: ^3.1.0
-    next: ^16.1.6
-    raw-loader: ^4.0.2
-    react: ^19.2.4
-    react-dom: ^19.2.4
-    react-ga4: ^1.4.1
-    regenerator-runtime: ^0.14.0
-    semver: ^7.7.3
-    storybook: ^10.2.17
-    styled-components: ^5.3.0
-    styled-reset: ^4.3.4
-    yup: ^0.32.9
-  languageName: unknown
-  linkType: soft
-
 "semver@npm:^6.0.0, semver@npm:^6.3.1":
   version: 6.3.1
   resolution: "semver@npm:6.3.1"
@@ -10167,6 +10184,26 @@ __metadata:
     es-errors: ^1.3.0
     is-typed-array: ^1.1.14
   checksum: 3fb91f0735fb413b2bbaaca9fabe7b8fc14a3fa5a5a7546bab8a57e755be0e3788d893195ad9c2b842620592de0e68d4c077d4c2c41f04ec25b8b5bb82fa9a80
+  languageName: node
+  linkType: hard
+
+"typescript@npm:^6.0.3":
+  version: 6.0.3
+  resolution: "typescript@npm:6.0.3"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: c1182dfadf8a8cb22a4e32442715afef1af1b950ae635b1c52c27e0d7fb7a5e2607ed7c7c4079bba4163579250e02445fd8d46b09cbceda71ff72a5b7d69db61
+  languageName: node
+  linkType: hard
+
+"typescript@patch:typescript@^6.0.3#~builtin<compat/typescript>":
+  version: 6.0.3
+  resolution: "typescript@patch:typescript@npm%3A6.0.3#~builtin<compat/typescript>::version=6.0.3&hash=f3b441"
+  bin:
+    tsc: bin/tsc
+    tsserver: bin/tsserver
+  checksum: 8ed159a81ab4901a620c19fda539632cee610f8ec34dde57a3acc6b6df72894ad0b50bdd1946b763313d9b73dedb019d2e81c03eff06c0f2c785cde30a537d15
   languageName: node
   linkType: hard
 
