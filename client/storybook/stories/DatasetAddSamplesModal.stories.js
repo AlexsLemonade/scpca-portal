@@ -1,6 +1,6 @@
 import React from 'react'
 import { DatasetAddSamplesModal } from '@scpca-portal/app/components/DatasetAddSamplesModal'
-import project from 'data/project.json'
+import project from '@scpca-portal/storybook/data/project.json'
 
 export default {
   title: 'Components/DatasetAddSamplesModal',

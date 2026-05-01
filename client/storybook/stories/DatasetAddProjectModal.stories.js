@@ -2,7 +2,7 @@ import React from 'react'
 import 'regenerator-runtime/runtime'
 import { Box, Heading } from 'grommet'
 import { DatasetAddProjectModal } from '@scpca-portal/app/components/DatasetAddProjectModal'
-import projects from 'data/projects.json'
+import projects from '@scpca-portal/storybook/data/projects.json'
 
 const projectIds = {
     SCPCP000001: 'Single-cell with Bulk RNA-seq',

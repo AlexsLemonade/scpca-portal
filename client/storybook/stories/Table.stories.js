@@ -1,7 +1,7 @@
 import React from 'react'
 import { Box } from 'grommet'
 import { Table } from '@scpca-portal/app/components/Table'
-import project from 'data/project.json'
+import project from '@scpca-portal/storybook/data/project.json'
 
 const columns = [
   { header: 'Technologies', accessorKey: 'technologies' },

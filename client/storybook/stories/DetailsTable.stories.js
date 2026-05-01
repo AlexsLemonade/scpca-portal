@@ -1,6 +1,6 @@
 import React from 'react'
 import { DetailsTable } from '@scpca-portal/app/components/DetailsTable'
-import project from 'data/project.json'
+import project from '@scpca-portal/storybook/data/project.json'
 
 const defaultData = [
   { label: 'String', value: 'This is a string.' },

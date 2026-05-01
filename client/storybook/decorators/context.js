@@ -3,7 +3,7 @@ import { ScPCAPortalContextProvider } from '@scpca-portal/app/contexts/ScPCAPort
 import { NotificationContextProvider } from '@scpca-portal/app/contexts/NotificationContext'
 import { MyDatasetContextProvider } from '@scpca-portal/app/contexts/MyDatasetContext'
 import { CCDLDatasetDownloadModalContextProvider } from '@scpca-portal/app/contexts/CCDLDatasetDownloadModalContext'
-import dataset from '../data/dataset.json'
+import dataset from '@scpca-portal/storybook/data/dataset.json'
 
 const Context = Story => {
   if (typeof window !== 'undefined') {
