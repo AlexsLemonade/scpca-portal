@@ -1,5 +1,5 @@
 import React from 'react'
-import { ProjectSearchResult } from 'components/ProjectSearchResult'
+import { ProjectSearchResult } from '@scpca-portal/app/components/ProjectSearchResult'
 import project from 'data/project.json'
 import dataset from 'data/dataset.json'
 

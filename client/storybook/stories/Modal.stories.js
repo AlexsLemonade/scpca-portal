@@ -1,6 +1,6 @@
 import React from 'react'
-import { Modal } from 'components/Modal'
-import { Button } from 'components/Button'
+import { Modal } from '@scpca-portal/app/components/Modal'
+import { Button } from '@scpca-portal/app/components/Button'
 
 export default {
   title: 'Components/Modal'

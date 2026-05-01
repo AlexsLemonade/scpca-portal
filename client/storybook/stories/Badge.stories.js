@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box } from 'grommet'
-import { Badge } from 'components/Badge'
+import { Badge } from '@scpca-portal/app/components/Badge'
 
 const badges = ['Kit', 'Modality', 'SeqUnit', 'Samples']
 

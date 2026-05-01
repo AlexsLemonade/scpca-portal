@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box, Paragraph } from 'grommet'
-import { Pill, NumberPill } from 'components/Pill'
+import { Pill, NumberPill } from '@scpca-portal/app/components/Pill'
 
 const numbers = [1, 10, 100, 1000, 1500, 3500, 10000, 25000, 255000, 15000000]
 

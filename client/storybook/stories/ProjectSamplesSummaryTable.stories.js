@@ -1,5 +1,5 @@
 import React from 'react'
-import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
+import { ProjectSamplesSummaryTable } from '@scpca-portal/app/components/ProjectSamplesSummaryTable'
 import project from 'data/project.json'
 
 export default {

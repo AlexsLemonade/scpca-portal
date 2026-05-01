@@ -1,5 +1,5 @@
 import React from 'react'
-import { ProjectHeader } from 'components/ProjectHeader'
+import { ProjectHeader } from '@scpca-portal/app/components/ProjectHeader'
 import project from 'data/project.json'
 
 export default {

@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box } from 'grommet'
-import { MyDatasetButton } from 'components/MyDatasetButton'
+import { MyDatasetButton } from '@scpca-portal/app/components/MyDatasetButton'
 
 export default {
   title: 'Components/MyDatasetButton',

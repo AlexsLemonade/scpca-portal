@@ -1,8 +1,7 @@
 import React from "react"
-import { useNotification } from 'hooks/useNotification'
-import { Box } from 'grommet'
-import { Button } from 'components/Button'
-import { Notifications } from 'components/Notifications'
+import { useNotification } from '@scpca-portal/app/hooks/useNotification'
+import { Button } from '@scpca-portal/app/components/Button'
+import { Notifications } from '@scpca-portal/app/components/Notifications'
 
 export default {
     title: 'Components/Notifications'

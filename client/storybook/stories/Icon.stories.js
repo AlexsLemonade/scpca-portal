@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box } from 'grommet'
-import { SVGs, Icon } from 'components/Icon'
+import { SVGs, Icon } from '@scpca-portal/app/components/Icon'
 
 export default {
   title: 'Components/Icon',

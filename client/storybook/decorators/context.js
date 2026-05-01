@@ -1,8 +1,8 @@
 import React from 'react'
-import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
-import { NotificationContextProvider } from 'contexts/NotificationContext'
-import { MyDatasetContextProvider } from 'contexts/MyDatasetContext'
-import { CCDLDatasetDownloadModalContextProvider } from 'contexts/CCDLDatasetDownloadModalContext'
+import { ScPCAPortalContextProvider } from '@scpca-portal/app/contexts/ScPCAPortalContext'
+import { NotificationContextProvider } from '@scpca-portal/app/contexts/NotificationContext'
+import { MyDatasetContextProvider } from '@scpca-portal/app/contexts/MyDatasetContext'
+import { CCDLDatasetDownloadModalContextProvider } from '@scpca-portal/app/contexts/CCDLDatasetDownloadModalContext'
 import dataset from '../data/dataset.json'
 
 const Context = Story => {

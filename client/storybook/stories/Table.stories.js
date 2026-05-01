@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box } from 'grommet'
-import { Table } from 'components/Table'
+import { Table } from '@scpca-portal/app/components/Table'
 import project from 'data/project.json'
 
 const columns = [

@@ -1,5 +1,5 @@
 import React from 'react'
-import { DatasetHero } from 'components/DatasetHero'
+import { DatasetHero } from '@scpca-portal/app/components/DatasetHero'
 
   const datasets = [{
       id: 1,

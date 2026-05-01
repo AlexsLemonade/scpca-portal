@@ -1,5 +1,5 @@
 import React from 'react'
-import { DetailsTable } from 'components/DetailsTable'
+import { DetailsTable } from '@scpca-portal/app/components/DetailsTable'
 import project from 'data/project.json'
 
 const defaultData = [

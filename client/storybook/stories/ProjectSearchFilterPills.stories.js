@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box } from 'grommet'
-import { ProjectSearchFilterPills } from 'components/ProjectSearchFilterPills'
+import { ProjectSearchFilterPills } from '@scpca-portal/app/components/ProjectSearchFilterPills'
 
 const filters = {
   one: ['a filter option', 'filter option number two', 'another filter option']

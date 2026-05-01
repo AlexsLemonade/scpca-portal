@@ -1,5 +1,5 @@
 import React from 'react'
-import { DatasetDownloadModal } from 'components/DatasetDownloadModal'
+import { DatasetDownloadModal } from '@scpca-portal/app/components/DatasetDownloadModal'
 
 export default {
   title: 'Components/DatasetDownloadModal',

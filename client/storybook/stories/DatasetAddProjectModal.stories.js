@@ -1,7 +1,7 @@
 import React from 'react'
 import 'regenerator-runtime/runtime'
 import { Box, Heading } from 'grommet'
-import { DatasetAddProjectModal } from 'components/DatasetAddProjectModal'
+import { DatasetAddProjectModal } from '@scpca-portal/app/components/DatasetAddProjectModal'
 import projects from 'data/projects.json'
 
 const projectIds = {

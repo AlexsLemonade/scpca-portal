@@ -1,9 +1,9 @@
 import React, { useState } from 'react'
 import { Box, Grid } from 'grommet'
-import { Button } from 'components/Button'
-import { DatasetDownloadStarted } from 'components/DatasetDownloadStarted'
-import { Modal, ModalBody } from 'components/Modal'
-import { getReadable } from 'helpers/getReadable'
+import { Button } from '@scpca-portal/app/components/Button'
+import { DatasetDownloadStarted } from '@scpca-portal/app/components/DatasetDownloadStarted'
+import { Modal, ModalBody } from '@scpca-portal/app/components/Modal'
+import { getReadable } from '@scpca-portal/app/helpers/getReadable'
 
 const datasets = [
     {

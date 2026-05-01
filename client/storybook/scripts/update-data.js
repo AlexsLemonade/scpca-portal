@@ -2,7 +2,7 @@
 // Data should be repopulated once, each time storybook is booted up
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { request } from './../../src/helpers/request.js'
+import { request } from '@scpca-portal/app/helpers/request.js'
 
 // These projects represent the permutations of all projects. They were chosen as follows:
 //    - SCPCP000001: This project has single cell sce and anndata, along with bulk
