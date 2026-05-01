@@ -1,7 +1,7 @@
 import React from 'react'
 import { Grid } from 'grommet'
 import { useResponsive } from '@scpca-portal/app/hooks/useResponsive'
-import { DatasetPortalWideDownloadCard } from '@scpca-portal/app/DatasetPortalWideDownloadCard'
+import { DatasetPortalWideDownloadCard } from '@scpca-portal/app/components/DatasetPortalWideDownloadCard'
 
 
 const datasets = [
