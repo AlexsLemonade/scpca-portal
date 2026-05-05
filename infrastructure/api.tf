@@ -68,7 +68,6 @@ resource "aws_instance" "api_server_1" {
           sentry_env                            = var.sentry_env
           slack_notifications_email             = var.slack_notifications_email
           enable_feature_preview                = var.enable_feature_preview
-          scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
       })
       start_api_with_migrations = templatefile(
         "api-configuration/start_api_with_migrations.tpl.sh",
@@ -83,6 +82,12 @@ resource "aws_instance" "api_server_1" {
         {
           dockerhub_account = var.dockerhub_account
       })
+      certbot_renew_deploy_hook_script = templatefile(
+        "api-configuration/certbot_renew_deploy_hook.sh",
+        {
+          scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
+        }
+      )
       user   = var.user
       stage  = var.stage
       region = var.region
@@ -92,6 +97,7 @@ resource "aws_instance" "api_server_1" {
       nginx_error_log_stream     = aws_cloudwatch_log_stream.log_stream_api_nginx_error.name
       sync_batch_jobs_log_stream = aws_cloudwatch_log_stream.log_stream_api_sync_batch_jobs.name
       submit_pending_log_stream  = aws_cloudwatch_log_stream.log_stream_api_submit_pending.name
+      certbot_renew_log_stream   = aws_cloudwatch_log_stream.log_stream_api_cerbot_renew.name
   })
 
   tags = merge(
