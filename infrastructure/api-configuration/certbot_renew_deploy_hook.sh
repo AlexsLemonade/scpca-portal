@@ -1,6 +1,6 @@
 #!/bin/bash
 
-source /home/ubuntu/environment
+SCPCA_PORTAL_CERT_BUCKET=${scpca_portal_cert_bucket}
 LOG="/var/log/cron/certbot_renew.log"
 
 echo "$(date): Cert renewed. Syncing cert with S3 and reloading Ngninx." >> "$LOG"

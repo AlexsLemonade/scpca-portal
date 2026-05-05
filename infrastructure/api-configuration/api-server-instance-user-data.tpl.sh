@@ -116,6 +116,12 @@ cat <<EOF >awslogs.json
                         "log_group_name": "${log_group}",
                         "log_stream_name": "${submit_pending_log_stream}",
                         "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/cron/certbot_renew.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${certbot_renew_log_stream}",
+                        "retention_in_days": 30
                     }
 
                 ]
@@ -157,11 +163,36 @@ echo "
     daily
     maxage 3
 }" >> /etc/logrotate.conf
+echo "
+/var/log/cron/submit_pending.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/certbot_renew.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
 
 # Install our environment variables
 cat <<"EOF" > environment
 ${api_environment}
 EOF
+
+# Install the post deploy script for auto-renewing ssl certs
+cat <<"EOF" > certbot_renew_deploy_hook.sh
+${certbot_renew_deploy_hook.sh}
+EOF
+
+chmod +x ./certbot_renew_deploy_hook.sh
 
 # Install the script to run commands
 cat <<"EOF" > run_command.sh
