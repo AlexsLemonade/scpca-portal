@@ -1,0 +1,22 @@
+#!/bin/bash
+
+source /home/ubuntu/environment
+LOG="/var/log/cron/certbot_renew.log"
+
+echo "$(date): Cert renewed. Syncing cert with S3 and reloading Ngninx." >> "$LOG"
+
+# Add the nginx.conf file that certbot setup to the zip dir.
+cp /etc/nginx/nginx.conf /etc/letsencrypt/
+
+cd /etc/letsencrypt/ || exit
+sudo zip -r ../letsencryptdir.zip "../$(basename "$PWD")"
+
+# Cleanup the extra copy.
+rm /etc/letsencrypt/nginx.conf
+
+# Sync with S3
+aws s3 cp /etc/letsencryptdir.zip "s3://${SCPCA_PORTAL_CERT_BUCKET}/"
+rm /etc/letsencryptdir.zip
+
+systemctl reload nginx
+echo "$(date): Syncing complete and Nginx reloaded." >> "$LOG"
