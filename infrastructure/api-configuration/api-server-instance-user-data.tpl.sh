@@ -26,6 +26,13 @@ sudo mkdir /var/log/cron
 cat <<"EOF" >crontab.txt
 ${crontab_file}
 EOF
+
+if [[ ${stage} == "staging" || ${stage} == "prod "]]; then
+    cat <<"EOF" >>crontab.txt
+${certbot_crontab_entry}
+EOF
+fi
+
 crontab crontab.txt
 rm crontab.txt
 
