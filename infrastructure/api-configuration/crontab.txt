@@ -1,2 +1,3 @@
 */10 * * * * cd /home/ubuntu && ./run_command.sh sync_batch_jobs >> /var/log/cron/sync_batch_jobs.log 2>&1
 */30 * * * * cd /home/ubuntu && ./run_command.sh submit_pending >> /var/log/cron/submit_pending.log 2>&1
+0 0 * * * certbot renew --quiet --deploy-hook "./certbot_renew_deploy_hook.sh" >> /var/log/cron/certbot_renew.log 2>&1
