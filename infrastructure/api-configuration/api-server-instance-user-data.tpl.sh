@@ -194,19 +194,21 @@ cat <<"EOF" > environment
 ${api_environment}
 EOF
 
-# Install the post deploy script for auto-renewing ssl certs
-cat <<"EOF" > certbot_renew_deploy_hook.sh
-${certbot_renew_deploy_hook_script}
-EOF
-
-chmod +x ./certbot_renew_deploy_hook.sh
-
 # Install the script to run commands
 cat <<"EOF" > run_command.sh
 ${run_command_script}
 EOF
 
 chmod +x ./run_command.sh
+
+# Conditionally install the post deploy script for auto-renewing ssl certs
+if [[ ${stage} == "staging" || ${stage} == "prod "]]; then
+	cat <<"EOF" > certbot_renew_deploy_hook.sh
+${certbot_renew_deploy_hook_script}
+EOF
+
+chmod +x ./certbot_renew_deploy_hook.sh
+fi
 
 # Install the API startup script
 cat <<"EOF" > start_api_with_migrations.sh
