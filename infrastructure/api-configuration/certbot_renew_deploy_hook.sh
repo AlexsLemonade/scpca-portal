@@ -15,7 +15,7 @@ sudo zip -r letsencryptdir.zip letsencrypt/
 rm /etc/letsencrypt/nginx.conf
 
 # Sync with S3
-aws s3 cp letsencryptdir.zip "s3://${SCPCA_PORTAL_CERT_BUCKET}/"
+aws s3 cp letsencryptdir.zip "s3://$SCPCA_PORTAL_CERT_BUCKET/"
 rm letsencryptdir.zip
 
 systemctl reload nginx

@@ -86,8 +86,7 @@ resource "aws_instance" "api_server_1" {
         "api-configuration/certbot_renew_deploy_hook.sh",
         {
           scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
-        }
-      )
+      })
       user   = var.user
       stage  = var.stage
       region = var.region

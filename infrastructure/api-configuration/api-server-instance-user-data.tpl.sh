@@ -189,7 +189,7 @@ EOF
 
 # Install the post deploy script for auto-renewing ssl certs
 cat <<"EOF" > certbot_renew_deploy_hook.sh
-${certbot_renew_deploy_hook.sh}
+${certbot_renew_deploy_hook_script}
 EOF
 
 chmod +x ./certbot_renew_deploy_hook.sh

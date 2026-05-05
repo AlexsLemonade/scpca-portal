@@ -39,7 +39,7 @@ resource "aws_cloudwatch_log_stream" "log_stream_api_submit_pending" {
   log_group_name = aws_cloudwatch_log_group.scpca_portal_log_group.name
 }
 
-resource "aws_cloudwatch_log_stream" "log_stream_cerbot_renew" {
-  name = "log-stream-cerbot-renew-${var.user}-${var.stage}"
+resource "aws_cloudwatch_log_stream" "log_stream_api_cerbot_renew" {
+  name = "log-stream-api-cerbot-renew-${var.user}-${var.stage}"
   log_group_name = aws_cloudwatch_log_group.scpca_portal_log_group.name
 }
