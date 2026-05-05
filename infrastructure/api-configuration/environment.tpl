@@ -18,3 +18,4 @@ SENTRY_DSN=${sentry_dsn}
 SENTRY_ENV=${sentry_env}
 SLACK_NOTIFICATIONS_EMAIL=${slack_notifications_email}
 ENABLE_FEATURE_PREVIEW=${enable_feature_preview}
+SCPCA_PORTAL_CERT_BUCKET={scpca_portal_cert_bucket}

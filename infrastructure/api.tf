@@ -68,6 +68,7 @@ resource "aws_instance" "api_server_1" {
           sentry_env                            = var.sentry_env
           slack_notifications_email             = var.slack_notifications_email
           enable_feature_preview                = var.enable_feature_preview
+          scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
       })
       start_api_with_migrations = templatefile(
         "api-configuration/start_api_with_migrations.tpl.sh",
