@@ -1,4 +1,4 @@
-import theme from '@scpca-portal/storybook/decorators/theme'
-import context from '@scpca-portal/storybook/decorators/context'
+import theme from 'decorators/theme'
+import context from 'decorators/context'
 
 export const decorators = [theme, context]

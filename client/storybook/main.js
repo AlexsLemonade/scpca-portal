@@ -19,9 +19,10 @@ export default {
 
 	webpackFinal: async (config) => {
 		// Add src to imports (so this works with app webpack config)
-		config.resolve.alias['@scpca-portal/storybook'] = path.resolve(__dirname, '.')
-		config.resolve.alias['@scpca-portal/app'] = path.resolve(__dirname, './../app/src')
 		config.resolve.modules.push(path.resolve(__dirname, './../app/src'))
+		config.resolve.alias['@scpca-portal/app'] = path.resolve(__dirname, './../app/src')
+		config.resolve.alias['data'] = path.resolve(__dirname, './data')
+		config.resolve.alias['decorators'] = path.resolve(__dirname, './decorators')
 
 		// As webpack 5 and on don't include polyfills, disable the unnecessary error
 		config.resolve.fallback = {
