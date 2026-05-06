@@ -136,9 +136,8 @@ const Project = ({ project, ccdlDatasets }) => {
                     {
                       label: 'Contact Information',
                       value:
-                        project.contacts.length > 0 ? (
-                          <>
-                            {project.contacts.map((contact, i) => (
+                        project.contacts.length > 0
+                          ? project.contacts.map((contact, i) => (
                               <Text key={contact}>
                                 {i ? ', ' : ''}
                                 <Link
@@ -147,11 +146,8 @@ const Project = ({ project, ccdlDatasets }) => {
                                   href={`mailto:${contact.email}`}
                                 />
                               </Text>
-                            ))}
-                          </>
-                        ) : (
-                          ''
-                        )
+                            ))
+                          : ''
                     },
                     {
                       label: 'Additional Restrictions',

@@ -3,8 +3,26 @@ from rest_framework.exceptions import PermissionDenied
 
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
+from scpca_portal import filter
 from scpca_portal.models import APIToken, CCDLDataset
 from scpca_portal.serializers import CCDLDatasetDetailSerializer, CCDLDatasetSerializer
+
+CCDLDatasetFilterSet = filter.build_auto_filterset(
+    CCDLDataset,
+    auto_fields=[
+        "id",
+        "format",
+        "ccdl_name",
+        "ccdl_project_id",
+        "ccdl_modality",
+        "ccdl_is_merged",
+        "includes_files_bulk",
+        "includes_files_cite_seq",
+        "includes_files_merged",
+        "includes_files_multiplexed",
+        "estimated_size_in_bytes",
+    ],
+)
 
 
 @extend_schema_view(
@@ -24,14 +42,7 @@ from scpca_portal.serializers import CCDLDatasetDetailSerializer, CCDLDatasetSer
 class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = CCDLDataset.objects.order_by("ccdl_project_id")
     ordering_fields = "__all__"
-    filterset_fields = {
-        "id": ["exact"],
-        "ccdl_name": ["exact"],
-        "ccdl_project_id": ["exact", "isnull"],
-        "ccdl_modality": ["exact"],
-        "ccdl_is_merged": ["exact"],
-        "format": ["exact"],
-    }
+    filterset_class = CCDLDatasetFilterSet
 
     def get_serializer_class(self):
         if self.action == "list":

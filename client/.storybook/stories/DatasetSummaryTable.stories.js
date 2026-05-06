@@ -1,8 +1,6 @@
-
 import React from 'react'
 import { Box } from 'grommet'
 import { DatasetSummaryTable } from 'components/DatasetSummaryTable'
-
 
 const data = [
   { 'Number of Samples/Project': 1, 'Samples/Project Modality': 'Single-cell samples', 'File Format': "SingleCellExperiment (.rds)" },

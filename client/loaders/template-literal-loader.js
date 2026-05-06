@@ -5,6 +5,5 @@
 
 module.exports = (source) => {
   const formatted = source.replace(/`/g, '\\`')
-  // eslint-disable-next-line
   return eval(`\`${formatted}\``)
 }

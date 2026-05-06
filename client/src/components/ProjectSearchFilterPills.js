@@ -4,32 +4,30 @@ import { Icon } from 'components/Icon'
 import { getReadable } from 'helpers/getReadable'
 import { useAnalytics } from 'hooks/useAnalytics'
 
-export const FilterPill = ({ option, onRemove }) => {
-  return (
+export const FilterPill = ({ option, onRemove }) => (
+  <Box
+    direction="row"
+    onClick={onRemove}
+    margin={{ right: 'medium', bottom: 'medium' }}
+  >
     <Box
-      direction="row"
-      onClick={onRemove}
-      margin={{ right: 'medium', bottom: 'medium' }}
+      background="alexs-light-blue-tint-60"
+      pad={{ horizontal: 'small' }}
+      round={{ corner: 'left', size: '15px' }}
+      height="auto"
+      margin={{ right: 'xsmall' }}
     >
-      <Box
-        background="alexs-light-blue-tint-60"
-        pad={{ horizontal: 'small' }}
-        round={{ corner: 'left', size: '15px' }}
-        height="auto"
-        margin={{ right: 'xsmall' }}
-      >
-        {option}
-      </Box>
-      <Box
-        pad={{ horizontal: 'small' }}
-        justify="center"
-        background="alexs-light-blue-tint-60"
-      >
-        <Icon name="Cross" size="xsmall" color="black" />
-      </Box>
+      {option}
     </Box>
-  )
-}
+    <Box
+      pad={{ horizontal: 'small' }}
+      justify="center"
+      background="alexs-light-blue-tint-60"
+    >
+      <Icon name="Cross" size="xsmall" color="black" />
+    </Box>
+  </Box>
+)
 
 export const ProjectSearchFilterPills = ({
   filters: defaultFilters,

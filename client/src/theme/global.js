@@ -13,11 +13,8 @@ export default {
     xsmall: '1px'
   },
   breakpoints: {
-    large: {},
-    medium: {
-      value: '1024px'
-    },
     small: {
+      value: 1200,
       borderSize: {
         large: '4px',
         medium: '3px',
@@ -27,11 +24,11 @@ export default {
       },
       edgeSize: {
         hair: '1px',
-        large: '16px',
-        medium: '8px',
+        large: '32px',
+        medium: '16px',
         none: '0px',
-        small: '4px',
-        xlarge: '32px',
+        small: '8px',
+        xlarge: '40px',
         xsmall: '2px',
         xxsmall: '2px'
       },
@@ -43,8 +40,7 @@ export default {
         xlarge: '512px',
         xsmall: '32px',
         xxsmall: '16px'
-      },
-      value: 768
+      }
     }
   },
   colors: {

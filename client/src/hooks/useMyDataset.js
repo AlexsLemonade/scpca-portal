@@ -45,6 +45,8 @@ export const useMyDataset = () => {
   )
 
   // Clear dataset format once data is emptied
+  const isDatasetDataEmpty = Object.keys(myDataset.data).length === 0
+
   useEffect(() => {
     if (!isDatasetDataEmpty) return
     setMyDataset((prev) => ({ ...prev, format: '' }))
@@ -84,8 +86,6 @@ export const useMyDataset = () => {
   }
 
   /* Dataset-level */
-  const isDatasetDataEmpty = Object.keys(myDataset.data).length === 0
-
   const createMyDataset = async (dataset) => {
     if (!dataset.format) {
       return addError('A format is required to create a dataset.')

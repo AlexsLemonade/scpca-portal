@@ -46,7 +46,6 @@ export const Button = ({
 
   return (
     <GrommetButton
-      // eslint-disable-next-line react/jsx-props-no-spreading
       {...props}
       label={<ButtonLabel label={label} show={loading} />}
       disabled={disabled}

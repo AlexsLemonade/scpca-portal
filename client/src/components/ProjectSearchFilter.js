@@ -96,7 +96,11 @@ export const ProjectSearchFilter = ({
 
   return (
     <Box overflow="auto">
-      <Box pad={{ vertical: 'medium' }} border={{ side: 'bottom' }}>
+      <Box
+        height={{ min: 'auto' }}
+        pad={{ vertical: 'medium' }}
+        border={{ side: 'bottom' }}
+      >
         {filterOptions.models.map((f) => (
           <Box key={f} height={{ min: 'auto' }}>
             <CheckBox
