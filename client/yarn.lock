@@ -3586,9 +3586,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@scpca-portal/app@workspace:*, @scpca-portal/app@workspace:app":
+"@scpca/app@workspace:*, @scpca/app@workspace:app":
   version: 0.0.0-use.local
-  resolution: "@scpca-portal/app@workspace:app"
+  resolution: "@scpca/app@workspace:app"
   dependencies:
     "@babel/core": ^7.15.0
     "@biomejs/biome": ^2.4.6
@@ -3618,20 +3618,20 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@scpca-portal/storybook@workspace:storybook":
+"@scpca/storybook@workspace:storybook":
   version: 0.0.0-use.local
-  resolution: "@scpca-portal/storybook@workspace:storybook"
+  resolution: "@scpca/storybook@workspace:storybook"
   dependencies:
-    "@scpca-portal/app": "workspace:*"
+    "@scpca/app": "workspace:*"
     "@storybook/nextjs": ^10.2.17
     storybook: ^10.2.17
     typescript: ^6.0.3
   languageName: unknown
   linkType: soft
 
-"@scpca-portal@workspace:.":
+"@scpca@workspace:.":
   version: 0.0.0-use.local
-  resolution: "@scpca-portal@workspace:."
+  resolution: "@scpca@workspace:."
   dependencies:
     "@biomejs/biome": ^2.4.6
   languageName: unknown
