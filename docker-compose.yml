@@ -82,6 +82,7 @@ services:
     env_file: docker-compose.env
     command: >
       bash -c 'cd /home/user/code &&
+               yarn storybook:update-data &&
                yarn storybook --quiet -p ${STORYBOOK_PORT} --no-open'
     volumes:
       - ./client:/home/user/code

@@ -13,6 +13,7 @@
     "build:local": "API_HOST=https://api.scpca.alexslemonade.org API_VERSION=v1 yarn build",
     "storybook": "yarn workspace scpca-portal/storybook storybook",
     "storybook:build": "yarn workspace scpca-portal/storybook storybook:build",
+    "storybook:update-data": "yarn workspace scpca-portal/storybook storybook:update-data",
     "start": "next start",
     "lint": "biome lint",
     "format": "biome format --write",
