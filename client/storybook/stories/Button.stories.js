@@ -1,6 +1,6 @@
 import React from 'react'
 import { Box } from 'grommet'
-import { Button } from '@scpca-portal/app/components/Button'
+import { Button } from 'components/Button'
 
 const types = [
   { label: 'Default Button' },

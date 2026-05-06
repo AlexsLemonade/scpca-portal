@@ -1,5 +1,5 @@
 import React from 'react'
-import { DatasetMoveSamplesModal } from '@scpca-portal/app/components/DatasetMoveSamplesModal'
+import { DatasetMoveSamplesModal } from 'components/DatasetMoveSamplesModal'
 import dataset from 'data/dataset.json'
 
 
