@@ -27,12 +27,6 @@ cat <<"EOF" >crontab.txt
 ${crontab_file}
 EOF
 
-if [[ ${stage} == "staging" || ${stage} == "prod "]]; then
-    cat <<"EOF" >>crontab.txt
-${certbot_crontab_entry}
-EOF
-fi
-
 crontab crontab.txt
 rm crontab.txt
 
@@ -88,6 +82,15 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
         mv /etc/letsencrypt/nginx.conf /etc/nginx/
         service nginx restart
     fi
+
+	# Add certbot cert auto renewal to cron
+	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
+
+	# Write certbot cert auto renewal deploy script to instance
+	cat <<"EOF" > certbot_renew_deploy_hook.sh
+${certbot_renew_deploy_hook_script}
+EOF
+	chmod +x ./certbot_renew_deploy_hook.sh
 fi
 
 # Install, configure and launch our CloudWatch Logs agent
@@ -200,15 +203,6 @@ ${run_command_script}
 EOF
 
 chmod +x ./run_command.sh
-
-# Conditionally install the post deploy script for auto-renewing ssl certs
-if [[ ${stage} == "staging" || ${stage} == "prod "]]; then
-	cat <<"EOF" > certbot_renew_deploy_hook.sh
-${certbot_renew_deploy_hook_script}
-EOF
-
-chmod +x ./certbot_renew_deploy_hook.sh
-fi
 
 # Install the API startup script
 cat <<"EOF" > start_api_with_migrations.sh
