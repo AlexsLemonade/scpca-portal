@@ -36,6 +36,13 @@ export default class MyDocument extends Document {
 		  <meta property="og:type" content="website" />
 		  <meta property="og:url" content="https://scpca.alexslemonade.org/" />
 		  <meta property="og:image" content="#" />
+		  <meta property="og:description" content="#" />
+		  {/* Twitter Card Previews */}
+		  <meta property="twitter:card" content="summary" />
+		  <meta property="twitter:title" content="ScPCA Portal" />
+		  <meta property="twitter:site" content="@CancerDataLab" />
+		  <meta property="twitter:image" content="#" />
+		  <meta property="twitter:description" content="#" />
           {/* Google Analytics */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-3YR7L2222E"
