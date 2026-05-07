@@ -49,6 +49,7 @@ module.exports = () => {
 
 	return {
 		env,
+		distDir: '../.next',
 		productionBrowserSourceMaps: true,
 		webpack: (baseConfig) => {
 			const config = { ...baseConfig }
