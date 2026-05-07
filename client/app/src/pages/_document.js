@@ -47,7 +47,7 @@ export default class MyDocument extends Document {
 		  <meta property="twitter:image" content="#" />
 		  <meta
 			property="twitter:description"
-			content="Growing database of uniformly processed single-cell data from pediatric cancer tumors and model systems available for download."
+			content="Download uniformly processed single-cell data from pediatric cancer tumors and model systems."
 		  />
           {/* Google Analytics */}
           <Script
