@@ -56,11 +56,11 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
         # The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
         sleep 180
         BASE_URL="scpca.alexslemonade.org"
+		PREFIX="api"
         if [[ ${stage} == "staging" ]]; then
-            certbot --nginx -d api.staging.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
-        elif [[ ${stage} == "prod" ]]; then
-            certbot --nginx -d api.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
-        fi
+			PREFIX="$PREFIX.staging"
+		fi
+        certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
 
         # Add the nginx.conf file that certbot setup to the zip dir.
         cp /etc/nginx/nginx.conf /etc/letsencrypt/
