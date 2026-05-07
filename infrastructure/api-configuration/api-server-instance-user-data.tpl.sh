@@ -40,14 +40,15 @@ apt install docker-ce docker-ce-cli -y
 sudo usermod -a -G docker ubuntu && newgrp docker
 
 if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
+	# Create and install SSL Certificate for the API.
+	# Only necessary on staging and prod.
+	# We cannot use ACM for this because *.bio is not a Top Level Domain that Route53 supports.
+	# Certbot must be installed regardless of whether or not a cert is present because of the auto renewal cron job (see below).
+	apt-get update
+	apt install certbot python3-certbot-nginx -y
+
     # Check here for the cert in S3, if present install, if not run certbot.
     if [[ $(aws s3 ls "${scpca_portal_cert_bucket}" | wc -l) == "0" ]]; then
-        # Create and install SSL Certificate for the API.
-        # Only necessary on staging and prod.
-        # We cannot use ACM for this because *.bio is not a Top Level Domain that Route53 supports.
-        apt-get update
-        apt install certbot python3-certbot-nginx -y
-
         # g3w4k4t5n3s7p7v8@alexslemonade.slack.com is the email address we
         # have configured to forward mail to the #teamcontact channel in
         # slack. Certbot will use it for "important account
@@ -83,7 +84,7 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
         service nginx restart
     fi
 
-	# Add certbot cert auto renewal to cron
+	# Add certbot cert auto renewal entry to cron
 	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
 
 	# Write certbot cert auto renewal deploy script to instance
