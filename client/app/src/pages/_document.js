@@ -31,6 +31,11 @@ export default class MyDocument extends Document {
             href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:ital,wght@0,400;0,700;1,400&family=Zilla+Slab:wght@500&display=swap"
             rel="stylesheet"
           />
+		  {/* Open Graph Link Previews */}
+		  <meta property="og:title" content="ScPCA Portal" />
+		  <meta property="og:type" content="website" />
+		  <meta property="og:url" content="https://scpca.alexslemonade.org/" />
+		  <meta property="og:image" content="#" />
           {/* Google Analytics */}
           <Script
             src="https://www.googletagmanager.com/gtag/js?id=G-3YR7L2222E"
