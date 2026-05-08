@@ -10,6 +10,7 @@ module.exports = () => {
 	)
 
 	const productionEnv = {
+		SITE_URL: 'https://scpca.alexslemonade.org',
 		API_HOST: process.env.API_HOST,
 		API_VERSION: process.env.API_VERSION,
 		SENTRY_DSN: process.env.SENTRY_DSN,
@@ -28,6 +29,7 @@ module.exports = () => {
 	}
 
 	const stageEnv = {
+		SITE_URL: 'https://staging.scpca.alexslemonade.org',
 		API_HOST: process.env.STAGE_API_HOST,
 		API_VERSION: process.env.STAGE_API_VERSION,
 		SENTRY_DSN: process.env.STAGE_SENTRY_DSN,
