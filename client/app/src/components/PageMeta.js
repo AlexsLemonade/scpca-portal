@@ -29,7 +29,7 @@ export const PageMeta = ({ title = '', description = '' }) => {
   }
 
   const ogTitle = title.length > 0 ? `${title} - ${appName}` : appName
-  const ogDescription = description || config.meta.description
+  const ogDescription = description || config.description
   const ogUrl = `${config.url}${path}`
 
   return (

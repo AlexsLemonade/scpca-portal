@@ -114,8 +114,7 @@ const Home = ({ stats }) => {
         </Box>
         <Box width="medium" pad={{ top: 'large', bottom: 'large' }}>
           <Paragraph size="large" textAlign="center">
-            Growing database of uniformly processed single-cell data from
-            pediatric cancer tumors and model systems.
+            {config.description}
           </Paragraph>
         </Box>
         <Box pad={{ bottom: 'large' }}>
