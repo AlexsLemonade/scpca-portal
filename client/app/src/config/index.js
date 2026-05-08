@@ -1,6 +1,7 @@
 import { termsOfUse } from './markdownLinks'
 
 export const config = {
+  url: process.env.SITE_URL,
   links: {
     getting_started:
       'https://scpca.readthedocs.io/en/stable/getting_started.html',
@@ -87,7 +88,11 @@ export const config = {
     numbers: 'Phone: 866.333.1213 • Fax: 610.649.3038',
     email: 'scpca@ccdatalab.org'
   },
-  termsOfUse
+  termsOfUse,
+  meta: {
+    description:
+      'Growing database of uniformly processed single-cell data from pediatric cancer tumors and model systems.'
+  }
 }
 
 export default config
