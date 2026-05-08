@@ -1,6 +1,7 @@
 import { termsOfUse } from './markdownLinks'
 
 export const config = {
+  name: 'ScPCA Portal',
   url: process.env.SITE_URL,
   description:
     'Growing database of uniformly processed single-cell data from pediatric cancer tumors and model systems.',
