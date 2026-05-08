@@ -1,51 +1,39 @@
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import Head from 'next/head'
 import { useRouter } from 'next/router'
 import { config } from 'config'
 
-export const PageMeta = ({ title = '', description = '' }) => {
-  const router = useRouter()
-  const [path, setPath] = useState('')
+export const PageMeta = ({
+  title = '',
+  description = '',
+  url = '',
+  image = ''
+}) => {
+  const { asPath } = useRouter()
 
-  useEffect(() => {
-    setPath(router.asPath)
-  }, [router, path])
-
-  const appName = 'ScPCA Portal'
-  let pageTitle = ''
-
-  switch (true) {
-    case title.length > 0:
-      pageTitle = `${title} - `
-      break
-    case /\/projects/.test(path):
-      pageTitle = `Browse Projects - `
-      break
-    case /\/about$/.test(path):
-      pageTitle = `About - `
-      break
-    default:
-      break
+  const meta = {
+    title: title ? `${title} - ${config.name}` : config.name,
+    description: description || config.description,
+    url: url || `${config.url}${asPath}`,
+    image: image || '' // waiting on default image
   }
-
-  const ogTitle = title.length > 0 ? `${title} - ${appName}` : appName
-  const ogDescription = description || config.description
-  const ogUrl = `${config.url}${path}`
 
   return (
     <Head>
-      <title>{`${pageTitle}${appName}`}</title>
-      <meta key="description" name="description" content={ogDescription} />
-      <meta key="og:title" property="og:title" content={ogTitle} />
+      <title>{meta.title}</title>
+      <meta key="description" name="description" content={meta.description} />
+      <meta key="og:title" property="og:title" content={meta.title} />
       <meta key="og:type" property="og:type" content="website" />
-      <meta key="og:url" property="og:url" content={ogUrl} />
+      <meta key="og:url" property="og:url" content={meta.url} />
       <meta
         key="og:description"
         property="og:description"
-        content={ogDescription}
+        content={meta.description}
       />
+      <meta key="og:image" property="og:image" content={meta.image} />
+      {/* <meta key="og:image" property="og:image" content={meta.image} /> */}
       <meta key="twitter:card" property="twitter:card" content="summary" />
-      <meta key="twitter:title" property="twitter:title" content={ogTitle} />
+      <meta key="twitter:title" property="twitter:title" content={meta.title} />
       <meta
         key="twitter:site"
         property="twitter:site"
@@ -54,8 +42,9 @@ export const PageMeta = ({ title = '', description = '' }) => {
       <meta
         key="twitter:description"
         property="twitter:description"
-        content={ogDescription}
+        content={meta.description}
       />
+      {/* <meta key="twitter:image" property="twitter:image" content={meta.image} /> */}
     </Head>
   )
 }
