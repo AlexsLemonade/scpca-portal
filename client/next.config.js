@@ -3,7 +3,6 @@ const path = require('path')
 module.exports = () => {
   const isProduction = process.env.VERCEL_GIT_COMMIT_REF === 'main'
 
-  // eslint-disable-next-line no-console
   console.log(
     'CCDL BUILD LOG:',
     process.env.VERCEL_GIT_COMMIT_REF,

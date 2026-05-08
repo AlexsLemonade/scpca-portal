@@ -1,6 +1,6 @@
 import React from 'react'
 import { ProjectHeader } from 'components/ProjectHeader'
-import project from 'data/project'
+import project from 'data/project.json'
 
 export default {
   title: 'Components/ProjectHeader',

@@ -53,11 +53,9 @@ export const Notifications = () => {
 
   return (
     <>
-      {notifications.map((notification) => {
-        return (
-          <Notification key={notification.id} notification={notification} />
-        )
-      })}
+      {notifications.map((notification) => (
+        <Notification key={notification.id} notification={notification} />
+      ))}
     </>
   )
 }

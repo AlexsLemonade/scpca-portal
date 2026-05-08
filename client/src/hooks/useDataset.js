@@ -121,14 +121,14 @@ export const useDataset = () => {
     return datasetRequest.response
   }
 
-  const isProjectIncludeBulk = (dataset, project) =>
-    dataset.data?.[project.scpca_id]?.includes_bulk || false
+  const getProjectIsIncludeBulk = (dataset, project) =>
+    dataset.data[project.scpca_id]?.includes_bulk || false
 
-  const isProjectMerged = (dataset, project) =>
-    dataset?.data?.[project.scpca_id]?.SINGLE_CELL === 'MERGED'
+  const getProjectIsMerged = (dataset, project) =>
+    dataset.data[project.scpca_id]?.SINGLE_CELL === 'MERGED'
 
   const getDatasetProjectData = (dataset, project) =>
-    dataset?.data?.[project.scpca_id] || {}
+    dataset.data[project.scpca_id] || {}
 
   const getDatasetProjectDataSamples = (dataset, project) => {
     // Return added samples in each modalities and
@@ -265,8 +265,8 @@ export const useDataset = () => {
     process,
     regenerate,
     update,
-    isProjectIncludeBulk,
-    isProjectMerged,
+    getProjectIsIncludeBulk,
+    getProjectIsMerged,
     getDatasetProjectData,
     getDatasetProjectDataSamples,
     getDatasetProjectSamples,

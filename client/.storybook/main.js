@@ -1,18 +1,17 @@
 import * as path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 const envVars = {
-  API_HOST: 'http://localhost:8000',
-  API_VERSION: 'v1'
+  API_HOST: process.env.API_HOST || 'http://localhost:8000',
+  API_VERSION: process.env.API_VERSION || 'v1'
 }
 
-module.exports = {
-  addons: [
-    '@storybook/addon-storysource',
-    '@storybook/addon-links',
-    '@storybook/addon-essentials'
-  ],
+export default {
   framework: {
-    name: '@storybook/react-webpack5',
+    name: '@storybook/nextjs',
     options: {}
   },
   staticDirs: ['./../public'],
@@ -22,6 +21,13 @@ module.exports = {
     // Add src to imports (so this works with app webpack config)
     config.resolve.modules.push(path.resolve(__dirname, './../src'))
     config.resolve.alias['data'] = path.resolve(__dirname, './data')
+
+    // As webpack 5 and on don't include polyfills, disable the unnecessary error
+    config.resolve.fallback = {
+      ...(config.resolve.fallback || {}),
+      zlib: false
+    }
+
     // Add env vars for helpers
     config.plugins.forEach((plugin) => {
       if (Object.keys(plugin)[0] === 'definitions') {
@@ -31,6 +37,48 @@ module.exports = {
           )
         })
       }
+    })
+
+    // Add custom svg loading rule (taken from next.config.js file)
+    const svgLoaderRule = config.module.rules.find((r) =>
+      r.test?.test?.('.svg')
+    )
+    if (!svgLoaderRule) {
+      throw new Error('Could not find Next.js file loader rule for SVGs.')
+    }
+    // append `?url` to the import for an image source url
+    svgLoaderRule.resourceQuery = /url/
+
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      resourceQuery: { not: /url/ },
+      use: [
+        {
+          loader: '@svgr/webpack',
+          options: {
+            svgoConfig: {
+              plugins: [
+                {
+                  name: 'preset-default',
+                  params: {
+                    overrides: {
+                      cleanupIds: false,
+                      removeViewBox: false
+                    }
+                  }
+                },
+                {
+                  name: 'prefixIds',
+                  params: {
+                    prefix: true
+                  }
+                }
+              ]
+            }
+          }
+        }
+      ]
     })
 
     return config

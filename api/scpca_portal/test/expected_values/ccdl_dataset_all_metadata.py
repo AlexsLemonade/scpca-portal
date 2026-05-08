@@ -49,4 +49,5 @@ class CCDLDatasetAllMetadata:
         "ccdl_name": CCDL_NAME,
         "ccdl_project_id": None,
         "ccdl_modality": None,
+        "ccdl_is_merged": False,
     }

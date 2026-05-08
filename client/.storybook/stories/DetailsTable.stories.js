@@ -1,6 +1,6 @@
 import React from 'react'
 import { DetailsTable } from 'components/DetailsTable'
-import project from 'data/project'
+import project from 'data/project.json'
 
 const defaultData = [
   { label: 'String', value: 'This is a string.' },

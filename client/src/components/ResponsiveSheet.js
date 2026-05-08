@@ -17,7 +17,7 @@ export const ResponsiveSheet = ({
   children
 }) => {
   const { size } = useResponsive()
-  if (size === 'large') return children
+  if (size !== 'small') return children
   return (
     <>
       <Button

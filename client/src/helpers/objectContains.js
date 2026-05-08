@@ -8,8 +8,7 @@
  * objectContains({ a: 'a', b: 'b', c: 'c' }, { a: 'a', b: 'b' }) // true
  * objectContains({ a: 'a', b: 'b', c: 'c' }, { a: 'a', d: 'd' }) // false
  */
-export const objectContains = (source, contains = {}) => {
-  return !Object.entries(contains).find(([key, value]) => source[key] !== value)
-}
+export const objectContains = (source, contains = {}) =>
+  !Object.entries(contains).find(([key, value]) => source[key] !== value)
 
 export default objectContains

@@ -1,4 +1,3 @@
-/* eslint-disable import/prefer-default-export */
 import { createGlobalStyle } from 'styled-components'
 import reset from 'styled-reset'
 

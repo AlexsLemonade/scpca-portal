@@ -15,8 +15,11 @@ import { Loader } from 'components/Loader'
 export const ViewSamples = ({ dataset, project }) => {
   const { asPath, back } = useRouter()
   const { setRestoreFromDestination } = useScrollRestore()
-  const { isProjectIncludeBulk, isProjectMerged, getDatasetProjectSamples } =
-    useDataset()
+  const {
+    getProjectIsIncludeBulk,
+    getProjectIsMerged,
+    getDatasetProjectSamples
+  } = useDataset()
 
   const [loading, setLoading] = useState(true)
   const [samples, setSamples] = useState([])
@@ -30,8 +33,8 @@ export const ViewSamples = ({ dataset, project }) => {
     // Filter to display only samples from dataset
     setSamples(getDatasetProjectSamples(dataset, project))
     // Preselect download options based on the values in dataset
-    setIncludeBulk(isProjectIncludeBulk(dataset, project))
-    setIncludeMerge(isProjectMerged(dataset, project))
+    setIncludeBulk(getProjectIsIncludeBulk(dataset, project))
+    setIncludeMerge(getProjectIsMerged(dataset, project))
     setLoading(false)
   }, [])
 

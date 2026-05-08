@@ -1,6 +1,5 @@
-export const internationalFormat = (value) => {
-  return new Intl.NumberFormat().format(Math.round(value * 10) / 10)
-}
+export const internationalFormat = (value) =>
+  new Intl.NumberFormat().format(Math.round(value * 10) / 10)
 
 export const abbreviateNumbers = (value) => {
   const num = parseInt(value, 10)

@@ -8,8 +8,6 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/faq.html',
     what_are_merged_objects:
       'https://scpca.readthedocs.io/en/stable/merged_objects.html',
-    what_copy_link:
-      'https://scpca.readthedocs.io/en/stable/faq.html#what-does-the-copy-download-link-button-do',
     what_downloading:
       'https://scpca.readthedocs.io/en/stable/download_files.html',
     what_downloading_metadata:
@@ -60,6 +58,8 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/faq.html#which-samples-can-i-download-as-anndata-objects',
     why_changing_merged_project:
       'https://scpca.readthedocs.io/en/stable/faq.html#why-can-t-i-merge-a-subset-of-samples-from-a-project',
+    how_to_use_cli_link_to_download:
+      'https://scpca.readthedocs.io/en/stable/faq.html#how-can-i-use-the-command-line-tools-link-to-download-data',
     how_processed:
       'https://scpca.readthedocs.io/en/stable/processing_information.html',
     how_processed_multiplexed:

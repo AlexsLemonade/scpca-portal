@@ -90,8 +90,8 @@ export const DatasetMoveSamplesModal = ({
   }
 
   const handleClick = async () => {
-    // When no data in My Dataset, move and redirect without opening modal
-    if (!myDataset.data || isDatasetDataEmpty) {
+    // When My Dataset is empty, move and redirect without opening modal
+    if (isDatasetDataEmpty) {
       setLoading(true)
       await request(structuredClone(dataset.data))
       redirect()

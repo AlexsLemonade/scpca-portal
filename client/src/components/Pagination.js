@@ -60,7 +60,8 @@ export const Pagination = ({
   React.useEffect(() => {
     const page = offsetToPage(offset, limit)
     const lastPage = offsetToPage(last, limit)
-    const allOffsets = [...Array(lastPage).keys()].map((o) => o * limit)
+    const allOffsets = Array.from({ length: lastPage }, (_, i) => i * limit)
+
     // get first 6
     if (page <= 2) setButtonOffsets(allOffsets.slice(0, 6))
     // get last 5

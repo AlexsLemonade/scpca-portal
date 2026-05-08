@@ -1,10 +1,11 @@
 import React from 'react'
 import { ProjectSearchResult } from 'components/ProjectSearchResult'
-import project from 'data/project'
+import project from 'data/project.json'
+import dataset from 'data/dataset.json'
 
 export default {
   title: 'Components/ProjectSearchResult',
-  args: { project }
+  args: { project, ccdlDatasets: [dataset] }
 }
 
 export const Default = (args) => <ProjectSearchResult {...args} />

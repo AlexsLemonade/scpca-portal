@@ -13,7 +13,7 @@ import { DatasetProjectSummary } from 'components/DatasetProjectSummary'
 import { DatasetProcessModal } from 'components/DatasetProcessModal'
 import { InfoText } from 'components/InfoText'
 import { Loader } from 'components/Loader'
-import Error from 'pages/_error'
+import ErrorPage from 'pages/_error'
 
 const Download = () => {
   const { restoreScrollPosition } = useScrollRestore()
@@ -61,7 +61,7 @@ const Download = () => {
 
   // TODO: Replace this once error handling is finalized
   // Show error page if there are any API errors
-  if (errors.length > 0) return <Error />
+  if (errors.length > 0) return <ErrorPage />
 
   return (
     <Box width="full" pad={responsive({ horizontal: 'medium' })}>

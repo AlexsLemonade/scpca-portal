@@ -32,6 +32,7 @@ List out the functional tests you've completed to verify your changes work local
 - [ ] I have added tests that prove my fix is effective or that my feature works
 - [ ] I have added necessary documentation (if appropriate)
 - [ ] Any dependent changes have been merged and published in downstream modules
+- [ ] I have updated any associated Storybook stories (if applicable)
 
 ## Screenshots
 

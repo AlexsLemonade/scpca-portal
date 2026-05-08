@@ -231,6 +231,7 @@ class CCDLDatasetFactory(factory.django.DjangoModelFactory):
     ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT
     ccdl_project_id = "SCPCP999990"
     ccdl_modality = Modalities.SINGLE_CELL
+    ccdl_is_merged = False
 
 
 class UserDatasetFactory(factory.django.DjangoModelFactory):

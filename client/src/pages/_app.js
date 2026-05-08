@@ -12,11 +12,9 @@ import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
 import { ScrollRestoreContextProvider } from 'contexts/ScrollRestoreContext'
 import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
 import { PageTitle } from 'components/PageTitle'
-import Error from './_error'
+import ErrorPage from './_error'
 
-const Fallback = (sentry) => {
-  return <Error sentry={sentry} />
-}
+const Fallback = (sentry) => <ErrorPage sentry={sentry} />
 
 const Portal = ({ Component, pageProps }) => {
   // configuring sentry
@@ -38,7 +36,6 @@ const Portal = ({ Component, pageProps }) => {
                   <BannerContextProvider>
                     <MyDatasetContextProvider>
                       <Layout>
-                        {/* eslint-disable-next-line react/jsx-props-no-spreading */}
                         <Component {...pageProps} />
                       </Layout>
                     </MyDatasetContextProvider>
