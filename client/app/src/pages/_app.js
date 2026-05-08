@@ -11,7 +11,7 @@ import { NotificationContextProvider } from 'contexts/NotificationContext'
 import { ScPCAPortalContextProvider } from 'contexts/ScPCAPortalContext'
 import { ScrollRestoreContextProvider } from 'contexts/ScrollRestoreContext'
 import { AnalyticsContextProvider } from 'contexts/AnalyticsContext'
-import { PageTitle } from 'components/PageTitle'
+import { PageMeta } from 'components/PageMeta'
 import ErrorPage from './_error'
 
 const Fallback = (sentry) => <ErrorPage sentry={sentry} />
@@ -31,7 +31,7 @@ const Portal = ({ Component, pageProps }) => {
           <ScPCAPortalContextProvider>
             <ScrollRestoreContextProvider>
               <AnalyticsContextProvider>
-                <PageTitle />
+                <PageMeta />
                 <NotificationContextProvider>
                   <BannerContextProvider>
                     <MyDatasetContextProvider>
