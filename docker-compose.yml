@@ -4,13 +4,14 @@ networks:
 
 services:
   postgres:
+    container_name: scpca-db
     image: postgres:18.2
     volumes:
       - ./api/volumes_postgres/volumes_postgres:/var/lib/postgresql
     environment:
      - POSTGRES_HOST_AUTH_METHOD=trust
   api:
-    container_name: '${API_NAME}'
+    container_name: scpca-api
     network_mode: '${API_NETWORK}'
     restart: always
     env_file: infrastructure/api-configuration/dev-secrets
@@ -36,6 +37,7 @@ services:
     depends_on:
       - postgres
   client-deps-installer:
+    container_name: scpca-client-deps-installer
     image: node:22.22.0
     command: >
       bash -c 'cd /home/user/code &&
@@ -44,7 +46,8 @@ services:
     volumes:
       - ./client:/home/user/code
       - ./client/node_modules:/home/user/code/node_modules
-  client-app:
+  client:
+    container_name: scpca-client
     image: node:22.22.0
     ports:
       - '${CLIENT_PORT}:${CLIENT_PORT}'
@@ -67,7 +70,8 @@ services:
     depends_on:
       client-deps-installer:
         condition: service_completed_successfully
-  client-storybook:
+  storybook:
+    container_name: scpca-storybook
     image: node:22.22.0
     ports:
       - '${STORYBOOK_PORT}:${STORYBOOK_PORT}'
