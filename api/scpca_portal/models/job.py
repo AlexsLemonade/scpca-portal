@@ -34,15 +34,15 @@ logger = get_and_configure_logger(__name__)
 
 
 class JobQuerySet(models.QuerySet):
-    def _validate_bulk(self, jobs):
+    def _validate_bulk(self, jobs: List["Job"]) -> None:
         for job in jobs:
             job.validate_dataset()
 
-    def bulk_create(self, objs, *args, **kwargs):
+    def bulk_create(self, objs: List["Job"], *args, **kwargs) -> List["Job"]:
         self._validate_bulk(objs)
         return super().bulk_create(objs, *args, **kwargs)
 
-    def bulk_update(self, objs, fields, *args, **kwargs):
+    def bulk_update(self, objs: List["Job"], fields: List[str], *args, **kwargs) -> int:
         job_dataset_fields = {"dataset", "dataset_content_type", "dataset_object_id"}
         if job_dataset_fields & set(fields):
             self._validate_bulk(objs)
@@ -53,7 +53,7 @@ class JobQuerySet(models.QuerySet):
     # but instead performs a single SQL UPDATE operation (SQL UPDATE vs SQL SELECT and UPDATE).
     # This effectively bypasses any possible validation by Django, as we've implemented above.
     # As such, we override it to restrict Job.dataset updates to where Django can perform validation
-    def update(self, **kwargs):
+    def update(self, **kwargs) -> int:
         job_dataset_fields = {"dataset", "dataset_content_type", "dataset_object_id"}
         if job_dataset_fields & kwargs.keys():
             raise RuntimeError(
@@ -106,12 +106,12 @@ class Job(TimestampedModel):
     # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
     MAX_FARGATE_SIZE_IN_BYTES = 100 * common.GB_IN_BYTES
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.batch_job_id:
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
         return f"Job {self.id} - {self.state}"
 
-    # INSTANCE CREATIONAL LOGIC
+    # INSTANCE CREATION LOGIC
     @classmethod
     def get_dataset_job(cls, dataset: DatasetABC) -> Self:
         """
@@ -126,7 +126,7 @@ class Job(TimestampedModel):
                 "It must be of type DatasetABC."
             )
 
-    def save(self, *args, **kwargs):
+    def save(self, *args, **kwargs) -> None:
         self.validate_dataset()
         super().save(*args, **kwargs)
 

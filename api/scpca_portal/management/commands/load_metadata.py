@@ -1,4 +1,4 @@
-from argparse import BooleanOptionalAction
+from argparse import ArgumentParser, BooleanOptionalAction
 from typing import Set
 
 from django.conf import settings
@@ -23,7 +23,7 @@ class Command(BaseCommand):
         /SCPCP000001/SCPCS000002/SCPCL000002_spatial/SCPCL000002_metadata.json
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
             "--input-bucket-name", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME
         )
@@ -59,7 +59,7 @@ class Command(BaseCommand):
         scpca_portal_id_help_text = "Reload an individual project."
         parser.add_argument("--scpca-project-id", type=str, help=scpca_portal_id_help_text)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.load_metadata(**kwargs)
 
     def comma_separated_set(self, raw_str: str) -> Set[str]:
