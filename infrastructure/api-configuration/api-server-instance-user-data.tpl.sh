@@ -63,19 +63,7 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 		fi
         certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
 
-        # Add the nginx.conf file that certbot setup to the zip dir.
-        cp /etc/nginx/nginx.conf /etc/letsencrypt/
-
-        cd /etc/letsencrypt/ || exit
-        sudo zip -r ../letsencryptdir.zip "../$(basename "$PWD")"
-
-        # And then cleanup the extra copy.
-        rm /etc/letsencrypt/nginx.conf
-
-        cd - || exit
-        mv /etc/letsencryptdir.zip .
-        aws s3 cp letsencryptdir.zip "s3://${scpca_portal_cert_bucket}/"
-        rm letsencryptdir.zip
+		./sync_cert_to_s3_and_cleanup.sh --scpca-portal-cert-bucket ${scpca_portal_cert_bucket}
     else
         zip_filename=$(aws s3 ls "${scpca_portal_cert_bucket}" | head -1 | awk '{print $4}')
         aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip
@@ -87,11 +75,16 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 	# Add certbot cert auto renewal entry to cron
 	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
 
-	# Write certbot cert auto renewal deploy script to instance
+	# Write scripts necessary for certbot cert renewal to instance
 	cat <<"EOF" > certbot_renew_deploy_hook.sh
 ${certbot_renew_deploy_hook_script}
 EOF
 	chmod +x ./certbot_renew_deploy_hook.sh
+
+	cat <<"EOF" > certbot_sync_cert_to_s3_and_cleanup.sh
+${certbot_sync_cert_to_s3_and_cleanup_script}
+EOF
+	chmod +x ./certbot_sync_cert_to_s3_and_cleanup.sh
 fi
 
 # Install, configure and launch our CloudWatch Logs agent

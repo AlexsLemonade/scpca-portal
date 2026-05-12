@@ -10,7 +10,15 @@ data "local_file" "api_crontab_file" {
 }
 
 data "local_file" "api_certbot_crontab_entry" {
-  filename = "api-configuration/certbot_renew/certbot_crontab_entry.txt"
+  filename = "api-configuration/certbot/certbot_crontab_entry.txt"
+}
+
+data "local_file" "api_certbot_renew_deploy_hook_script" {
+  filename = "api-configuration/certbot/certbot_renew_deploy_hook.sh"
+}
+
+data "local_file" "api_certbot_sync_cert_to_s3_and_cleanup_script" {
+  filename = "api-configuration/certbot/certbot_sync_cert_to_s3_and_cleanup.sh"
 }
 
 data "aws_ami" "ubuntu" {
@@ -49,10 +57,12 @@ resource "aws_instance" "api_server_1" {
   user_data = templatefile(
     "api-configuration/api-server-instance-user-data.tpl.sh",
     {
-      nginx_config             = data.local_file.api_nginx_config.content
-      crontab_file             = data.local_file.api_crontab_file.content
-      certbot_crontab_entry    = data.local_file.api_certbot_crontab_entry.content
-      scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
+      nginx_config                               = data.local_file.api_nginx_config.content
+      crontab_file                               = data.local_file.api_crontab_file.content
+      certbot_crontab_entry                      = data.local_file.api_certbot_crontab_entry.content
+      certbot_renew_deploy_hook_script           = data.local_file.api_certbot_renew_deploy_hook_script.content
+      certbot_sync_cert_to_s3_and_cleanup_script = data.local_file.api_certbot_sync_cert_to_s3_and_cleanup_script.content
+      scpca_portal_cert_bucket                   = aws_s3_bucket.scpca_portal_cert_bucket.id
       api_environment = templatefile(
         "api-configuration/environment.tpl",
         {
