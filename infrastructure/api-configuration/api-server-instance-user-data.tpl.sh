@@ -63,7 +63,8 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 		fi
         certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
 
-		./sync_cert_to_s3_and_cleanup.sh --scpca-portal-cert-bucket ${scpca_portal_cert_bucket}
+		chmod +x ./certbot/certbot_sync_cert_to_s3_and_cleanup.sh
+		./certbot/certbot_sync_cert_to_s3_and_cleanup.sh --scpca-portal-cert-bucket ${scpca_portal_cert_bucket}
     else
         zip_filename=$(aws s3 ls "${scpca_portal_cert_bucket}" | head -1 | awk '{print $4}')
         aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip

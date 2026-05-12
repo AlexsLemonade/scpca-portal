@@ -4,7 +4,7 @@ LOG_FILE="/var/log/cron/certbot_renew.log"
 
 echo "$(date): Cert renewed. Syncing cert with S3 and reloading Ngninx." >> "$LOG_FILE"
 
-./sync_cert_to_s3_and_cleanup.sh --scpca-portal-cert-bucket ${scpca_portal_cert_bucket}
+./certbot_sync_cert_to_s3_and_cleanup.sh --scpca-portal-cert-bucket ${scpca_portal_cert_bucket}
 
 systemctl reload nginx
-echo "$(date): Syncing complete and Nginx reloaded." >> "$LOG_FILE"
+echo "$(date): Syncing complete and Nginx reloaded." >> "$LOG"
