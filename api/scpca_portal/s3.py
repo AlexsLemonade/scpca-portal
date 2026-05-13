@@ -225,6 +225,39 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
     return True
 
 
+def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]):
+    """Apply tags to the output file for S3 Lifecycle Policy Rule."""
+
+    if not tags:
+        raise ValueError("Tags cannot be empty.")
+    if len(tags) > 1:
+        raise ValueError("Tags cannot be more than 10 per object.")
+
+    bucket = f"s3://{bucket_name}"
+    tag_set = [{"Key": k, "Value": v} for k, v in tags.items()]
+    tagging = json.dumps({"TagSet": tag_set})
+
+    command_parts = [
+        "aws",
+        "s3api",
+        "put-object-tagging",
+        "--bucket",
+        bucket,
+        "--key",
+        key,
+        "--tagging",
+        tagging,
+    ]
+
+    try:
+        subprocess.check_call(command_parts)
+    except subprocess.CalledProcessError as error:
+        logger.error(f"Failed tag computed file {key} due to the following error:\n\t{error}")
+        return False
+
+    return True
+
+
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
