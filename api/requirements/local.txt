@@ -9,6 +9,6 @@ ipdb==0.13.13
 ipython==9.10.0
 isort==7.0.0
 mock==5.2.0
-mypy==1.20.0
-django-stubs[compatible-mypy]==6.0.2
+mypy==1.19.0
+django-stubs[compatible-mypy]==5.2.9
 djangorestframework-stubs[compatible-mypy]==3.16.9
