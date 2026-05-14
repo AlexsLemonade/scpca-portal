@@ -1,9 +1,11 @@
 from collections import Counter, defaultdict
+from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
+from django.utils.timezone import make_aware
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
@@ -311,3 +313,34 @@ class UserDataset(DatasetABC):
             .order_by("project__scpca_id")
             .values_list("project__scpca_id", "num_samples")
         )
+
+    @classmethod
+    def mark_expired_datasets(cls):
+        """
+        Marks processed datasets as expired to enable the regeneration option on the Portal.
+        - Set the expires_at timestamp if it hasn't populated yet
+        - Update the is_expired flag to True if expires_at has passed the 7-day expiration
+        Returns the count of the datasets that have been marked as expired.
+        """
+        processed_datasets = cls.objects.filter(is_succeeded=True, is_expired=False)
+        now = make_aware(datetime.now())
+
+        updated_fields = set()
+        updated_datasets = []
+
+        for dataset in processed_datasets:
+            # Ensure the expires_at timestamp is set for all processed datasets
+            if dataset.expires_at is None:
+                dataset.expires_at = dataset.succeeded_at + timedelta(days=7)
+                updated_datasets.append(dataset)
+                updated_fields.add("expires_at")
+
+            if dataset.expires_at < now:
+                dataset.is_expired = True
+                updated_datasets.append(dataset)
+                updated_fields.add("is_expired")
+
+        if updated_fields:
+            cls.objects.bulk_update(updated_datasets, list(updated_fields))
+
+        return len([dataset for dataset in updated_datasets if dataset.is_expired])
