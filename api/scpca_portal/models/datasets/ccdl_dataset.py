@@ -46,6 +46,10 @@ class CCDLDataset(DatasetABC):
         return dataset, False
 
     @property
+    def tags(self) -> dict[str, str] | None:
+        return None
+
+    @property
     def current_data(self) -> Dict:
         projects = Project.objects.all()
         if self.ccdl_project_id:

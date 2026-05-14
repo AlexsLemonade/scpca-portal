@@ -17,6 +17,7 @@ class DatasetJobProcessor(JobProcessorABC):
         "purge_old_computed_file",
         "create_new_computed_file",
         "upload_new_computed_file",
+        "tag_new_computed_file",
         "clean_up_local_computed_file",
         "send_notification",
     ]
@@ -83,18 +84,17 @@ class DatasetJobProcessor(JobProcessorABC):
             notifications.send_dataset_job_error_email(self.job)
 
     def upload_new_computed_file(self) -> None:
-        if s3.upload_output_file(
+        s3.upload_output_file(
             self.job.dataset.computed_file.s3_key, self.job.dataset.computed_file.s3_bucket
-        ):
-            # Tag the computed file for S3 Lifecycle Policy Rule for object expiration
-            # Skip tagging for CCDLDatasets as they do not expire
-            if not self.job.dataset.ccdl_name:
-                tag = {"dataset_type": "user"}
-                s3.tag_output_file(
-                    self.job.dataset.computed_file.s3_key,
-                    self.job.dataset.computed_file.s3_bucket,
-                    tag,
-                )
+        )
+
+    def tag_new_computed_file(self) -> None:
+        if self.job.dataset.tags:
+            s3.tag_output_file(
+                self.job.dataset.computed_file.s3_key,
+                self.job.dataset.computed_file.s3_bucket,
+                self.job.dataset.tags,
+            )
 
     def clean_up_local_computed_file(self) -> None:
         self.job.dataset.computed_file.clean_up_local_computed_file()

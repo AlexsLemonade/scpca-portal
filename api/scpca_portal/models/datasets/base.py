@@ -117,6 +117,11 @@ class DatasetABC(TimestampedModel, models.Model):
     def get_class(self) -> models.Model:
         return self._meta.model
 
+    @property
+    def tags(self) -> dict[str, str] | None:
+        # Tagging for S3 Lifecycle Policy Rule
+        return None
+
     # HASHING AND CACHED ATTR LOGIC
     def get_hashes(self) -> tuple[str, str, str, str]:
         """Computes and returns data, metadata, readme, and combined hashes."""
