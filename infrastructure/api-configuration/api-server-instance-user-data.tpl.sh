@@ -71,6 +71,7 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
         unzip letsencryptdir.zip -d /etc/
         mv /etc/letsencrypt/nginx.conf /etc/nginx/
         service nginx restart
+		rm letsencryptdir.zip
     fi
 
 	# Add certbot cert auto renewal entry to cron
