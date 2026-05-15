@@ -110,8 +110,8 @@ class DatasetJobProcessor(JobProcessorABC):
         if not tags:
             return
 
-        if not s3.tag_output_file(key, bucket_name, self.job.dataset.tags):
-            raise S3TaggingError(key, bucket_name)
+        if not s3.tag_output_file(key, bucket_name, tags):
+            raise S3TaggingError(key, bucket_name, tags)
 
     def clean_up_local_computed_file(self) -> None:
         self.job.dataset.computed_file.clean_up_local_computed_file()
