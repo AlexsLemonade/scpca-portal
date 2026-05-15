@@ -13,7 +13,7 @@ import { getReadable } from 'helpers/getReadable'
 import { DatasetAddSamplesModal } from 'components/DatasetAddSamplesModal'
 import { DetailsTable } from 'components/DetailsTable'
 import { Link } from 'components/Link'
-import { PageTitle } from 'components/PageTitle'
+import { PageMeta } from 'components/PageMeta'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
@@ -55,7 +55,7 @@ const Project = ({ project, ccdlDatasets }) => {
 
   return (
     <>
-      <PageTitle title={project.title} />
+      <PageMeta title={project.title} description={project.abstract} />
       <Box width="xlarge">
         <CCDLDatasetDownloadModalContextProvider
           project={project}

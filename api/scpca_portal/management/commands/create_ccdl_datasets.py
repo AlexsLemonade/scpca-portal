@@ -1,4 +1,5 @@
-from argparse import BooleanOptionalAction
+from argparse import ArgumentParser, BooleanOptionalAction
+from typing import List
 
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
@@ -14,7 +15,7 @@ class Command(BaseCommand):
     Create all ccdl datasets and dispatch them as jobs to AWS Batch.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         ignore_hash_help_text = """
         By default, datasets are only processed if they are new or their hash has changed.
         Ignore hash forces reprocessing even when the hash has not changed.
@@ -38,10 +39,12 @@ class Command(BaseCommand):
             help=retry_failed_jobs_help_text,
         )
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.create_ccdl_datasets(**kwargs)
 
-    def create_ccdl_datasets(self, ignore_hash, retry_failed_jobs, **kwargs) -> None:
+    def create_ccdl_datasets(
+        self, ignore_hash: bool, retry_failed_jobs: List[Job], **kwargs
+    ) -> None:
         created_datasets, updated_datasets = CCDLDataset.create_or_update_ccdl_datasets(
             ignore_hash=ignore_hash
         )

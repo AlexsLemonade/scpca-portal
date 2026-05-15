@@ -1,3 +1,5 @@
+from typing import Any, Dict
+
 from rest_framework import serializers
 
 from pydantic import ValidationError as PydanticValidationError
@@ -57,7 +59,7 @@ class UserDatasetSerializer(serializers.ModelSerializer):
 
     current_combined_hash = serializers.SerializerMethodField(read_only=True, default=None)
 
-    def get_current_combined_hash(self, obj) -> str:
+    def get_current_combined_hash(self, obj: UserDataset) -> str:
         return UserDataset.get_current_combined_hash(
             obj.current_data_hash, obj.current_metadata_hash, obj.current_readme_hash
         )
@@ -84,7 +86,7 @@ class UserDatasetDetailSerializer(UserDatasetSerializer):
 
     computed_file = ComputedFileSerializer(read_only=True, many=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         super(UserDatasetDetailSerializer, self).__init__(*args, **kwargs)
         if "context" in kwargs:
             # Only include the field `download_url` if a valid token is
@@ -101,7 +103,7 @@ class UserDatasetCreateSerializer(UserDatasetSerializer):
             set(UserDatasetSerializer.Meta.read_only_fields) - set(modifiable_fields)
         )
 
-    def validate(self, attrs):
+    def validate(self, attrs: Dict[str, Any]) -> Dict[str, Any]:
         validated_attrs = super().validate(attrs)
 
         if "data" in validated_attrs:
@@ -127,7 +129,7 @@ class UserDatasetUpdateSerializer(UserDatasetSerializer):
         )
         extra_kwargs = {"format": {"required": False}}
 
-    def validate_data(self, value):
+    def validate_data(self, value: Dict[str, Any]) -> Dict[str, Any]:
         # Either the incoming or original format
         new_format = self.initial_data.get("format", self.instance.format)
         try:

@@ -1,4 +1,4 @@
-from argparse import BooleanOptionalAction
+from argparse import ArgumentParser, BooleanOptionalAction
 from collections import Counter
 
 from django.core.management.base import BaseCommand
@@ -18,16 +18,18 @@ class Command(BaseCommand):
     If a project-id is passed, then all other projects will be ignored.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--regenerate-all", action=BooleanOptionalAction, default=False)
         parser.add_argument("--project-id", type=str, default="")
         # for now, we're only notifying on submission of the last project job
         parser.add_argument("--notify", default=False, action=BooleanOptionalAction)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.dispatch_to_batch(**kwargs)
 
-    def dispatch_to_batch(self, project_id: str, regenerate_all: bool, notify: bool, **kwargs):
+    def dispatch_to_batch(
+        self, project_id: str, regenerate_all: bool, notify: bool, **kwargs
+    ) -> None:
         """
         Iterate over all projects that fit the criteria of the passed flags
         and submit jobs to Batch accordingly.

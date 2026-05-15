@@ -194,7 +194,7 @@ def get_content_table_rows(dataset: "DatasetABC") -> list[ContentRow]:
     )
 
 
-def get_content_portal_wide_link(dataset: "CCDLDataset"):
+def get_content_portal_wide_link(dataset: "CCDLDataset") -> str | None:
     """
     Returns the link to the documentation if ccdl dataset is a portal wide download
     """
@@ -203,7 +203,7 @@ def get_content_portal_wide_link(dataset: "CCDLDataset"):
     return None
 
 
-def get_content_metadata_link(dataset: "CCDLDataset"):
+def get_content_metadata_link(dataset: "CCDLDataset") -> str | None:
     """
     Returns the link to the documentation if dataset is for metadata.
     Portal wide metadata is handled by `content_portal_wide_link`.
@@ -248,7 +248,7 @@ def get_file_contents_dataset(dataset: "DatasetABC") -> str:
     )
 
 
-def merge_partials(partials: list[str]):
+def merge_partials(partials: list[str]) -> str:
     """
     Takes a list of rendered templates, strips, removes empty and combines with new line.
     Also replaces anything greater than 2 new lines with 2 newlines.

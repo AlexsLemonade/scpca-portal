@@ -5,6 +5,7 @@ import time
 from datetime import datetime
 from functools import wraps
 from multiprocessing import current_process
+from typing import Callable, ParamSpec, TypeVar
 
 import daiquiri
 
@@ -24,7 +25,7 @@ LOG_LEVEL = None
 LOG_RUNTIMES = os.getenv("LOG_RUNTIMES", False)
 
 
-def unconfigure_root_logger():
+def unconfigure_root_logger() -> None:
     """Prevents the root logger from duplicating our messages.
 
     The root handler comes preconfigured with a handler. This causes
@@ -61,12 +62,19 @@ def get_formatted_time(timestamp: float) -> str:
     return datetime.fromtimestamp(timestamp).strftime("%H:%M:%S.%f")[:-3]  # remove microseconds
 
 
-def log_runtime(logger):
+# Type hints for decorator
+# https://mypy.readthedocs.io/en/stable/generics.html#declaring-decorators
+# https://peps.python.org/pep-0612/
+P = ParamSpec("P")  # For parameter object
+R = TypeVar("R")  # For return Type
+
+
+def log_runtime(logger: logging.Logger) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Log the start time, end time, and duration of the wrapped function."""
 
-    def decorator(func):
+    def decorator(func: Callable[P, R]) -> Callable[P, R]:
         @wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args, **kwargs) -> R:
             global LOG_RUNTIMES  # noqa: F824
             if not LOG_RUNTIMES:
                 return func(*args, **kwargs)
@@ -94,6 +102,6 @@ def log_runtime(logger):
     return decorator
 
 
-def configure_runtime_logging(logger: logging.Logger):
+def configure_runtime_logging(logger: logging.Logger) -> Callable[[Callable[P, R]], Callable[P, R]]:
     """Return log_runtime decorator pre-configured to a specific logger."""
     return log_runtime(logger)

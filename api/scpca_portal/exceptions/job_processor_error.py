@@ -1,5 +1,5 @@
 class JobProcessorError(NotImplementedError):
-    def __init__(self, class_name: str, *missing: str):
+    def __init__(self, class_name: str, *missing: str) -> None:
         super().__init__(f"{class_name} must implement: {', '.join(missing)}")
 
 

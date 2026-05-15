@@ -1,4 +1,4 @@
-from argparse import BooleanOptionalAction
+from argparse import ArgumentParser, BooleanOptionalAction
 
 from django.core.management.base import BaseCommand
 
@@ -22,13 +22,13 @@ class Command(BaseCommand):
     from the job queue and begin computing the next file.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--project-id", type=str)
         parser.add_argument("--sample-id", type=str)
         parser.add_argument("--download-config-name", type=str)
         parser.add_argument("--notify", default=False, action=BooleanOptionalAction)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.generate_computed_file(**kwargs)
 
     def generate_computed_file(
