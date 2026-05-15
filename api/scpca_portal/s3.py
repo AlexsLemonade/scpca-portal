@@ -230,28 +230,15 @@ def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]):
 
     if not tags:
         raise ValueError("Tags cannot be empty.")
-    if len(tags) > 1:
+    if len(tags) > 10:
         raise ValueError("Tags cannot be more than 10 per object.")
 
     bucket = f"s3://{bucket_name}"
-    tag_set = [{"Key": k, "Value": v} for k, v in tags.items()]
-    tagging = json.dumps({"TagSet": tag_set})
-
-    command_parts = [
-        "aws",
-        "s3api",
-        "put-object-tagging",
-        "--bucket",
-        bucket,
-        "--key",
-        key,
-        "--tagging",
-        tagging,
-    ]
+    tagging = {"TagSet": [{"Key": k, "Value": v} for k, v in tags.items()]}
 
     try:
-        subprocess.check_call(command_parts)
-    except subprocess.CalledProcessError as error:
+        aws_s3.put_object_tagging(Bucket=bucket, Key=key, Tagging=tagging)
+    except Exception as error:
         logger.error(f"Failed tag computed file {key} due to the following error:\n\t{error}")
         return False
 

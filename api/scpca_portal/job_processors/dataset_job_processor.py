@@ -3,7 +3,12 @@ from datetime import timedelta
 from scpca_portal import notifications, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
-from scpca_portal.exceptions import DatasetLockedProjectError, DatasetMissingLibrariesError
+from scpca_portal.exceptions import (
+    DatasetLockedProjectError,
+    DatasetMissingLibrariesError,
+    S3TaggingError,
+    S3UploadError,
+)
 from scpca_portal.job_processors import JobProcessorABC
 from scpca_portal.models import ComputedFile
 
@@ -17,6 +22,7 @@ class DatasetJobProcessor(JobProcessorABC):
         "purge_old_computed_file",
         "create_new_computed_file",
         "upload_new_computed_file",
+        "tag_new_computed_file",
         "clean_up_local_computed_file",
         "send_notification",
     ]
@@ -24,6 +30,8 @@ class DatasetJobProcessor(JobProcessorABC):
     exception_handlers = {
         ("create_new_computed_file", DatasetLockedProjectError): "handle_locked_project",
         ("create_new_computed_file", DatasetMissingLibrariesError): "handle_missing_libraries",
+        ("upload_new_computed_file", S3UploadError): "handle_upload_failure",
+        ("tag_new_computed_file", S3TaggingError): "handle_tag_failure",
     }
 
     # Logging
@@ -82,19 +90,28 @@ class DatasetJobProcessor(JobProcessorABC):
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
 
+    def handle_upload_failure(self, step: str, e: Exception) -> None:
+        pass
+
+    def handle_tag_failure(self, step: str, e: Exception) -> None:
+        pass
+
     def upload_new_computed_file(self) -> None:
-        if s3.upload_output_file(
-            self.job.dataset.computed_file.s3_key, self.job.dataset.computed_file.s3_bucket
-        ):
-            # Tag the computed file for S3 Lifecycle Policy Rule for object expiration
-            # Skip tagging for CCDLDatasets as they do not expire
-            if not self.job.dataset.ccdl_name:
-                tag = {"dataset_type": "user"}
-                s3.tag_output_file(
-                    self.job.dataset.computed_file.s3_key,
-                    self.job.dataset.computed_file.s3_bucket,
-                    tag,
-                )
+        key = self.job.dataset.computed_file.s3_key
+        bucket_name = self.job.dataset.computed_file.s3_bucket
+        if not s3.upload_output_file(key, bucket_name):
+            raise S3UploadError(key, bucket_name)
+
+    def tag_new_computed_file(self) -> None:
+        key = self.job.dataset.computed_file.s3_key
+        bucket_name = self.job.dataset.computed_file.s3_bucket
+        tags = self.job.dataset.tags
+
+        if not tags:
+            return
+
+        if not s3.tag_output_file(key, bucket_name, self.job.dataset.tags):
+            raise S3TaggingError(key, bucket_name)
 
     def clean_up_local_computed_file(self) -> None:
         self.job.dataset.computed_file.clean_up_local_computed_file()

@@ -72,6 +72,15 @@ class UserDataset(DatasetABC):
 
         return validated_data
 
+    @property
+    def expiration_delta(self) -> datetime | None:
+        return self.succeeded_at + timedelta(days=7)
+
+    @property
+    def tags(self) -> dict[str, str] | None:
+        # Tagging the computed file for S3 object expiration
+        return {"dataset_type": "user"}
+
     # CACHED ATTRIBUTES LOGIC
     def get_total_sample_count(self) -> int:
         """
