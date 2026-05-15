@@ -1,4 +1,5 @@
 from collections import Counter, defaultdict
+from datetime import datetime, timedelta
 from typing import Any, Dict, List
 
 from django.contrib.postgres.fields import ArrayField
@@ -69,6 +70,10 @@ class UserDataset(DatasetABC):
         validated_data = DatasetDataModelRelations.validate(structured_data)
 
         return validated_data
+
+    @property
+    def expiration_delta(self) -> datetime | None:
+        return self.succeeded_at + timedelta(days=7)
 
     @property
     def tags(self) -> dict[str, str] | None:
