@@ -6,11 +6,12 @@ This django-configurations entrypoint is similar to how its done in manage.py an
 
 import os
 
-from configurations.importer import install
+from configurations import importer
 from mypy_django_plugin import main
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "scpca_portal.config")
-os.environ.setdefault("DJANGO_CONFIGURATION", "Local")
-install()
 
-plugin = main.plugin
+def plugin(version):
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "scpca_portal.config")
+    os.environ.setdefault("DJANGO_CONFIGURATION", "Local")
+    importer.install()
+    return main.plugin(version)
