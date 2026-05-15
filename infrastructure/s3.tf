@@ -42,7 +42,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_bucket" {
     status = "Enabled"
     filter {
       tag {
-        key   = "user_type"
+        key   = "dataset_type"
         value = "user"
       }
     }

@@ -116,6 +116,12 @@ cat <<EOF >awslogs.json
                         "log_group_name": "${log_group}",
                         "log_stream_name": "${submit_pending_log_stream}",
                         "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/cron/expire_user_datasets.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${expire_user_datasets_log_stream}",
+                        "retention_in_days": 30
                     }
 
                 ]
