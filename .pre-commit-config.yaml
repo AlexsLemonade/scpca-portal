@@ -34,3 +34,12 @@ repos:
     hooks:
       - id: black
         language_version: python3
+
+  - repo: local
+    hooks:
+      - id: yarn-lint
+        name: yarn lint (client)
+        entry: bash -c "cd client && yarn lint"
+        language: system
+        pass_filenames: false
+        files: ^client/
