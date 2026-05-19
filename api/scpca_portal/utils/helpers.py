@@ -83,24 +83,21 @@ def remove_nested_data_dirs(
     )
 
 
-def boolean_from_string(value: str) -> bool:
+def boolean_from_string(value: Any) -> bool:
     """
     Returns True if string value represents truthy value. Otherwise returns False.
     Raises ValueError if value cannot be casted to boolean.
     """
-
-    value_type = type(value)
-
-    if value_type is bool:
+    if isinstance(value, bool):
         return value
 
-    if value_type is not str:
-        raise ValueError(f"Invalid value: expected str got {value_type}.")
+    if not isinstance(value, str):
+        raise ValueError(f"Invalid value: expected str got {type(value)}.")
 
     return value.lower() in ("t", "true")
 
 
-def string_from_list(value: Any, delimiter=";") -> Any:
+def string_from_list(value: Any, delimiter: str = ";") -> Any:
     """
     Returns a delimited string converted from a list. Otherwise returns value.
     """
@@ -193,7 +190,7 @@ def get_sorted_modalities(modalities: List | Set) -> List:
 
 def get_csv_zipped_values(
     data: Dict,
-    *args: List[str],
+    *args: str,
     delimiter: str = common.CSV_MULTI_VALUE_DELIMITER,
 ) -> List:
     """
@@ -220,7 +217,7 @@ def transform_keys(data_dict: Dict[str, Any], key_transforms: List[Tuple]) -> Di
 
 
 def transform_values(
-    data_dict: Dict[str, Any], value_transforms: Dict[str, Callable], *args
+    data_dict: Dict[str, Any], value_transforms: Dict[str, Callable], *args: Any
 ) -> Dict[str, Any]:
     """
     Transform values in data dict according to transformation functions in value transform dict.

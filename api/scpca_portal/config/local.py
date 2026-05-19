@@ -21,6 +21,12 @@ class Local(Common):
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-input"
     AWS_S3_OUTPUT_BUCKET_NAME = "scpca-local-data"
 
+    # AWS Batch
+    AWS_BATCH_FARGATE_JOB_QUEUE_NAME = None
+    AWS_BATCH_FARGATE_JOB_DEFINITION_NAME = None
+    AWS_BATCH_EC2_JOB_QUEUE_NAME = None
+    AWS_BATCH_EC2_JOB_DEFINITION_NAME = None
+
     CSRF_TRUSTED_ORIGINS = ["http://localhost", "http://127.0.0.1"]
 
     # This is only needed locally because everything else will use S3.
