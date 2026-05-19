@@ -1,5 +1,6 @@
 from argparse import ArgumentParser, BooleanOptionalAction
 from collections import Counter
+from typing import Any
 
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
@@ -24,11 +25,11 @@ class Command(BaseCommand):
         # for now, we're only notifying on submission of the last project job
         parser.add_argument("--notify", default=False, action=BooleanOptionalAction)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.dispatch_to_batch(**kwargs)
 
     def dispatch_to_batch(
-        self, project_id: str, regenerate_all: bool, notify: bool, **kwargs
+        self, project_id: str, regenerate_all: bool, notify: bool, **kwargs: Any
     ) -> None:
         """
         Iterate over all projects that fit the criteria of the passed flags

@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management.base import BaseCommand
 
 from scpca_portal.config.logging import get_and_configure_logger
@@ -9,7 +11,7 @@ logger = get_and_configure_logger(__name__)
 class Command(BaseCommand):
     help = """Submits all pending jobs to AWS Batch for processing."""
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.submit_pending()
 
     def submit_pending(self) -> None:
