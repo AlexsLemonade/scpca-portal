@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from typing import Any
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -29,10 +30,10 @@ class Command(BaseCommand):
             type=str,
         )
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         try:
-            project = Project.objects.get(scpca_id=options["scpca_id"])
+            project = Project.objects.get(scpca_id=kwargs["scpca_id"])
             logger.info(f"Purging '{project}'")
-            project.purge(delete_from_s3=options["delete_from_s3"])
+            project.purge(delete_from_s3=kwargs["delete_from_s3"])
         except Project.DoesNotExist:
-            logger.error(f"Project with scpca_id {options['scpca_id']} not found")
+            logger.error(f"Project with scpca_id {kwargs['scpca_id']} not found")

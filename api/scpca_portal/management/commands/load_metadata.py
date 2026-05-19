@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, BooleanOptionalAction
-from typing import Set
+from typing import Any, Set
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -59,7 +59,7 @@ class Command(BaseCommand):
         scpca_portal_id_help_text = "Reload an individual project."
         parser.add_argument("--scpca-project-id", type=str, help=scpca_portal_id_help_text)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.load_metadata(**kwargs)
 
     def comma_separated_set(self, raw_str: str) -> Set[str]:
@@ -74,7 +74,7 @@ class Command(BaseCommand):
         scpca_project_id: str,
         update_s3: bool,
         submitter_whitelist: Set[str],
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Loads metadata from input metadata files on s3 and creates model objects in the db."""
         if not OriginalFile.objects.exists():
