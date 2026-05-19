@@ -38,8 +38,8 @@ repos:
   - repo: local
     hooks:
       - id: yarn-lint
-        name: yarn lint (client)
-        entry: bash -c "cd client && yarn lint"
+        name: Yarn Lint (Biome)
         language: system
+        entry: bash -c "cd client && yarn lint"
         pass_filenames: false
         files: ^client/
