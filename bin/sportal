@@ -143,6 +143,7 @@ shell_commands = ["deploy:up"]
 docker_compose = ["docker", "compose", "--env-file", "./docker-compose.env"]
 run = docker_compose + ["run", "--rm"]
 run_api = run + ["api"]
+run_client = run + ["client"]
 run_postgres = run + ["postgres", "psql", "-h", "postgres", "-U", "postgres"]
 manage = run_api + ["python3", "manage.py"]
 
@@ -157,6 +158,8 @@ command_descriptions = {
     "api:test": "Run API tests.",
     "api:graphmodels": "Update the models.dot file.",
     "api:lint:black": "Lint API python code with black.",
+    "client:run": "Start local Client",
+    "client:lint": "Lint Client with Yarn Lint (Biome).",
     "deploy:up": "Spin up a dev stack. Requires successful debug:env.",
     "deploy:down": "Tear down existing dev stack.",
     "deploy:init": "Terraform init via the deploy command.",
@@ -195,6 +198,8 @@ commands = {
     "api:test": run_api + ["bash", "./run_tests.sh"],
     "api:graphmodels": manage + ["graph_models", "scpca_portal", ">", "models.dot"],
     "api:lint:black": ["black", "--line-length=100", "--exclude=volumes_postgres", "."],
+    "client:run": run_client,
+    "client:lint": run_client + ["yarn", "lint"],
     "deploy:up": deploy,
     "deploy:down": deploy + ["--destroy"],
     "deploy:init": deploy + ["--init"],
