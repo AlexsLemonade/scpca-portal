@@ -40,6 +40,6 @@ repos:
       - id: yarn-lint
         name: Yarn Lint (Biome)
         language: system
-        entry: bash -c "cd client && yarn lint"
+        entry: bin/sportal client:lint
         pass_filenames: false
         files: ^client/
