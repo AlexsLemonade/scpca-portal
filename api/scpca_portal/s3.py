@@ -233,13 +233,12 @@ def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]):
     if len(tags) > 10:
         raise ValueError("Tags cannot be more than 10 per object.")
 
-    bucket = f"s3://{bucket_name}"
     tagging = {"TagSet": [{"Key": k, "Value": v} for k, v in tags.items()]}
 
     try:
-        aws_s3.put_object_tagging(Bucket=bucket, Key=key, Tagging=tagging)
+        aws_s3.put_object_tagging(Bucket=bucket_name, Key=key, Tagging=tagging)
     except Exception as error:
-        logger.error(f"Failed tag computed file {key} due to the following error:\n\t{error}")
+        logger.error(f"Failed to tag computed file {key} due to the following error:\n\t{error}")
         return False
 
     return True
