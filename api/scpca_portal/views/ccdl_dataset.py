@@ -1,3 +1,5 @@
+from typing import Any
+
 from rest_framework import viewsets
 from rest_framework.exceptions import PermissionDenied
 
@@ -27,7 +29,7 @@ CCDLDatasetFilterSet = filter.build_auto_filterset(
 
 @extend_schema_view(
     list=extend_schema(
-        auth=False,
+        auth=False,  # type: ignore
         description="""CCDL Datasets are immutable pre-generated datasets managed by
             the Data Lab. CCDL Datasets look similar to Datasets except that they
             have a couple additional properties that describe their contents.""",
@@ -44,13 +46,13 @@ class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
     ordering_fields = "__all__"
     filterset_class = CCDLDatasetFilterSet
 
-    def get_serializer_class(self):
+    def get_serializer_class(self):  # type: ignore
         if self.action == "list":
             return CCDLDatasetSerializer
 
         return CCDLDatasetDetailSerializer
 
-    def get_serializer_context(self):
+    def get_serializer_context(self) -> dict[str, Any]:
         """
         Additional context is added to provide the serializer classes with the API token.
         """

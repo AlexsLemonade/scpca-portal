@@ -1,5 +1,8 @@
-from rest_framework import mixins, viewsets
+from typing import Any
+
+from rest_framework import mixins, serializers, viewsets
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from drf_spectacular.utils import OpenApiExample, extend_schema, extend_schema_view
@@ -49,7 +52,7 @@ class DatasetViewSet(
     queryset = UserDataset.objects.all()
     lookup_field = "id"
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[serializers.BaseSerializer[Any]]:
         if self.action == "create":
             return UserDatasetCreateSerializer
 
@@ -58,7 +61,7 @@ class DatasetViewSet(
 
         return UserDatasetDetailSerializer
 
-    def get_serializer_context(self):
+    def get_serializer_context(self) -> dict[str, Any]:
         """
         Additional context is added to provide the serializer classes with the API token.
         """
@@ -74,7 +77,7 @@ class DatasetViewSet(
 
         return serializer_context
 
-    def perform_create(self, serializer):
+    def perform_create(self, serializer: serializers.BaseSerializer) -> None:
         serializer.is_valid(raise_exception=True)
         dataset = serializer.save()
 
@@ -86,7 +89,7 @@ class DatasetViewSet(
                 logger.info(f"{dataset} job (attempt {dataset_job.attempt}) is being requeued.")
                 dataset_job.increment_attempt_or_fail()
 
-    def update(self, request, *args, **kwargs):
+    def update(self, request: Request, *args: Any, **kwargs: Any) -> Response:
         found_dataset = self.get_object()
 
         if found_dataset.start:

@@ -1,4 +1,4 @@
-from rest_framework import viewsets
+from rest_framework import serializers, viewsets
 
 from drf_spectacular.utils import extend_schema
 from rest_framework_extensions.mixins import NestedViewSetMixin
@@ -10,7 +10,7 @@ from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, 
 
 class SampleDetailSerializer(SampleSerializer):
     computed_files = ComputedFileSerializer(read_only=True, many=True)
-    project = ProjectSerializer(read_only=True)
+    project = ProjectSerializer(read_only=True)  # type: ignore[assignment]
 
 
 SampleFilterSet = filter.build_auto_filterset(
@@ -48,14 +48,14 @@ SampleFilterSet = filter.build_auto_filterset(
 )
 
 
-@extend_schema(auth=False)
+@extend_schema(auth=False)  # type: ignore
 class SampleViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
     queryset = Sample.objects.all().order_by("-created_at")
     ordering_fields = "__all__"
     lookup_field = "scpca_id"
     filterset_class = SampleFilterSet
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[serializers.BaseSerializer]:
         if self.action == "list":
             return SampleSerializer
 
