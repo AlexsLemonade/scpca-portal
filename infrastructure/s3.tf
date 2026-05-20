@@ -34,7 +34,6 @@ resource "aws_s3_bucket_public_access_block" "scpca_portal_bucket" {
 
 # AWS runs the Lifecycle rule at 00:00 UTC daily, so the expiration is
 # set to 7+1 days to provide a buffer for the portal UI
-# TODO: Temp - should be 8-day
 resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_bucket" {
   bucket = aws_s3_bucket.scpca_portal_bucket.id
 
@@ -48,7 +47,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_bucket" {
       }
     }
     expiration {
-      days = 1
+      days = 8
     }
   }
 }
