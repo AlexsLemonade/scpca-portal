@@ -91,10 +91,16 @@ class DatasetJobProcessor(JobProcessorABC):
             notifications.send_dataset_job_error_email(self.job)
 
     def handle_upload_failure(self, step: str, e: Exception) -> None:
-        pass
+        self.job.apply_state(JobStates.FAILED, reason="Failed to upload the computed file to S3.")
+        self.job.save()
+        self.job.dataset.save()
+        self.job.create_retry_job()
 
     def handle_tag_failure(self, step: str, e: Exception) -> None:
-        pass
+        # Notify about S3 tagging failure via Slack to enable manual tagging
+        self.job.apply_state(JobStates.FAILED, reason="Failed to tag the computed file on S3.")
+        logger.info("Send Slack notification for manual tagging alert.")
+        notifications.send_computed_file_tagging_error_email(self.job)
 
     def upload_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key
@@ -110,8 +116,8 @@ class DatasetJobProcessor(JobProcessorABC):
         if not tags:
             return
 
-        if not s3.tag_output_file(key, bucket_name, self.job.dataset.tags):
-            raise S3TaggingError(key, bucket_name)
+        if not s3.tag_output_file(key, bucket_name, tags):
+            raise S3TaggingError(key, bucket_name, tags)
 
     def clean_up_local_computed_file(self) -> None:
         self.job.dataset.computed_file.clean_up_local_computed_file()
