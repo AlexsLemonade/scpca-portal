@@ -11,7 +11,7 @@ class S3Error(Exception):
 class S3TaggingError(S3Error):
     def __init__(self, key: str, bucket_name: str, tags: dict | None = None) -> None:
         message = f"Failed to tag {key} in {bucket_name} with {tags}."
-        super().__init__(message, key, bucket_name, tags)
+        super().__init__(message, key, bucket_name)
 
 
 class S3UploadError(S3Error):
