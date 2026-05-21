@@ -324,7 +324,7 @@ class UserDataset(DatasetABC):
         )
 
     @classmethod
-    def mark_expired_datasets(cls):
+    def mark_expired_datasets(cls) -> int:
         """
         Marks processed datasets as expired to enable the regeneration option on the Portal.
         - Set the expires_at timestamp if it hasn't populated yet
