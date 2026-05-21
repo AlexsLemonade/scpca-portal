@@ -225,7 +225,7 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
     return True
 
 
-def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]):
+def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]) -> bool:
     """Apply tags to the output file for S3 Lifecycle Policy Rule."""
 
     if not tags:
