@@ -231,7 +231,7 @@ def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]) -> bool:
     if not tags:
         raise ValueError("Tags cannot be empty.")
     if len(tags) > 10:
-        raise ValueError("Tags cannot be more than 10 per object.")
+        raise ValueError("A maximum of 10 tags is allowed per object.")
 
     tagging = {"TagSet": [{"Key": k, "Value": v} for k, v in tags.items()]}
 
