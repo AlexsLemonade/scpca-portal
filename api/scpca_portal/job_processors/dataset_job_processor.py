@@ -54,8 +54,7 @@ class DatasetJobProcessor(JobProcessorABC):
 
     def on_run_done(self) -> None:
         self.job.save()
-        dataset = self.job.dataset
-        dataset.save()
+        self.job.dataset.save()
         logger.info("Job completed.")
 
     # Steps
