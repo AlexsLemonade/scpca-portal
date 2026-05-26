@@ -41,4 +41,5 @@ repos:
       - id: biome-check
         name: biome check
         files: ^client/
-        entry: bash -c 'cd client && exec biome check --write'
+        args:
+        - --config-path=client/biome.json
