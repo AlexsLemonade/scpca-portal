@@ -41,5 +41,3 @@ repos:
       - id: biome-check
         name: biome check
         files: ^client/
-        args:
-        - --config-path=client/biome.json
