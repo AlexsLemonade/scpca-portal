@@ -35,11 +35,9 @@ repos:
       - id: black
         language_version: python3
 
-  - repo: local
+  - repo: https://github.com/biomejs/pre-commit
+    rev: v2.4.15
     hooks:
-      - id: yarn-lint
-        name: Yarn Lint (Biome)
-        language: system
-        entry: bash -c "cd client && yarn && yarn lint"
-        pass_filenames: false
+      - id: biome-check
+        name: biome check
         files: ^client/
