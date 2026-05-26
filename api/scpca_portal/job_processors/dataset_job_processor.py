@@ -105,7 +105,7 @@ class DatasetJobProcessor(JobProcessorABC):
     def tag_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key
         bucket_name = self.job.dataset.computed_file.s3_bucket
-        tags = self.job.dataset.tags
+        tags = self.job.dataset.s3_upload_tags
 
         if not tags:
             return

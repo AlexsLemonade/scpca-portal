@@ -123,8 +123,7 @@ class DatasetABC(TimestampedModel, models.Model):
         return None
 
     @property
-    def tags(self) -> dict[str, str] | None:
-        # Tagging for S3 Lifecycle Policy Rule
+    def s3_upload_tags(self) -> dict[str, str] | None:
         return None
 
     # HASHING AND CACHED ATTR LOGIC
