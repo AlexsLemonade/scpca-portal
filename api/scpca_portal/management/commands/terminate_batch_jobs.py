@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, BooleanOptionalAction
+from typing import Any
 
 from django.core.management.base import BaseCommand
 
@@ -17,10 +18,10 @@ class Command(BaseCommand):
         parser.add_argument("--reason", type=str, default="Terminated via API")
         parser.add_argument("--retry", action=BooleanOptionalAction, default=True)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.terminate_batch_jobs(**kwargs)
 
-    def terminate_batch_jobs(self, reason: str, retry: bool = False, **kwargs) -> None:
+    def terminate_batch_jobs(self, reason: str, retry: bool = False, **kwargs: Any) -> None:
         logger.info("Terminating jobs on AWS Batch...")
         terminated_jobs = Job.terminate_processing(reason)
 

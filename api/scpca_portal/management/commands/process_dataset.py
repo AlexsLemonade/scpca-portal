@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from typing import Any
 
 from django.core.management.base import BaseCommand
 
@@ -20,10 +21,10 @@ class Command(BaseCommand):
     def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--job-id", type=str)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.process_dataset(**kwargs)
 
-    def process_dataset(self, job_id: str, **kwargs) -> None:
+    def process_dataset(self, job_id: str, **kwargs: Any) -> None:
         job = Job.objects.get(id=job_id)
         processor = DatasetJobProcessor(job)
         processor.run()

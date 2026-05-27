@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+from typing import Any
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -21,10 +22,10 @@ class Command(BaseCommand):
         parser.add_argument("--sender", type=str, default=settings.EMAIL_SENDER)
         parser.add_argument("--recipient", type=str, default=settings.SLACK_NOTIFICATIONS_EMAIL)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.send_test_email(**kwargs)
 
-    def send_test_email(self, sender: str, recipient: str, **kwargs) -> None:
+    def send_test_email(self, sender: str, recipient: str, **kwargs: Any) -> None:
         SENDER = sender
         RECIPIENT = recipient
         SUBJECT = "SES Test Email"

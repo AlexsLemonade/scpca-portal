@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
 
@@ -10,7 +12,7 @@ logger = get_and_configure_logger(__name__)
 class Command(BaseCommand):
     help = """Pauses all processing jobs and adds them to the pending queue."""
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.pause_processing()
 
     def pause_processing(self) -> None:

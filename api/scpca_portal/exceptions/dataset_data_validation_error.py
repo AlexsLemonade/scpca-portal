@@ -1,6 +1,6 @@
 from typing import Iterable
 
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import Modalities  # type: ignore[attr-defined]
 
 
 class DatasetDataValidationError(ValueError):

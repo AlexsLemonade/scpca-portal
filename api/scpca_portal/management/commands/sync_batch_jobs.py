@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management.base import BaseCommand
 
 from scpca_portal.config.logging import get_and_configure_logger
@@ -11,7 +13,7 @@ class Command(BaseCommand):
     their corresponding AWS Batch job statuses.
     """
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.sync_batch_jobs()
 
     def sync_batch_jobs(self) -> None:
