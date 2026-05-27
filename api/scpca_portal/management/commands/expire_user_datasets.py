@@ -1,3 +1,5 @@
+from typing import Any
+
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
 
@@ -13,7 +15,7 @@ class Command(BaseCommand):
     passed the 7-day expiration as expired to enable regeneration option on the Portal.
     """
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         self.expire_user_datasets()
 
     def expire_user_datasets(self) -> None:

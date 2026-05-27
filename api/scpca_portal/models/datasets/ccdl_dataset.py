@@ -1,4 +1,3 @@
-from datetime import datetime
 from typing import Dict, List
 
 from django.db import models
@@ -45,14 +44,6 @@ class CCDLDataset(DatasetABC):
         dataset.format = dataset.ccdl_type["format"]
         dataset.data = dataset.current_data
         return dataset, False
-
-    @property
-    def expiration_delta(self) -> datetime | None:
-        return None
-
-    @property
-    def tags(self) -> dict[str, str] | None:
-        return None
 
     @property
     def current_data(self) -> Dict:

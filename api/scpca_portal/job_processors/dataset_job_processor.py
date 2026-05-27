@@ -1,5 +1,3 @@
-from datetime import timedelta
-
 from scpca_portal import notifications, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
@@ -56,11 +54,7 @@ class DatasetJobProcessor(JobProcessorABC):
 
     def on_run_done(self) -> None:
         self.job.save()
-        dataset = self.job.dataset
-        # Skip expires_at for CCDLDatasets as they do not expire
-        if not getattr(dataset, "ccdl_name", None):
-            dataset.expires_at = dataset.succeeded_at + timedelta(days=7)
-        dataset.save()
+        self.job.dataset.save()
         logger.info("Job completed.")
 
     # Steps
@@ -111,7 +105,7 @@ class DatasetJobProcessor(JobProcessorABC):
     def tag_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key
         bucket_name = self.job.dataset.computed_file.s3_bucket
-        tags = self.job.dataset.tags
+        tags = self.job.dataset.s3_upload_tags
 
         if not tags:
             return

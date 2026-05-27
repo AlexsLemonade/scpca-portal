@@ -225,18 +225,18 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
     return True
 
 
-def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]):
+def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]) -> bool:
     """Apply tags to the output file for S3 Lifecycle Policy Rule."""
 
     if not tags:
         raise ValueError("Tags cannot be empty.")
     if len(tags) > 10:
-        raise ValueError("Tags cannot be more than 10 per object.")
+        raise ValueError("A maximum of 10 tags is allowed per object.")
 
-    tagging = {"TagSet": [{"Key": k, "Value": v} for k, v in tags.items()]}
+    tag_set = {"TagSet": [{"Key": k, "Value": v} for k, v in tags.items()]}
 
     try:
-        aws_s3.put_object_tagging(Bucket=bucket_name, Key=key, Tagging=tagging)
+        aws_s3.put_object_tagging(Bucket=bucket_name, Key=key, Tagging=tag_set)
     except Exception as error:
         logger.error(f"Failed to tag computed file {key} due to the following error:\n\t{error}")
         return False

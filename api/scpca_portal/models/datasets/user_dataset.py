@@ -77,7 +77,7 @@ class UserDataset(DatasetABC):
         return self.succeeded_at + timedelta(days=7)
 
     @property
-    def tags(self) -> dict[str, str] | None:
+    def s3_upload_tags(self) -> dict[str, str] | None:
         # Tagging the computed file for S3 object expiration
         return {"dataset_type": "user"}
 
@@ -324,7 +324,7 @@ class UserDataset(DatasetABC):
         )
 
     @classmethod
-    def mark_expired_datasets(cls):
+    def mark_expired_datasets(cls) -> int:
         """
         Marks processed datasets as expired to enable the regeneration option on the Portal.
         - Set the expires_at timestamp if it hasn't populated yet
