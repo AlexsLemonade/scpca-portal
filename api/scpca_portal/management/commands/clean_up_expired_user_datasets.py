@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Any
 
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
@@ -17,7 +18,7 @@ class Command(BaseCommand):
     before tagging S3 objects.
     """
 
-    def handle(self, *args, **options) -> None:
+    def handle(self, *args: Any, **options: Any) -> None:
         self.clean_up_expired_user_datasets()
 
     def clean_up_expired_user_datasets(self) -> None:
