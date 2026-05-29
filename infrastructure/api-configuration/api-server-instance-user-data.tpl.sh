@@ -47,6 +47,12 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 	apt-get update
 	apt install certbot python3-certbot-nginx -y
 
+	# Write script which syncs cert with s3 remote store
+	cat <<"EOF" > certbot_s3_sync.sh
+${certbot_s3_sync_script}
+EOF
+	chmod +x ./certbot_s3_sync.sh
+
     # Check here for the cert in S3, if present install, if not run certbot.
     if [[ $(aws s3 ls "${scpca_portal_cert_bucket}" | wc -l) == "0" ]]; then
         # g3w4k4t5n3s7p7v8@alexslemonade.slack.com is the email address we
@@ -62,9 +68,7 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 			PREFIX="$PREFIX.staging"
 		fi
         certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
-
-		chmod +x ./certbot/certbot_s3_sync.sh
-		./certbot/certbot_s3_sync.sh --scpca-portal-cert-bucket ${scpca_portal_cert_bucket}
+		./certbot_s3_sync.sh --scpca-portal-cert-bucket ${scpca_portal_cert_bucket}
     else
         zip_filename=$(aws s3 ls "${scpca_portal_cert_bucket}" | head -1 | awk '{print $4}')
         aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip
@@ -77,16 +81,12 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
 	# Add certbot cert auto renewal entry to cron
 	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
 
-	# Write scripts necessary for certbot cert renewal to instance
+	# Write script responsible for certbot cert renewal
 	cat <<"EOF" > certbot_renew_deploy_hook.sh
 ${certbot_renew_deploy_hook_script}
 EOF
 	chmod +x ./certbot_renew_deploy_hook.sh
 
-	cat <<"EOF" > certbot_s3_sync.sh
-${certbot_s3_sync_script}
-EOF
-	chmod +x ./certbot_s3_sync.sh
 fi
 
 # Install, configure and launch our CloudWatch Logs agent
