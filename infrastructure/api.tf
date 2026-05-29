@@ -17,10 +17,6 @@ data "local_file" "api_certbot_renew_deploy_hook_script" {
   filename = "api-configuration/certbot/certbot_renew_deploy_hook.sh"
 }
 
-data "local_file" "api_certbot_s3_sync_script" {
-  filename = "api-configuration/certbot/certbot_s3_sync.sh"
-}
-
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"]
@@ -61,7 +57,11 @@ resource "aws_instance" "api_server_1" {
       crontab_file                               = data.local_file.api_crontab_file.content
       certbot_crontab_entry                      = data.local_file.api_certbot_crontab_entry.content
       certbot_renew_deploy_hook_script           = data.local_file.api_certbot_renew_deploy_hook_script.content
-      certbot_s3_sync_script                     = data.local_file.api_certbot_s3_sync_script.content
+      certbot_s3_sync_script = templatefile(
+        "api-configuration/certbot/certbot_s3_sync.sh",
+        {
+          scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
+      })
       scpca_portal_cert_bucket                   = aws_s3_bucket.scpca_portal_cert_bucket.id
       api_environment = templatefile(
         "api-configuration/environment.tpl",
@@ -96,11 +96,6 @@ resource "aws_instance" "api_server_1" {
         "api-configuration/run_command.tpl.sh",
         {
           dockerhub_account = var.dockerhub_account
-      })
-      certbot_renew_deploy_hook_script = templatefile(
-        "api-configuration/certbot_renew/certbot_renew_deploy_hook.sh",
-        {
-          scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
       })
       user   = var.user
       stage  = var.stage
