@@ -476,8 +476,10 @@ class Job(TimestampedModel):
             try:
                 job.submit(save=False)  # Jobs are saved in bulk outside of the loop
                 submitted_jobs.append(job)
-                if job.dataset:  # TODO: Remove after the dataset release
-                    submitted_datasets[job.dataset.get_class()].append(job.dataset)
+                # Mark the dataset to STARTED upon successful job submission
+                job.dataset.is_started = True
+                job.dataset.started_at = make_aware(datetime.now())
+                submitted_datasets[job.dataset.get_class()].append(job.dataset)
             except (JobError, DatasetError):
                 if job.increment_attempt_or_fail():
                     pending_jobs.append(job)
@@ -488,7 +490,8 @@ class Job(TimestampedModel):
             updated_batch_attrs = ["batch_job_id", "batch_job_queue", "batch_job_definition"]
             cls.objects.bulk_update(submitted_jobs, updated_batch_attrs)
             cls.bulk_update_state(submitted_jobs)
-            if submitted_datasets:  # TODO: Remove after the dataset release
+            if submitted_datasets:
+                # Save the dataset state for STARTED
                 for dataset_cls, datasets in submitted_datasets.items():
                     dataset_cls.bulk_update_state(datasets)
 
@@ -501,14 +504,19 @@ class Job(TimestampedModel):
         """Gets and submits jobs for all passed ccdl datasets."""
         submitted_jobs = []
         failed_jobs = []
-
         for dataset in ccdl_datasets:
             job = Job.get_dataset_job(dataset)
             try:
                 job.submit()
                 submitted_jobs.append(job)
+                # Mark the dataset to STARTED upon successful job submission
+                dataset.is_started = True
+                dataset.started_at = make_aware(datetime.now())
             except (DatasetError, JobError):
                 failed_jobs.append(dataset)
+        # Save the dataset state for STARTED
+        if submitted_jobs:
+            CCDLDataset.bulk_update_state([job.dataset for job in submitted_jobs])
 
         return submitted_jobs, failed_jobs
 

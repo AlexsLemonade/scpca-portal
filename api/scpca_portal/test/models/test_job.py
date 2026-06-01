@@ -223,6 +223,10 @@ class TestJob(TestCase):
 
         # After submission, each PENDING job state should be updated to PROCESSING
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 4)
+        # Datasets from submitted jobs should be marked as started
+        for job in submitted_jobs:
+            self.assertTrue(job.dataset.is_started)
+            self.assertIsInstance(job.dataset.started_at, datetime)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending_failure(self, mock_batch_submit_job):
@@ -244,6 +248,10 @@ class TestJob(TestCase):
 
         # After submission, the jobs should remain unchanged
         self.assertEqual(Job.objects.filter(state=JobStates.PENDING).count(), 3)
+        # Datasets from failed submitted jobs should not be marked as started
+        for job in submitted_jobs:
+            self.assertFalse(job.dataset.is_started)
+            self.assertIsNone(job.dataset.started_at)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit_pending_no_submission(self, mock_batch_submit_job):

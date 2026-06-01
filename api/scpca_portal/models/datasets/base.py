@@ -548,6 +548,8 @@ class DatasetABC(TimestampedModel, models.Model):
         Updates state attributes of the given datasets in bulk.
         """
         STATE_UPDATE_ATTRS = [
+            "is_started",
+            "started_at",
             "is_pending",
             "pending_at",
             "is_processing",
