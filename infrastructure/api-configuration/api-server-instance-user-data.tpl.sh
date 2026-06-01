@@ -55,11 +55,6 @@ EOF
 
     # Check here for the cert in S3, if present install, if not run certbot.
     if [[ $(aws s3 ls "${scpca_portal_cert_bucket}" | wc -l) == "0" ]]; then
-        # g3w4k4t5n3s7p7v8@alexslemonade.slack.com is the email address we
-        # have configured to forward mail to the #teamcontact channel in
-        # slack. Certbot will use it for "important account
-        # notifications".
-
         # The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
         sleep 180
         BASE_URL="scpca.alexslemonade.org"
@@ -67,7 +62,7 @@ EOF
         if [[ ${stage} == "staging" ]]; then
 			PREFIX="$PREFIX.staging"
 		fi
-        certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
+        certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m ${slack_certbot_email}
 		./certbot_s3_sync.sh
     else
         zip_filename=$(aws s3 ls "${scpca_portal_cert_bucket}" | head -1 | awk '{print $4}')
