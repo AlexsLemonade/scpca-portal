@@ -1,3 +1,6 @@
+from datetime import datetime
+
+from django.utils.timezone import make_aware
 from rest_framework import mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -33,7 +36,7 @@ logger = get_and_configure_logger(__name__)
         **An API-KEY header is required to set start to `true` at time of creation.**"""
     ),
     retrieve=extend_schema(
-        description="""Retrieve Dataset by ID. Datasts are immutable pre-generated datasets.
+        description="""Retrieve Dataset by ID. Datasets are immutable pre-generated datasets.
         In order to retrieve a CCDL dataset with a download_url you must
         pass a API-KEY header.
         """
@@ -82,6 +85,10 @@ class DatasetViewSet(
             dataset_job = Job.get_dataset_job(dataset)
             try:
                 dataset_job.submit()
+                # Mark the dataset to STARTED upon successful job submission
+                dataset.is_started = True
+                dataset.started_at = make_aware(datetime.now())
+                dataset.save()
             except (DatasetError, JobError):
                 logger.info(f"{dataset} job (attempt {dataset_job.attempt}) is being requeued.")
                 dataset_job.increment_attempt_or_fail()
@@ -111,6 +118,10 @@ class DatasetViewSet(
             dataset_job = Job.get_dataset_job(modified_dataset)
             try:
                 dataset_job.submit()
+                # Mark the dataset to STARTED upon successful job submission
+                modified_dataset.is_started = True
+                modified_dataset.started_at = make_aware(datetime.now())
+                modified_dataset.save()
             except (DatasetError, JobError):
                 logger.info(
                     f"{modified_dataset} job (attempt {dataset_job.attempt}) is being requeued."

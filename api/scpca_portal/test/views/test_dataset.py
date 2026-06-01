@@ -234,3 +234,28 @@ class DatasetsTestCase(APITestCase):
         response = self.client.put(url, data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         mock_submit_job.assert_called_once()
+
+    @patch("scpca_portal.models.Job.submit")
+    def test_submit_job_for_processing(self, mock_submit_job):
+        dataset = UserDataset(
+            data=UserDatasetSingleCellExperiment.VALUES.get("data"),
+            email=UserDatasetSingleCellExperiment.VALUES.get("email"),
+            format=UserDatasetSingleCellExperiment.VALUES.get("format"),
+            start=False,
+        )
+        dataset.save()
+
+        url = reverse("datasets-detail", args=[dataset.id])
+        data = {
+            "start": True,
+        }
+        response = self.client.put(url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        mock_submit_job.assert_called_once()
+
+        updated_dataset = UserDataset.objects.get(id=dataset.id)
+
+        # Datasets from submitted jobs should be marked as started
+        self.assertTrue(updated_dataset.is_started)
+        self.assertIsNotNone(updated_dataset.started_at)
