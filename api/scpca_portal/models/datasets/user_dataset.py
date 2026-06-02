@@ -326,30 +326,24 @@ class UserDataset(DatasetABC):
     @classmethod
     def mark_expired_datasets(cls) -> int:
         """
-        Marks processed datasets as expired to enable the regeneration option on the Portal.
-        - Set the expires_at timestamp if it hasn't populated yet
-        - Update the is_expired flag to True if expires_at has passed the 7-day expiration
+        Marks processed datasets as expired to enable the regeneration option on the Portal:
+        - Updates is_expired to True if expires_at has passed the 7-day expiration
+        - Purges the corresponding computed files for expired datasets
         Returns the count of the datasets that have been marked as expired.
         """
         processed_datasets = cls.objects.filter(is_succeeded=True, is_expired=False)
         now = make_aware(datetime.now())
 
-        updated_fields = set()
         updated_datasets = []
 
         for dataset in processed_datasets:
-            # Ensure the expires_at timestamp is set for all processed datasets
-            if dataset.expires_at is None:
-                dataset.expires_at = dataset.succeeded_at + timedelta(days=7)
-                updated_datasets.append(dataset)
-                updated_fields.add("expires_at")
-
             if dataset.expires_at < now:
                 dataset.is_expired = True
+                if dataset.computed_file:
+                    dataset.computed_file.purge()
                 updated_datasets.append(dataset)
-                updated_fields.add("is_expired")
 
-        if updated_fields:
-            cls.objects.bulk_update(updated_datasets, list(updated_fields))
+        if updated_datasets:
+            cls.objects.bulk_update(updated_datasets, ["is_expired"])
 
-        return len([dataset for dataset in updated_datasets if dataset.is_expired])
+        return sum(1 for dataset in updated_datasets if dataset.is_expired)
