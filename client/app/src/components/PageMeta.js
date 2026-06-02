@@ -6,8 +6,8 @@ import { config } from 'config'
 export const PageMeta = ({
   title = '',
   description = config.description,
-  url = ''
-  // image = '' TODO: Default image will go here.
+  url = '',
+  image = `${config.url}/scpca-social-header.png`
 }) => {
   const { asPath } = useRouter()
 
@@ -26,7 +26,7 @@ export const PageMeta = ({
         property="og:description"
         content={description}
       />
-      {/* <meta key="og:image" property="og:image" content={image} /> */}
+      <meta key="og:image" property="og:image" content={image} />
       <meta key="twitter:card" property="twitter:card" content="summary" />
       <meta key="twitter:title" property="twitter:title" content={metaTitle} />
       <meta
@@ -39,7 +39,7 @@ export const PageMeta = ({
         property="twitter:description"
         content={description}
       />
-      {/* <meta key="twitter:image" property="twitter:image" content={image} /> */}
+      <meta key="twitter:image" property="twitter:image" content={image} />
     </Head>
   )
 }
