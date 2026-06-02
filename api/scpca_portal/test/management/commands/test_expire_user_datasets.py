@@ -15,6 +15,7 @@ class TestExpireUserDatasets(TestCase):
         self.now = make_aware(datetime.now())
 
     def test_mark_expired_dataset(self):
+        # Set up 3 expired datasets
         datasets = [
             UserDatasetFactory(
                 expires_at=self.now - timedelta(days=8) + timedelta(days=7),
@@ -34,6 +35,7 @@ class TestExpireUserDatasets(TestCase):
             self.assertIsNone(updated_dataset.computed_file)
 
     def test_mark_no_expired_dataset(self):
+        # Set up 3 unexpired datasets
         datasets = [
             UserDatasetFactory(
                 expires_at=self.now + timedelta(days=7),
@@ -46,7 +48,7 @@ class TestExpireUserDatasets(TestCase):
         ]
 
         self.expire_user_datasets()
-        # Should not mark the dataset as expired and purge computed files
+        # Should not mark the dataset as expired or purge computed files
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
             self.assertFalse(updated_dataset.is_expired)
