@@ -55,6 +55,8 @@ module.exports = () => {
 		productionBrowserSourceMaps: true,
 		webpack: (baseConfig) => {
 			const config = { ...baseConfig }
+			// Override static asset resolution location to account for workspace
+			config.resolve.alias['@custom-public'] = path.join(__dirname, 'app/public');
 			config.resolveLoader.modules.push(path.resolve(__dirname, 'loaders'))
 			config.module.rules.push({
 				test: /\.md$/,
