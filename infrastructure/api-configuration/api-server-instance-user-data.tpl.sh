@@ -53,6 +53,15 @@ ${certbot_s3_sync_script}
 EOF
 	chmod +x ./certbot_s3_sync.sh
 
+	# Write script responsible for certbot cert renewal
+	cat <<"EOF" > certbot_renew_deploy_hook.sh
+${certbot_renew_deploy_hook_script}
+EOF
+	chmod +x ./certbot_renew_deploy_hook.sh
+
+	# Add certbot cert auto renewal entry to cron
+	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
+
     # Check here for the cert in S3, if present install, if not run certbot.
     if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
         # g3w4k4t5n3s7p7v8@alexslemonade.slack.com is the email address we
@@ -76,16 +85,6 @@ EOF
         service nginx restart
 		rm letsencrypt.zip
     fi
-
-	# Add certbot cert auto renewal entry to cron
-	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
-
-	# Write script responsible for certbot cert renewal
-	cat <<"EOF" > certbot_renew_deploy_hook.sh
-${certbot_renew_deploy_hook_script}
-EOF
-	chmod +x ./certbot_renew_deploy_hook.sh
-
 fi
 
 # Install, configure and launch our CloudWatch Logs agent
