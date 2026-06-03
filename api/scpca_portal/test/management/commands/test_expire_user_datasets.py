@@ -28,7 +28,7 @@ class TestExpireUserDatasets(TestCase):
         ]
 
         self.expire_user_datasets()
-        # Should mark the dataset as expired and purge computed files
+        # Should mark the dataset as expired and delete computed files in the database
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
             self.assertTrue(updated_dataset.is_expired)
@@ -48,7 +48,7 @@ class TestExpireUserDatasets(TestCase):
         ]
 
         self.expire_user_datasets()
-        # Should not mark the dataset as expired or purge computed files
+        # Should not mark the dataset as expired or delete computed files in the database
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
             self.assertFalse(updated_dataset.is_expired)
