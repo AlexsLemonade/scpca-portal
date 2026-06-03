@@ -1,4 +1,4 @@
-from argparse import BooleanOptionalAction
+from argparse import ArgumentParser, BooleanOptionalAction
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -37,7 +37,7 @@ class Command(BaseCommand):
     If run in the cloud the zipped ComputedFiles files will be copied
     to a stack-specific S3 bucket."""
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
             "--clean-up-input-data",
             action=BooleanOptionalAction,
@@ -54,7 +54,7 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.generate_computed_files(**kwargs)
 
     def generate_computed_files(

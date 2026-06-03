@@ -25,7 +25,7 @@ class CCDLDataset(DatasetABC):
     ccdl_modality = models.TextField(choices=Modalities.choices, null=True)
     ccdl_is_merged = models.BooleanField()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (
             f"CCDL Dataset {self.id}: "
             f"{self.ccdl_project_id if self.ccdl_project_id else 'PORTAL WIDE'} {self.ccdl_name}"

@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from datetime import datetime
 
 from django.conf import settings
@@ -20,14 +21,14 @@ class Command(BaseCommand):
     Dispatch send-test-email to Batch.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--sender", type=str, default=settings.EMAIL_SENDER)
         parser.add_argument("--recipient", type=str, default=settings.SLACK_NOTIFICATIONS_EMAIL)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.dispatch_send_email(**kwargs)
 
-    def dispatch_send_email(self, sender: str, recipient: str, **kwargs):
+    def dispatch_send_email(self, sender: str, recipient: str, **kwargs) -> None:
         command = [
             "python",
             "manage.py",

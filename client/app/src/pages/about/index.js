@@ -5,6 +5,7 @@ import { CardBandLarge, HeroBandReversed } from 'components/Band'
 import { DonateButton } from 'components/DonateButton'
 import { Link } from 'components/Link'
 import { config } from 'config'
+import { PageMeta } from 'components/PageMeta'
 import FigureFeaturesEnhancementsSvg from '../../images/about-page-fig-features-enchancements.svg'
 import FigureFeaturesEnhancementsSvgMobile from '../../images/about-page-fig-features-enchancements-mobile.svg'
 import FigureHowItWorksSvg from '../../images/about-page-fig-how-it-works.svg'
@@ -23,6 +24,7 @@ export const About = () => {
 
   return (
     <>
+      <PageMeta title="About" />
       <HeroBandReversed
         background="dawn"
         width="full"

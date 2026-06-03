@@ -2,7 +2,7 @@
 // Data should be repopulated once, each time storybook is booted up
 import { writeFile } from 'node:fs/promises'
 import path from 'node:path'
-import { request } from './../../src/helpers/request.js'
+import { request } from '../../app/src/helpers/request.js'
 
 // These projects represent the permutations of all projects. They were chosen as follows:
 //    - SCPCP000001: This project has single cell sce and anndata, along with bulk
@@ -48,7 +48,7 @@ const getProjects = async projectIds => {
 
 const writeJSON = async (fileName, data) => {
   try {
-    const filePath = path.resolve(`./.storybook/data/${fileName}`)
+    const filePath = path.resolve(`./data/${fileName}`)
     // add a trailing newline to end of data string to comply with posix standard for json files
     const jsonData = JSON.stringify(data, null, 2).trim() + '\n'
     await writeFile(filePath, jsonData, 'utf8')

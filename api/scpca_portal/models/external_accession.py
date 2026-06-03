@@ -1,10 +1,15 @@
-from typing import Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from django.db import models
+
+from typing_extensions import Self
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
+
+if TYPE_CHECKING:
+    from scpca_portal.models import Project
 
 logger = get_and_configure_logger(__name__)
 
@@ -23,7 +28,7 @@ class ExternalAccession(TimestampedModel):
         return self.accession
 
     @classmethod
-    def get_from_dict(cls, data: Dict):
+    def get_from_dict(cls, data: Dict) -> Self:
         external_accession = cls(
             accession=data.get("accession"),
             has_raw=data.get("has_raw"),
@@ -33,7 +38,9 @@ class ExternalAccession(TimestampedModel):
         return external_accession
 
     @classmethod
-    def bulk_create_from_project_data(cls, project_data, project):
+    def bulk_create_from_project_data(
+        cls, project_data: Dict[str, Any], project: "Project"
+    ) -> None:
         """Creates a list of external accession objects and saves them."""
         external_accessions = []
 
