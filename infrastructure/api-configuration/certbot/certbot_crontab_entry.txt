@@ -1,0 +1,1 @@
+37 3 * * * cd /home/ubuntu && certbot renew --quiet --deploy-hook ./certbot_renew_deploy_hook.sh >> /var/log/cron/certbot_renew.log 2>&1
