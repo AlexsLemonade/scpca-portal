@@ -28,7 +28,8 @@ const DetailsTableDetail = ({ datum, emptyString = 'Not Specified' }) => {
   if (isComponent) return value
 
   // check if it is an array of values
-  const isComponentsArray = Array.isArray(value) && value.every(React.isValidElement)
+  const isComponentsArray =
+    Array.isArray(value) && value.every(React.isValidElement)
   if (isComponentsArray) return value
 
   const isArray = Array.isArray(value)
