@@ -54,7 +54,7 @@ EOF
 	chmod +x ./certbot_s3_sync.sh
 
     # Check here for the cert in S3, if present install, if not run certbot.
-    if [[ $(aws s3 ls "${scpca_portal_cert_bucket}" | wc -l) == "0" ]]; then
+    if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
         # g3w4k4t5n3s7p7v8@alexslemonade.slack.com is the email address we
         # have configured to forward mail to the #teamcontact channel in
         # slack. Certbot will use it for "important account
