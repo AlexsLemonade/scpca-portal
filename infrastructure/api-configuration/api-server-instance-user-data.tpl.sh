@@ -70,12 +70,11 @@ EOF
         certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
 		./certbot_s3_sync.sh
     else
-        zip_filename=$(aws s3 ls "${scpca_portal_cert_bucket}" | head -1 | awk '{print $4}')
-        aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip
-        unzip letsencryptdir.zip -d /etc/
+        aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
+        unzip letsencrypt.zip -d /etc/
         mv /etc/letsencrypt/nginx.conf /etc/nginx/
         service nginx restart
-		rm letsencryptdir.zip
+		rm letsencrypt.zip
     fi
 
 	# Add certbot cert auto renewal entry to cron
