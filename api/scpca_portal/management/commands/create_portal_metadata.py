@@ -1,5 +1,5 @@
 import shutil
-from argparse import BooleanOptionalAction
+from argparse import ArgumentParser, BooleanOptionalAction
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -17,7 +17,7 @@ class Command(BaseCommand):
     Optionally uploads file to s3 and cleans up output data.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument(
             "--clean-up-output-data", action=BooleanOptionalAction, default=settings.CLEAN_UP_DATA
         )
@@ -25,10 +25,10 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.create_portal_metadata(**kwargs)
 
-    def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs):
+    def create_portal_metadata(self, clean_up_output_data: bool, update_s3: bool, **kwargs) -> None:
         # Prepare the data output directory
         output_directory = settings.OUTPUT_DATA_PATH
         # Remove the existing data output directory if any
@@ -55,7 +55,7 @@ class Command(BaseCommand):
             logger.info("Cleaning up the output directory")
             computed_file.clean_up_local_computed_file()
 
-    def purge_computed_file(self, computed_file, update_s3=False):
+    def purge_computed_file(self, computed_file: ComputedFile, update_s3=False) -> None:
         if update_s3:
             logger.info("Deleting the zip from S3")
             s3.delete_output_file(computed_file.s3_key, computed_file.s3_bucket)

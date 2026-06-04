@@ -53,8 +53,17 @@ ${certbot_s3_sync_script}
 EOF
 	chmod +x ./certbot_s3_sync.sh
 
+	# Write script responsible for certbot cert renewal
+	cat <<"EOF" > certbot_renew_deploy_hook.sh
+${certbot_renew_deploy_hook_script}
+EOF
+	chmod +x ./certbot_renew_deploy_hook.sh
+
+	# Add certbot cert auto renewal entry to cron
+	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
+
     # Check here for the cert in S3, if present install, if not run certbot.
-    if [[ $(aws s3 ls "${scpca_portal_cert_bucket}" | wc -l) == "0" ]]; then
+    if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
         # The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
         sleep 180
         BASE_URL="scpca.alexslemonade.org"
@@ -65,23 +74,12 @@ EOF
         certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m ${slack_certbot_email}
 		./certbot_s3_sync.sh
     else
-        zip_filename=$(aws s3 ls "${scpca_portal_cert_bucket}" | head -1 | awk '{print $4}')
-        aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip
-        unzip letsencryptdir.zip -d /etc/
+        aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
+        unzip letsencrypt.zip -d /etc/
         mv /etc/letsencrypt/nginx.conf /etc/nginx/
         service nginx restart
-		rm letsencryptdir.zip
+		rm letsencrypt.zip
     fi
-
-	# Add certbot cert auto renewal entry to cron
-	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
-
-	# Write script responsible for certbot cert renewal
-	cat <<"EOF" > certbot_renew_deploy_hook.sh
-${certbot_renew_deploy_hook_script}
-EOF
-	chmod +x ./certbot_renew_deploy_hook.sh
-
 fi
 
 # Install, configure and launch our CloudWatch Logs agent

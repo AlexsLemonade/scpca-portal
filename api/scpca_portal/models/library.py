@@ -1,4 +1,4 @@
-from typing import Dict, List, Self
+from typing import TYPE_CHECKING, Dict, List, Self
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
@@ -8,6 +8,9 @@ from scpca_portal import common, metadata_parser
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
+
+if TYPE_CHECKING:
+    from api.scpca_portal.models import Project, Sample
 
 
 class Library(TimestampedModel):
@@ -26,11 +29,11 @@ class Library(TimestampedModel):
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="libraries")
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Library {self.scpca_id}"
 
     @classmethod
-    def get_from_dict(cls, data, project) -> Self:
+    def get_from_dict(cls, data: Dict, project: "Project") -> Self:
         library_id = data["scpca_library_id"]
         original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
 
@@ -66,7 +69,7 @@ class Library(TimestampedModel):
         return library
 
     @classmethod
-    def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample) -> None:
+    def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample: "Sample") -> None:
         libraries = []
         for library_json in library_jsons:
             library_id = library_json["scpca_library_id"]
@@ -79,7 +82,7 @@ class Library(TimestampedModel):
         sample.libraries.add(*libraries)
 
     @classmethod
-    def load_bulk_metadata(cls, project) -> None:
+    def load_bulk_metadata(cls, project: "Project") -> None:
         """
         Parses bulk metadata tsv files and create Library objets for bulk-only samples
         """
@@ -95,7 +98,7 @@ class Library(TimestampedModel):
                 Library.bulk_create_from_dicts([lib_metadata], sample)
 
     @classmethod
-    def load_metadata(cls, project) -> None:
+    def load_metadata(cls, project: "Project") -> None:
         """
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
@@ -127,7 +130,7 @@ class Library(TimestampedModel):
     def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
-    def get_metadata(self, demux_cell_count_estimate_id) -> Dict:
+    def get_metadata(self, demux_cell_count_estimate_id: str) -> Dict:
         excluded_metadata_attributes = {
             "scpca_sample_id",
             "has_citeseq",
@@ -171,13 +174,15 @@ class Library(TimestampedModel):
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
 
     @staticmethod
-    def get_libraries_metadata(libraries) -> List[Dict]:
+    def get_libraries_metadata(libraries: QuerySet[Self]) -> List[Dict]:
         return [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
 
     @staticmethod
-    def get_libraries_original_files(libraries, download_config) -> List[OriginalFile]:
+    def get_libraries_original_files(
+        libraries: QuerySet[Self], download_config: Dict
+    ) -> List[OriginalFile]:
         """
         Return file paths associated with the libraries according to the passed download_config.
         Files are then downloaded and included in computed files.

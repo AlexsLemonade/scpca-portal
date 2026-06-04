@@ -11,10 +11,10 @@ class Command(BaseCommand):
     their corresponding AWS Batch job statuses.
     """
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.sync_batch_jobs()
 
-    def sync_batch_jobs(self):
+    def sync_batch_jobs(self) -> None:
         logger.info("Syncing job states with AWS Batch...")
         success = Job.bulk_sync_state()
 

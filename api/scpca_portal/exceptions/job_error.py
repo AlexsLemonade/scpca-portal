@@ -1,5 +1,11 @@
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from scpca_portal.models import Job
+
+
 class JobError(Exception):
-    def __init__(self, message: str | None = None, job=None):
+    def __init__(self, message: str | None = None, job: "Job" = None) -> None:
         default_message = "A job error occurred."
 
         message = message or default_message
@@ -9,42 +15,42 @@ class JobError(Exception):
 
 
 class JobSubmitNotPendingError(JobError):
-    def __init__(self, job=None):
+    def __init__(self, job: "Job" = None) -> None:
         message = "Job is not in a pending state."
         super().__init__(message, job)
 
 
 class JobSyncNotProcessingError(JobError):
-    def __init__(self, job=None):
+    def __init__(self, job: "Job" = None) -> None:
         message = "Job is not in a processing state."
         super().__init__(message, job)
 
 
 class JobSubmissionFailedError(JobError):
-    def __init__(self, job=None):
+    def __init__(self, job: "Job" = None) -> None:
         message = "Error submitting job to Batch."
         super().__init__(message, job)
 
 
 class JobInvalidRetryStateError(JobError):
-    def __init__(self, job=None):
+    def __init__(self, job: "Job" = None) -> None:
         message = "Jobs in final states cannot be retried."
         super().__init__(message, job)
 
 
 class JobInvalidTerminateStateError(JobError):
-    def __init__(self, job=None):
+    def __init__(self, job: "Job" = None) -> None:
         message = "Jobs in final states cannot be terminated."
         super().__init__(message, job)
 
 
 class JobSyncStateFailedError(JobError):
-    def __init__(self, job=None):
+    def __init__(self, job: "Job" = None) -> None:
         message = "Error syncing job state with Batch."
         super().__init__(message, job)
 
 
 class JobTerminationFailedError(JobError):
-    def __init__(self, job=None):
+    def __init__(self, job: "Job" = None) -> None:
         message = "Error terminating job in Batch."
         super().__init__(message, job)

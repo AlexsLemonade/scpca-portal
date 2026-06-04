@@ -125,7 +125,8 @@ resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_bucket_policy" {
           "s3:GetBucketLocation",
           "s3:GetObject",
           "s3:ListBucket",
-          "s3:PutObject"
+          "s3:PutObject",
+          "s3:PutObjectTagging"
         ]
         Resource = [
           "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}",

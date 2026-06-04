@@ -1,10 +1,15 @@
-from typing import Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 from django.db import models
+
+from typing_extensions import Self
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
+
+if TYPE_CHECKING:
+    from scpca_portal.models import Project
 
 logger = get_and_configure_logger(__name__)
 
@@ -28,7 +33,7 @@ class Publication(TimestampedModel):
         return f"https://doi.org/{self.doi}"
 
     @classmethod
-    def get_from_dict(cls, data: Dict):
+    def get_from_dict(cls, data: Dict) -> Self:
         publication = cls(
             doi=data.get("doi"),
             citation=data.get("citation"),
@@ -38,7 +43,9 @@ class Publication(TimestampedModel):
         return publication
 
     @classmethod
-    def bulk_create_from_project_data(cls, project_data, project):
+    def bulk_create_from_project_data(
+        cls, project_data: Dict[str, Any], project: "Project"
+    ) -> None:
         """Creates a list of publication objects and saves them."""
         publications = []
 

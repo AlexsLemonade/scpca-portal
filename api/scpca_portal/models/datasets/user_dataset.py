@@ -39,7 +39,7 @@ class UserDataset(DatasetABC):
     project_sample_counts = models.JSONField(default=dict)
     project_titles = models.JSONField(default=dict)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"User Dataset {self.id}"
 
     # INSTANCE CREATION AND MODIFICATION
@@ -62,7 +62,7 @@ class UserDataset(DatasetABC):
         super().save(*args, **kwargs)
 
     @staticmethod
-    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict:
+    def validate_data(data: Dict[str, Any], format: DatasetFormats) -> Dict[str, Any]:
         structured_data = DatasetDataModel.model_validate(
             data, context={"format": format}
         ).model_dump()

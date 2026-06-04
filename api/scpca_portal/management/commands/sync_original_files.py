@@ -1,3 +1,4 @@
+from argparse import ArgumentParser
 from datetime import datetime
 from typing import List
 
@@ -17,13 +18,13 @@ class Command(BaseCommand):
     Sync OriginalFile table with s3 input bucket.
     """
 
-    def add_arguments(self, parser):
+    def add_arguments(self, parser: ArgumentParser) -> None:
         parser.add_argument("--bucket", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME)
         # if all files have been wiped in passed s3 bucket, deletion in db must be manually enabled
         # this is mainly for testing purposes
         parser.add_argument("--allow-bucket-wipe", type=bool, default=False)
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.sync_original_files(**kwargs)
 
     def get_indented_files(self, files: List[OriginalFile]) -> str:
@@ -45,7 +46,7 @@ class Command(BaseCommand):
             f"Deleted Files:\n{self.get_indented_files(deleted_files)}"
         )
 
-    def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs):
+    def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs) -> None:
         logger.info("Initiating listing of bucket objects...")
 
         locked_project_ids = lockfile.get_locked_project_ids()

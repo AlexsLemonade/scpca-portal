@@ -10,10 +10,10 @@ logger = get_and_configure_logger(__name__)
 class Command(BaseCommand):
     help = """Pauses all processing jobs and adds them to the pending queue."""
 
-    def handle(self, *args, **kwargs):
+    def handle(self, *args, **kwargs) -> None:
         self.pause_processing()
 
-    def pause_processing(self):
+    def pause_processing(self) -> None:
         termination_reason = "Processing paused via pause_processing command."
         terminated_jobs = Job.terminate_processing(reason=termination_reason)
 

@@ -91,7 +91,7 @@ class DatasetABC(TimestampedModel, models.Model):
         object_id_field="dataset_object_id",
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"Dataset {self.id}"
 
     def save(self, *args, **kwargs) -> None:
