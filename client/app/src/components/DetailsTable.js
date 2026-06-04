@@ -23,13 +23,17 @@ const DetailsTableDetail = ({ datum, emptyString = 'Not Specified' }) => {
   const isEmpty = !value || value.length === 0
   if (isEmpty) return <Text italic>{emptyString}</Text>
 
+  // check if it is already a component
+  const isComponent = React.isValidElement(value)
+  if (isComponent) return value
+
   // check if it is an array of values
+  const isComponentsArray =
+    Array.isArray(value) && value.every(React.isValidElement)
+  if (isComponentsArray) return value
+
   const isArray = Array.isArray(value)
   if (isArray) return <Paragraph>{value.join(', ')}</Paragraph>
-
-  // check if it is already a component
-  const isObject = typeof value === 'object'
-  if (isObject) return value
 
   return <Paragraph>{value}</Paragraph>
 }
