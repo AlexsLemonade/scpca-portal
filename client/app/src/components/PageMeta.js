@@ -7,7 +7,7 @@ export const PageMeta = ({
   title = '',
   description = config.description,
   url = '',
-  image = `${config.url}/alsf-logo.png`
+  image = `${config.url}/scpca-social-header.png`
 }) => {
   const { asPath } = useRouter()
 
