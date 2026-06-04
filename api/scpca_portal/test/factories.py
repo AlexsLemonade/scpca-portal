@@ -89,6 +89,11 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     sample_count = 60
 
 
+class DatasetComputedFileFactory(LeafComputedFileFactory):
+    format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
+    modality = ComputedFile.OutputFileModalities.SINGLE_CELL
+
+
 class ProjectComputedFileFactory(LeafComputedFileFactory):
     format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
     modality = ComputedFile.OutputFileModalities.SINGLE_CELL

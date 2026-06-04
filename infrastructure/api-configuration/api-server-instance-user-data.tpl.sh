@@ -26,6 +26,7 @@ sudo mkdir /var/log/cron
 cat <<"EOF" >crontab.txt
 ${crontab_file}
 EOF
+
 crontab crontab.txt
 rm crontab.txt
 
@@ -39,14 +40,30 @@ apt install docker-ce docker-ce-cli -y
 sudo usermod -a -G docker ubuntu && newgrp docker
 
 if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
-    # Check here for the cert in S3, if present install, if not run certbot.
-    if [[ $(aws s3 ls "${scpca_portal_cert_bucket}" | wc -l) == "0" ]]; then
-        # Create and install SSL Certificate for the API.
-        # Only necessary on staging and prod.
-        # We cannot use ACM for this because *.bio is not a Top Level Domain that Route53 supports.
-        apt-get update
-        apt install certbot python3-certbot-nginx -y
+	# Create and install SSL Certificate for the API.
+	# Only necessary on staging and prod.
+	# We cannot use ACM for this because *.bio is not a Top Level Domain that Route53 supports.
+	# Certbot must be installed regardless of whether or not a cert is present because of the auto renewal cron job (see below).
+	apt-get update
+	apt install certbot python3-certbot-nginx -y
 
+	# Write script which syncs cert with s3 remote store
+	cat <<"EOF" > certbot_s3_sync.sh
+${certbot_s3_sync_script}
+EOF
+	chmod +x ./certbot_s3_sync.sh
+
+	# Write script responsible for certbot cert renewal
+	cat <<"EOF" > certbot_renew_deploy_hook.sh
+${certbot_renew_deploy_hook_script}
+EOF
+	chmod +x ./certbot_renew_deploy_hook.sh
+
+	# Add certbot cert auto renewal entry to cron
+	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
+
+    # Check here for the cert in S3, if present install, if not run certbot.
+    if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
         # g3w4k4t5n3s7p7v8@alexslemonade.slack.com is the email address we
         # have configured to forward mail to the #teamcontact channel in
         # slack. Certbot will use it for "important account
@@ -55,31 +72,18 @@ if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
         # The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
         sleep 180
         BASE_URL="scpca.alexslemonade.org"
+		PREFIX="api"
         if [[ ${stage} == "staging" ]]; then
-            certbot --nginx -d api.staging.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
-        elif [[ ${stage} == "prod" ]]; then
-            certbot --nginx -d api.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
-        fi
-
-        # Add the nginx.conf file that certbot setup to the zip dir.
-        cp /etc/nginx/nginx.conf /etc/letsencrypt/
-
-        cd /etc/letsencrypt/ || exit
-        sudo zip -r ../letsencryptdir.zip "../$(basename "$PWD")"
-
-        # And then cleanup the extra copy.
-        rm /etc/letsencrypt/nginx.conf
-
-        cd - || exit
-        mv /etc/letsencryptdir.zip .
-        aws s3 cp letsencryptdir.zip "s3://${scpca_portal_cert_bucket}/"
-        rm letsencryptdir.zip
+			PREFIX="$PREFIX.staging"
+		fi
+        certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m g3w4k4t5n3s7p7v8@alexslemonade.slack.com
+		./certbot_s3_sync.sh
     else
-        zip_filename=$(aws s3 ls "${scpca_portal_cert_bucket}" | head -1 | awk '{print $4}')
-        aws s3 cp "s3://${scpca_portal_cert_bucket}/$zip_filename" letsencryptdir.zip
-        unzip letsencryptdir.zip -d /etc/
+        aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
+        unzip letsencrypt.zip -d /etc/
         mv /etc/letsencrypt/nginx.conf /etc/nginx/
         service nginx restart
+		rm letsencrypt.zip
     fi
 fi
 
@@ -122,8 +126,13 @@ cat <<EOF >awslogs.json
                         "log_group_name": "${log_group}",
                         "log_stream_name": "${expire_user_datasets_log_stream}",
                         "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/cron/certbot_renew.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${certbot_renew_log_stream}",
+                        "retention_in_days": 30
                     }
-
                 ]
             }
         }
@@ -156,6 +165,24 @@ echo "
 }" >> /etc/logrotate.conf
 echo "
 /var/log/cron/sync_batch_jobs.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/submit_pending.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/certbot_renew.log {
     missingok
     notifempty
     compress
