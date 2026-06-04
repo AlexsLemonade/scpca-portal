@@ -27,11 +27,7 @@ export const PageMeta = ({
         content={description}
       />
       <meta key="og:image" property="og:image" content={image} />
-      <meta
-        key="twitter:card"
-        name="twitter:card"
-        content="summary_large_image"
-      />
+      <meta key="twitter:card" name="twitter:card" content="summary" />
       <meta key="twitter:title" name="twitter:title" content={metaTitle} />
       <meta key="twitter:site" name="twitter:site" content="@CancerDataLab" />
       <meta
