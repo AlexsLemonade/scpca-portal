@@ -62,6 +62,7 @@ resource "aws_instance" "api_server_1" {
         {
           scpca_portal_cert_bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
       })
+      slack_certbot_email                        = var.slack_certbot_email
       scpca_portal_cert_bucket                   = aws_s3_bucket.scpca_portal_cert_bucket.id
       api_environment = templatefile(
         "api-configuration/environment.tpl",
