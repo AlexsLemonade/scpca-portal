@@ -62,9 +62,15 @@ EOF
 	# Add certbot cert auto renewal entry to cron
 	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
 
-    # Check here for the cert in S3, if present install, if not run certbot.
+    # Check here for the cert in S3, if present then pull it down from s3, if not then run certbot.
     if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
-        # The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
+        aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
+        unzip letsencrypt.zip -d /etc/
+        mv /etc/letsencrypt/nginx.conf /etc/nginx/
+        service nginx restart
+		rm letsencrypt.zip
+    else
+		# The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
         sleep 180
         BASE_URL="scpca.alexslemonade.org"
 		PREFIX="api"
@@ -73,12 +79,7 @@ EOF
 		fi
         certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m ${slack_certbot_email}
 		./certbot_s3_sync.sh
-    else
-        aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
-        unzip letsencrypt.zip -d /etc/
-        mv /etc/letsencrypt/nginx.conf /etc/nginx/
-        service nginx restart
-		rm letsencrypt.zip
+
     fi
 fi
 
