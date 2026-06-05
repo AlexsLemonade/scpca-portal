@@ -7,4 +7,4 @@ echo "$(date): Cert renewed. Syncing cert with S3 and reloading Ngninx." >> "$LO
 ./certbot_s3_sync.sh
 
 systemctl reload nginx
-echo "$(date): Syncing complete and Nginx reloaded." >> "$LOG"
+echo "$(date): Syncing complete and Nginx reloaded." >> "$LOG_FILE"
