@@ -102,7 +102,7 @@ class Job(TimestampedModel):
     # Datasets should never be deleted
     dataset_content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True)
     dataset_object_id = models.UUIDField(null=True)
-    dataset_snapshot = models.JSONField(default=dict) # Used for internal debugging
+    dataset_snapshot = models.JSONField(default=dict)  # Used for internal debugging
     dataset = GenericForeignKey("dataset_content_type", "dataset_object_id")
 
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
