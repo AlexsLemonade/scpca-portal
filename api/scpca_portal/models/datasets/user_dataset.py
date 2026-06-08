@@ -5,10 +5,12 @@ from typing import Any, Dict, List
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import Count
+from django.utils.timezone import make_aware
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.datasets.base import DatasetABC
 from scpca_portal.models.project import Project
 from scpca_portal.validators import DatasetDataModel, DatasetDataModelRelations
@@ -321,3 +323,20 @@ class UserDataset(DatasetABC):
             .order_by("project__scpca_id")
             .values_list("project__scpca_id", "num_samples")
         )
+
+    @classmethod
+    def mark_expired_datasets(cls) -> int:
+        """
+        Marks datasets as expired to enable the regeneration option on the Portal:
+        - Set the is_expired field to True for datasets that exceeded the 7-day expiration.
+        - Delete the corresponding computed files in the database
+        NOTE: The deletion of computed files on S3 is managed by S3 Lifecycle Policy Rules.
+        Returns the count of the datasets that have been marked as expired.
+        """
+        expired_datasets = cls.objects.filter(
+            is_succeeded=True, is_expired=False, expires_at__lt=make_aware(datetime.now())
+        )
+
+        ComputedFile.objects.filter(userdataset__in=expired_datasets).delete()
+
+        return expired_datasets.update(is_expired=True)
