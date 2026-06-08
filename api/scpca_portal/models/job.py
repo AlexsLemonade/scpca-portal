@@ -130,6 +130,9 @@ class Job(TimestampedModel):
         - The data attribute
         - Hashes related to file contents
         """
+        if dataset is None:
+            raise ValueError("Dataset cannot be None")
+
         return {
             "data": deepcopy(dataset.data),
             "data_hash": dataset.data_hash,
@@ -147,7 +150,7 @@ class Job(TimestampedModel):
     def save(self, *args, **kwargs) -> None:
         self.validate_dataset()
 
-        if not self.dataset_snapshot:
+        if self.dataset and not self.dataset_snapshot:
             self.dataset_snapshot = self.get_dataset_snapshot(self.dataset)
 
         super().save(*args, **kwargs)
