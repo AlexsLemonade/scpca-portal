@@ -1,6 +1,7 @@
 from collections import defaultdict
+from copy import deepcopy
 from datetime import datetime
-from typing import List
+from typing import Any, Dict, List
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericForeignKey
@@ -34,18 +35,20 @@ logger = get_and_configure_logger(__name__)
 
 
 class JobQuerySet(models.QuerySet):
-    def _validate_bulk(self, jobs: List["Job"]) -> None:
+    def _prepare_bulk(self, jobs: List["Job"]) -> None:
         for job in jobs:
             job.validate_dataset()
+            if not job.dataset_snapshot:
+                job.dataset_snapshot = job.get_dataset_snapshot(job.dataset)
 
     def bulk_create(self, objs: List["Job"], *args, **kwargs) -> List["Job"]:
-        self._validate_bulk(objs)
+        self._prepare_bulk(objs)
         return super().bulk_create(objs, *args, **kwargs)
 
     def bulk_update(self, objs: List["Job"], fields: List[str], *args, **kwargs) -> int:
         job_dataset_fields = {"dataset", "dataset_content_type", "dataset_object_id"}
         if job_dataset_fields & set(fields):
-            self._validate_bulk(objs)
+            self._prepare_bulk(objs)
 
         return super().bulk_update(objs, fields, *args, **kwargs)
 
@@ -99,6 +102,7 @@ class Job(TimestampedModel):
     # Datasets should never be deleted
     dataset_content_type = models.ForeignKey(ContentType, on_delete=models.SET_NULL, null=True)
     dataset_object_id = models.UUIDField(null=True)
+    dataset_snapshot = models.JSONField(default=dict) # Used for internal debugging
     dataset = GenericForeignKey("dataset_content_type", "dataset_object_id")
 
     # Maximum size of a dataset in GB in order to be accommodated by the fargate pipeline
@@ -119,6 +123,20 @@ class Job(TimestampedModel):
         """
         return cls(batch_job_name=str(dataset.id), dataset=dataset)
 
+    @classmethod
+    def get_dataset_snapshot(cls, dataset: DatasetABC) -> Dict[str, Any]:
+        """
+        Returns a snapshot of the corresponding dataset including:
+        - The data attribute
+        - Hashes related to file contents
+        """
+        return {
+            "data": deepcopy(dataset.data),
+            "data_hash": dataset.data_hash,
+            "metadata_hash": dataset.metadata_hash,
+            "readme_hash": dataset.readme_hash,
+        }
+
     def validate_dataset(self) -> None:
         if self.dataset and not issubclass(type(self.dataset), DatasetABC):
             raise ValidationError(
@@ -128,6 +146,10 @@ class Job(TimestampedModel):
 
     def save(self, *args, **kwargs) -> None:
         self.validate_dataset()
+
+        if not self.dataset_snapshot:
+            self.dataset_snapshot = self.get_dataset_snapshot(self.dataset)
+
         super().save(*args, **kwargs)
 
     @classmethod
@@ -218,6 +240,7 @@ class Job(TimestampedModel):
             batch_job_queue=self.batch_job_queue,
             batch_container_overrides=self.batch_container_overrides,
             dataset=self.dataset,
+            dataset_snapshot=deepcopy(self.dataset_snapshot),
         )
 
         new_job.apply_state(JobStates.PENDING)
