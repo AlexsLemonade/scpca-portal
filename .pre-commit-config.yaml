@@ -34,3 +34,18 @@ repos:
     hooks:
       - id: black
         language_version: python3
+
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.19.0
+    hooks:
+      - id: mypy
+        files: ^api/
+        pass_filenames: false
+        entry: env PYTHONPATH=api mypy
+        args:
+          - --config-file=api/mypy.ini
+          - api/scpca_portal
+        additional_dependencies:
+          - django-stubs[compatible-mypy]==5.2.9
+          - djangorestframework-stubs[compatible-mypy]==3.16.9
+          - django-configurations==2.5.1
