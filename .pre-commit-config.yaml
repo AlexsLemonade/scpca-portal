@@ -44,3 +44,6 @@ repos:
         args:
           - --config-file=api/mypy.ini
           - api/scpca_portal
+        additional_dependencies:
+          - django-stubs[compatible-mypy]==5.2.9
+          - djangorestframework-stubs[compatible-mypy]==3.16.9
