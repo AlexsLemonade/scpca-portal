@@ -34,6 +34,7 @@ TF_ENV_VAR = {
     "SENTRY_ENV": "TF_VAR_sentry_env",
     "SSH_PUBLIC_KEY": "TF_VAR_ssh_public_key",
     "SLACK_NOTIFICATIONS_EMAIL": "TF_VAR_slack_notifications_email",
+    "SLACK_CERTBOT_EMAIL": "TF_VAR_slack_certbot_email",
     "ENABLE_FEATURE_PREVIEW": "TF_VAR_enable_feature_preview",
     "CELLBROWSER_SECURITY_TOKEN": "TF_VAR_cellbrowser_security_token",
     "CELLBROWSER_UPLOADERS": "TF_VAR_cellbrowser_uploaders",

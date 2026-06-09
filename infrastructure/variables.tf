@@ -77,6 +77,10 @@ variable "slack_notifications_email" {
   default = "testing@example.com"
 }
 
+variable "slack_certbot_email" {
+  default = "certbot@example.com"
+}
+
 variable "enable_feature_preview" {
   default = "false"
 }
