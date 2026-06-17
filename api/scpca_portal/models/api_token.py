@@ -5,7 +5,6 @@ import uuid
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.db import models
-from django.db.models import QuerySet
 
 from typing_extensions import Self
 
@@ -39,21 +38,21 @@ class APIToken(TimestampedModel):
     is_activated = models.BooleanField(default=False)
 
     @classmethod
-    def verify(cls, token_id: str) -> QuerySet[Self] | None:
+    def verify(cls, token_id: str) -> Self | None:
         """
         Returns APIToken instance for an active token_id. Returns None
         otherwise.
         """
         if not token_id:
-            return
+            return None
 
         try:
             return cls.objects.get(id=token_id, is_activated=True)
         except (APIToken.DoesNotExist, ValidationError):
-            pass
+            return None
 
     @property
     def terms_and_conditions(self) -> str:
         """Terms and conditions placeholder."""
 
-        return settings.TERMS_AND_CONDITIONS
+        return settings.TERMS_AND_CONDITIONS  # type: ignore

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, List
+from typing import TYPE_CHECKING, List, cast
 
 from django.conf import settings
 from django.db.models import QuerySet
@@ -46,7 +46,7 @@ def submit_job(job: "Job") -> str | None:
         job_id=job.pk,
         batch_job_id=job.batch_job_id,
     )
-    return response["jobId"]
+    return cast(str, response["jobId"])
 
 
 def terminate_job(job: "Job") -> bool:

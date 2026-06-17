@@ -62,14 +62,16 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
     metadata_dataset_id = serializers.SerializerMethodField(read_only=True, default=None)
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
     publications = PublicationSerializer(read_only=True, many=True)
-    samples = serializers.SlugRelatedField(many=True, read_only=True, slug_field="scpca_id")
+    samples = serializers.SlugRelatedField(
+        many=True, read_only=True, slug_field="scpca_id"
+    )  # type: ignore[var-annotated]
     summaries = ProjectSummarySerializer(many=True, read_only=True)
 
     def get_metadata_dataset_id(self, obj: Project) -> str | None:
         if dataset := CCDLDataset.objects.filter(
             ccdl_project_id=obj.scpca_id, format=DatasetFormats.METADATA
         ).first():
-            return dataset.id
+            return str(dataset.id)
 
         return None
 
@@ -79,4 +81,4 @@ class ProjectSerializer(ProjectLeafSerializer):
 
 
 class ProjectDetailSerializer(ProjectSerializer):
-    samples = SampleSerializer(many=True, read_only=True)
+    samples = SampleSerializer(many=True, read_only=True)  # type: ignore[assignment]

@@ -21,7 +21,7 @@ class APITokenSerializer(serializers.ModelSerializer):
 
 @extend_schema(
     request=APITokenSerializer,
-    auth=False,
+    auth=False,  # type: ignore
     examples=[
         OpenApiExample("Example Token Response"),
     ],

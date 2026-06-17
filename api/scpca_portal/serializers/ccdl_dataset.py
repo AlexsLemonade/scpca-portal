@@ -1,3 +1,5 @@
+from typing import Any
+
 from rest_framework import serializers
 
 from scpca_portal.models import CCDLDataset
@@ -63,7 +65,7 @@ class CCDLDatasetDetailSerializer(CCDLDatasetSerializer):
             },
         }
 
-    def __init__(self, *args, **kwargs) -> None:
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super().__init__(*args, **kwargs)
         if "context" in kwargs:
             # Only include the field `download_url` if a valid token is specified.

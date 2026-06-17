@@ -1,6 +1,6 @@
 import csv
 import io
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from scpca_portal import common, utils
 
@@ -16,10 +16,12 @@ def get_file_name(download_config: Dict) -> str:
     if download_config.get("metadata_only", False):
         return MetadataFilenames.METADATA_ONLY_FILE_NAME
 
-    return getattr(MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME')
+    return getattr(
+        MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME'
+    )  # type: ignore[no-any-return]
 
 
-def get_file_contents(libraries_metadata: List[Dict], **kwargs) -> str:
+def get_file_contents(libraries_metadata: List[Dict], **kwargs: Any) -> str:
     """Return newly genereated metadata file as a string for immediate writing to a zip archive."""
     formatted_libraries_metadata = [format_metadata_dict(lib_md) for lib_md in libraries_metadata]
     sorted_libraries_metadata = sorted(

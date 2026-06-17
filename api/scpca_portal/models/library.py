@@ -174,19 +174,22 @@ class Library(TimestampedModel):
         return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
 
     @staticmethod
-    def get_libraries_metadata(libraries: QuerySet[Self]) -> List[Dict]:
+    def get_libraries_metadata(libraries: QuerySet["Library"]) -> List[Dict]:
         return [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
 
     @staticmethod
     def get_libraries_original_files(
-        libraries: QuerySet[Self], download_config: Dict
+        libraries: QuerySet["Library"], download_config: Dict
     ) -> List[OriginalFile]:
         """
         Return file paths associated with the libraries according to the passed download_config.
         Files are then downloaded and included in computed files.
         """
+        if libraries.none():
+            return []
+
         library_original_files = [
             of
             for lib in libraries
@@ -194,7 +197,7 @@ class Library(TimestampedModel):
         ]
 
         if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
-            project = libraries.first().project
+            project = libraries.first().project  # type: ignore
             project_original_files = [
                 of for of in project.get_original_files_by_download_config(download_config)
             ]

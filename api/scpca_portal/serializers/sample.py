@@ -39,7 +39,9 @@ class SampleLeafSerializer(serializers.ModelSerializer):
         )
 
     computed_files = ComputedFileSerializer(read_only=True, many=True)
-    project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
+    project = serializers.SlugRelatedField(
+        read_only=True, slug_field="scpca_id"
+    )  # type: ignore[var-annotated]
 
 
 class SampleSerializer(SampleLeafSerializer):

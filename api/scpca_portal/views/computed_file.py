@@ -1,3 +1,5 @@
+from typing import Any
+
 from rest_framework import serializers, viewsets
 from rest_framework.exceptions import PermissionDenied
 
@@ -51,7 +53,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
     project = ProjectLeafSerializer(read_only=True)
     sample = SampleSerializer(read_only=True)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(ComputedFileDetailSerializer, self).__init__(*args, **kwargs)
         if "context" in kwargs:
             # Only include the field `download_url` if a valid token is
@@ -63,7 +65,7 @@ class ComputedFileDetailSerializer(serializers.ModelSerializer):
 
 @extend_schema_view(
     list=extend_schema(
-        auth=False,
+        auth=False,  # type: ignore
         deprecated=True,
         description="""
         Computed Files are immutable pre-generated downloadable files.
@@ -97,13 +99,13 @@ class ComputedFileViewSet(NestedViewSetMixin, viewsets.ReadOnlyModelViewSet):
         "includes_celltype_report",
     )
 
-    def get_serializer_class(self):
+    def get_serializer_class(self) -> type[serializers.BaseSerializer]:
         if self.action == "list":
             return ComputedFileSerializer
 
         return ComputedFileDetailSerializer
 
-    def get_serializer_context(self):
+    def get_serializer_context(self) -> dict[str, Any]:
         """
         Extra context provided to the serializer class.
 

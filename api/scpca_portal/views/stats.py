@@ -1,6 +1,7 @@
 from django.utils.decorators import method_decorator
 from django.views.decorators.cache import cache_page
 from rest_framework import serializers, viewsets
+from rest_framework.request import Request
 from rest_framework.response import Response
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema
@@ -21,12 +22,12 @@ class StatsResponseSerializer(serializers.Serializer):
 class StatsViewSet(viewsets.ViewSet):
     @method_decorator(cache_page(None))
     @extend_schema(
-        auth=False,
+        auth=False,  # type: ignore[arg-type]
         responses={
             200: OpenApiResponse(response=StatsResponseSerializer),
         },
     )
-    def list(self, request):
+    def list(self, request: Request) -> Response:
         """
         Provides list of all cancer types as well as counts for cancer types,
         labs, projects, and samples accounted for on the portal.

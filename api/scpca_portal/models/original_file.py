@@ -19,7 +19,7 @@ logger = get_and_configure_logger(__name__)
 
 
 class DownloadableFileManager(models.Manager):
-    def get_queryset(self):
+    def get_queryset(self) -> QuerySet:
         return super().get_queryset().filter(is_downloadable=True)
 
 

@@ -10,13 +10,13 @@ class InputBucketS3KeyInfo:
         self.s3_key_path: Path = s3_key_path
         self.project_id_part: str | None = utils.find_first_contained(
             common.PROJECT_ID_PREFIX, s3_key_path.parts
-        )
+        )  # type: ignore[assignment]
         self.sample_id_part: str | None = utils.find_first_contained(
             common.SAMPLE_ID_PREFIX, s3_key_path.parts
-        )
+        )  # type: ignore[assignment]
         self.library_id_part: str | None = utils.find_first_contained(
             common.LIBRARY_ID_PREFIX, s3_key_path.parts
-        )
+        )  # type: ignore[assignment]
 
     @property
     def project_id(self) -> str | None:

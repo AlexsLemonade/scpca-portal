@@ -5,7 +5,7 @@ import time
 from datetime import datetime
 from functools import wraps
 from multiprocessing import current_process
-from typing import Callable, ParamSpec, TypeVar
+from typing import Any, Callable, ParamSpec, TypeVar
 
 import daiquiri
 
@@ -39,7 +39,10 @@ def unconfigure_root_logger() -> None:
         root_logger.removeHandler(handler)
 
 
-def get_and_configure_logger(name: str) -> logging.Logger:
+# Return type of `Any` due to daiquri:
+# - not being a subclass of logging.Logger
+# - not shipping with stubbed types
+def get_and_configure_logger(name: str) -> Any:
     unconfigure_root_logger()
 
     global LOG_LEVEL

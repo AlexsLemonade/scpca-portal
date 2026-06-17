@@ -1,5 +1,6 @@
 from django.http import JsonResponse
 from rest_framework import serializers, viewsets
+from rest_framework.request import Request
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
@@ -17,12 +18,12 @@ class FilterOptionsResponseSerializer(serializers.Serializer):
 
 class FilterOptionsViewSet(viewsets.ViewSet):
     @extend_schema(
-        auth=False,
+        auth=False,  # type: ignore[arg-type]
         responses={
             200: OpenApiResponse(response=FilterOptionsResponseSerializer),
         },
     )
-    def list(self, request):
+    def list(self, request: Request) -> JsonResponse:
         """
         Provides a list of all options for project filters.
         This includes diagnoses, modalities, seq_units,
