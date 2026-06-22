@@ -41,8 +41,7 @@ class Command(BaseCommand):
                 dataset.is_expired = True
                 updated_fields.add("is_expired")
                 if computed_file := dataset.computed_file:
-                    delete_from_s3 = computed_file.s3_key and computed_file.s3_bucket
-                    computed_file.purge(delete_from_s3)
+                    computed_file.purge(delete_from_s3=True)
 
             updated_datasets.append(dataset)
 
