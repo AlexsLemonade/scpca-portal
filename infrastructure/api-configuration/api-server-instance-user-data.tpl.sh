@@ -118,12 +118,17 @@ cat <<EOF >awslogs.json
                         "retention_in_days": 30
                     },
                     {
+                        "file_path": "/var/log/cron/expire_user_datasets.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${expire_user_datasets_log_stream}",
+                        "retention_in_days": 30
+                    },
+                    {
                         "file_path": "/var/log/cron/certbot_renew.log",
                         "log_group_name": "${log_group}",
                         "log_stream_name": "${certbot_renew_log_stream}",
                         "retention_in_days": 30
                     }
-
                 ]
             }
         }

@@ -75,6 +75,16 @@ def send_dataset_job_error_email(job: Job) -> None:
     return send_email(job.dataset.email, subject, body_text, body_html)
 
 
+def send_computed_file_tagging_error_email(job: Job) -> None:
+    subject = f"Failed to tag the computed file on S3 for {job.dataset.id}"
+    body_text = (
+        f"Tagging failure on the computed file {job.dataset.computed_file.s3_key} "
+        f"on bucket {job.dataset.computed_file.s3_bucket} for the dataset {job.dataset.id}"
+    )
+
+    return send_email(settings.SLACK_NOTIFICATIONS_EMAIL, subject, body_text, body_text)
+
+
 # TODO: Remove this is just for computed files
 def send_project_files_completed_email(project_id: str) -> None:
     subject = f"All files generated for {project_id}"

@@ -36,3 +36,4 @@ from scpca_portal.exceptions.job_processor_error import (
     JobProcessorHandlerStepNotImplementedError,
     JobProcessorStepNotImplementedError,
 )
+from scpca_portal.exceptions.s3_error import S3Error, S3TaggingError, S3UploadError
