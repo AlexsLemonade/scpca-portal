@@ -66,7 +66,6 @@ EOF
     if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
         aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
         unzip letsencrypt.zip -d /etc/
-        mv /etc/letsencrypt/nginx.conf /etc/nginx/
         service nginx restart
         rm letsencrypt.zip
     else

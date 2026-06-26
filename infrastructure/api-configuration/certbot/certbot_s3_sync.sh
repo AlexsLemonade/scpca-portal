@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Zip letsencrypt dir
-cd /home/ubuntu
-zip -r letsencrypt.zip /etc/letsencrypt/ /etc/nginx/nginx.conf
+# Build the archive with paths relative to /etc (letsencrypt/..., nginx/nginx.conf)
+# so it restores cleanly with `unzip -d /etc/`. The subshell keeps the cd local.
+(cd /etc && zip -r /home/ubuntu/letsencrypt.zip letsencrypt/ nginx/nginx.conf)
 
 # Sync with S3
-aws s3 cp letsencrypt.zip "s3://${scpca_portal_cert_bucket}/"
-rm letsencrypt.zip
+aws s3 cp /home/ubuntu/letsencrypt.zip "s3://${scpca_portal_cert_bucket}/"
+rm /home/ubuntu/letsencrypt.zip
