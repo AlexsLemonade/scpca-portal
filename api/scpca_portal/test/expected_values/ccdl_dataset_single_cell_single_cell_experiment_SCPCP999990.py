@@ -46,8 +46,8 @@ class CCDLDatasetSingleCellSingleCellExperimentSCPCP999990:
     }
     COMPUTED_FILE_LIST = [
         "README.md",
-        "SCPCP999990_bulk_rna/SCPCP999990_bulk_metadata.tsv",
-        "SCPCP999990_bulk_rna/SCPCP999990_bulk_quant.tsv",
+        "SCPCP999990_bulk/SCPCP999990_bulk_metadata.tsv",
+        "SCPCP999990_bulk/SCPCP999990_bulk_quant.tsv",
         "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_celltype-report.html",
         "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_filtered.rds",
         "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_processed.rds",
@@ -69,7 +69,7 @@ class CCDLDatasetSingleCellSingleCellExperimentSCPCP999990:
         "modality": Modalities.SINGLE_CELL.value,
         "metadata_only": False,
         "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-        "size_in_bytes": 7496,
+        "size_in_bytes": 7480,
         "workflow_version": "v0.8.8",
         "includes_celltype_report": True,
     }
