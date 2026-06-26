@@ -65,7 +65,8 @@ EOF
     # Check here for the cert in S3, if present then pull it down from s3, if not then run certbot.
     if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
         aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
-        unzip letsencrypt.zip -d /etc/
+        # -o overwrites the existing nginx.conf without prompt
+        unzip -o letsencrypt.zip -d /etc/
         service nginx restart
         rm letsencrypt.zip
     else
