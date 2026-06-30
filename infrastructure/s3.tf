@@ -1,11 +1,11 @@
 resource "aws_s3_bucket" "scpca_portal_bucket" {
-  bucket = "scpca-portal-${var.user}-${var.stage}"
+  bucket        = "scpca-portal-${var.user}-${var.stage}"
   force_destroy = var.stage == "prod" ? false : true
 
   tags = merge(
     var.default_tags,
     {
-      Name = "scpca-portal-${var.user}-${var.stage}"
+      Name        = "scpca-portal-${var.user}-${var.stage}"
       Environment = var.stage
     }
   )
@@ -22,7 +22,7 @@ resource "aws_s3_bucket_acl" "scpca_portal_bucket" {
   depends_on = [aws_s3_bucket_ownership_controls.scpca_portal_bucket]
 
   bucket = aws_s3_bucket.scpca_portal_bucket.id
-  acl = "private"
+  acl    = "private"
 }
 
 resource "aws_s3_bucket_public_access_block" "scpca_portal_bucket" {
@@ -32,33 +32,53 @@ resource "aws_s3_bucket_public_access_block" "scpca_portal_bucket" {
   block_public_policy = true
 }
 
+# AWS runs the Lifecycle rule at 00:00 UTC daily, so the expiration is
+# set to 7+1 days to provide a buffer for the portal UI
+resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_bucket" {
+  bucket = aws_s3_bucket.scpca_portal_bucket.id
+
+  rule {
+    id     = "expire-user-dataset-${var.user}-${var.stage}"
+    status = "Enabled"
+    filter {
+      tag {
+        key   = "dataset_type"
+        value = "user"
+      }
+    }
+    expiration {
+      days = 8
+    }
+  }
+}
+
 resource "aws_s3_bucket" "scpca_portal_cert_bucket" {
-  bucket = "scpca-portal-cert-${var.user}-${var.stage}"
+  bucket        = "scpca-portal-cert-${var.user}-${var.stage}"
   force_destroy = var.stage == "prod" ? false : true
 
   tags = merge(
     var.default_tags,
     {
-      Name = "scpca-portal-cert-${var.user}-${var.stage}"
+      Name        = "scpca-portal-cert-${var.user}-${var.stage}"
       Environment = var.stage
     }
   )
 }
 
 resource "aws_s3_bucket_ownership_controls" "scpca_portal_cert_bucket" {
-   bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
-   rule {
+  bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
+  rule {
     object_ownership = "BucketOwnerPreferred"
   }
 }
 
 resource "aws_s3_bucket_acl" "scpca_portal_cert_bucket" {
   depends_on = [aws_s3_bucket_ownership_controls.scpca_portal_cert_bucket]
-  bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
-  acl = "private"
+  bucket     = aws_s3_bucket.scpca_portal_cert_bucket.id
+  acl        = "private"
 }
 
- resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_cert_bucket" {
+resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_cert_bucket" {
   bucket = aws_s3_bucket.scpca_portal_cert_bucket.id
   rule {
     id = "auto-delete-after-30-days-${var.user}-${var.stage}"
@@ -118,7 +138,7 @@ resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_bucket_policy" {
         Sid    = "ScienceTeamWriteObject"
         Effect = "Allow"
         Principal = {
-          "AWS": var.cellbrowser_uploaders
+          "AWS" : var.cellbrowser_uploaders
         }
         Action = [
           "s3:DeleteObject",
@@ -134,14 +154,14 @@ resource "aws_s3_bucket_policy" "scpca_portal_cellbrowser_bucket_policy" {
         ]
       },
       {
-        Sid    = "PublicReadGetObjectWithSecretHeader"
-        Effect = "Allow"
+        Sid       = "PublicReadGetObjectWithSecretHeader"
+        Effect    = "Allow"
         Principal = "*"
-        Action = "s3:GetObject"
-        Resource = "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.scpca_portal_cellbrowser_bucket.arn}/*"
         Condition = {
           StringEquals = {
-              "aws:Referer" = var.cellbrowser_security_token
+            "aws:Referer" = var.cellbrowser_security_token
           }
         }
       }
@@ -165,7 +185,7 @@ resource "aws_s3_bucket_cors_configuration" "scpca_portal_cellbrowser_cors_confi
     allowed_headers = ["*"]
     allowed_methods = ["GET", "HEAD"]
     allowed_origins = ["*"]
-    expose_headers = []
+    expose_headers  = []
     max_age_seconds = 3000
   }
 }

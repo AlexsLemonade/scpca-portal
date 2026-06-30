@@ -112,7 +112,7 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     ) -> Path:
         """Return the correct output file parent directory of the passed original_file."""
         if original_file.is_bulk:
-            return Path(f"{original_file.project_id}_bulk_rna")
+            return Path(f"{original_file.project_id}_bulk")
 
         # spatial / unmerged single cell
         modality = Modalities.SINGLE_CELL if original_file.is_single_cell else Modalities.SPATIAL

@@ -117,6 +117,15 @@ class DatasetABC(TimestampedModel, models.Model):
     def get_class(self) -> models.Model:
         return self._meta.model
 
+    @property
+    def expiration_delta(self) -> datetime | None:
+        # Expiration for processed datasets
+        return None
+
+    @property
+    def s3_upload_tags(self) -> dict[str, str] | None:
+        return None
+
     # HASHING AND CACHED ATTR LOGIC
     def get_hashes(self) -> tuple[str, str, str, str]:
         """Computes and returns data, metadata, readme, and combined hashes."""
@@ -187,7 +196,7 @@ class DatasetABC(TimestampedModel, models.Model):
     def get_metadata_file_contents(self) -> List[tuple[str | None, Modalities | None, str]]:
         """
         Return a list of three element tuples which includes the project_id, modality,
-        and their associatied metadata file contents as a string.
+        and their associated metadata file contents as a string.
         """
         # We only return one metadata file for all metadata datasets
         # TODO: if we need to put project metadata files in a project folder,
@@ -539,6 +548,11 @@ class DatasetABC(TimestampedModel, models.Model):
 
         setattr(self, f"is_{state_str}", True)
         setattr(self, f"{state_str}_at", make_aware(datetime.now()))
+
+        # Populate the expiration date if required
+        if state == JobStates.SUCCEEDED and self.expiration_delta:
+            self.expires_at = self.expiration_delta
+
         if hasattr(self, f"{state_str}_reason"):
             setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
 
@@ -548,6 +562,7 @@ class DatasetABC(TimestampedModel, models.Model):
         Updates state attributes of the given datasets in bulk.
         """
         STATE_UPDATE_ATTRS = [
+            "expires_at",
             "is_pending",
             "pending_at",
             "is_processing",
