@@ -32,7 +32,6 @@ class TokenDownload(TimestampedModel):
                 modality=computed_file.modality,
                 includes_merged=computed_file.includes_merged,
                 metadata_only=computed_file.metadata_only,
-                portal_metadata_only=computed_file.portal_metadata_only,
             )
 
             if project := computed_file.project:
