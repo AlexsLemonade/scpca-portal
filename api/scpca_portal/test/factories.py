@@ -94,11 +94,6 @@ class DatasetComputedFileFactory(LeafComputedFileFactory):
     modality = ComputedFile.OutputFileModalities.SINGLE_CELL
 
 
-class ProjectComputedFileFactory(LeafComputedFileFactory):
-    format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
-    modality = ComputedFile.OutputFileModalities.SINGLE_CELL
-
-
 class SampleComputedFileFactory(LeafComputedFileFactory):
     format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
     modality = ComputedFile.OutputFileModalities.SINGLE_CELL
@@ -111,7 +106,6 @@ class SampleFactory(factory.django.DjangoModelFactory):
 
     age = "4"
     age_timing = "diagnosis"
-    computed_file1 = factory.RelatedFactory(SampleComputedFileFactory, "sample")
     diagnosis = "pilocytic astrocytoma"
     disease_timing = "primary diagnosis"
     has_cite_seq_data = True
@@ -196,7 +190,6 @@ class LibraryFactory(factory.django.DjangoModelFactory):
 
 
 class ProjectFactory(LeafProjectFactory):
-    computed_file = factory.RelatedFactory(ProjectComputedFileFactory, "project")
     sample = factory.RelatedFactory(SampleFactory, "project")
     library = factory.RelatedFactory(LibraryFactory, "project")
     summary = factory.RelatedFactory(ProjectSummaryFactory, factory_related_name="project")
