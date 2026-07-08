@@ -2,7 +2,7 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.test.factories import SampleComputedFileFactory, SampleFactory
+from scpca_portal.test.factories import SampleFactory
 
 
 class SamplesTestCase(APITestCase):
@@ -10,9 +10,6 @@ class SamplesTestCase(APITestCase):
 
     def setUp(self):
         self.sample = SampleFactory()
-        computed_file = SampleComputedFileFactory()
-        computed_file.sample = self.sample
-        computed_file.save()
 
     def test_get_single(self):
         url = reverse("samples-detail", args=[self.sample.scpca_id])
