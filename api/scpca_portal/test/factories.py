@@ -94,11 +94,6 @@ class DatasetComputedFileFactory(LeafComputedFileFactory):
     modality = ComputedFile.OutputFileModalities.SINGLE_CELL
 
 
-class SampleComputedFileFactory(LeafComputedFileFactory):
-    format = ComputedFile.OutputFileFormats.SINGLE_CELL_EXPERIMENT
-    modality = ComputedFile.OutputFileModalities.SINGLE_CELL
-
-
 class SampleFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = "scpca_portal.Sample"
