@@ -35,13 +35,6 @@ class TestLoader(TransactionTestCase):
             update_s3=False,
         )
 
-        self.generate_computed_files = partial(
-            loader.generate_computed_files,
-            max_workers=10,
-            update_s3=False,
-            clean_up_output_data=False,
-        )
-
     def purge_extra_samples(self, project: Project, samples_of_interest: List[str]) -> None:
         """Purges all of a project's samples that are not the samples of interest."""
         for sample in project.samples.all():
