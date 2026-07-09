@@ -11,14 +11,6 @@ class MetadataFilenames:
     METADATA_ONLY_FILE_NAME = "metadata.tsv"
 
 
-def get_file_name(download_config: Dict) -> str:
-    """Return metadata file name according to passed download_config."""
-    if download_config.get("metadata_only", False):
-        return MetadataFilenames.METADATA_ONLY_FILE_NAME
-
-    return getattr(MetadataFilenames, f'{download_config["modality"]}_METADATA_FILE_NAME')
-
-
 def get_file_contents(libraries_metadata: List[Dict], **kwargs) -> str:
     """Return newly genereated metadata file as a string for immediate writing to a zip archive."""
     formatted_libraries_metadata = [format_metadata_dict(lib_md) for lib_md in libraries_metadata]
