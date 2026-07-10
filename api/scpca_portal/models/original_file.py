@@ -10,7 +10,7 @@ from django.db.models import QuerySet
 
 from typing_extensions import Self
 
-from scpca_portal import common, utils
+from scpca_portal import utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import TimestampedModel
@@ -227,40 +227,6 @@ class OriginalFile(TimestampedModel):
     @property
     def local_file_path(self) -> Path:
         return settings.INPUT_DATA_PATH / self.s3_key_path
-
-    def _get_zip_file_path(self, download_config: Dict) -> Path:
-        """
-        Return file path with requested directory structure according to download config.
-        The multiplexed sample delimiter is not replaced in this method.
-        """
-        # Project output paths are relative to project directory
-        output_path = self.s3_key_path.relative_to(Path(self.s3_key_info.project_id_part))
-
-        # Sample output paths are relative to sample directory
-        if download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            return output_path.relative_to(Path(self.s3_key_info.sample_id_part))
-
-        # Transform merged and bulk project data files to no longer be nested in a merged directory
-        if self.is_merged:
-            return output_path.relative_to(common.MERGED_INPUT_DIR)
-        if self.is_bulk:
-            return output_path.relative_to(common.BULK_INPUT_DIR)
-
-        # Nest sample reports into individual_reports directory in merged download
-        # The merged summary html file should not go into this directory
-        if download_config.get("includes_merged", False) and self.is_supplementary:
-            return Path(common.MERGED_REPORTS_PREFEX_DIR) / output_path
-
-        return output_path
-
-    def get_zip_file_path(self, download_config: Dict) -> Path:
-        """Returns the formatted file path while replacing the multiplexed sample delimiter."""
-        # Delimiter must be exchanged if file has multiplexed samples
-        return utils.path_replace(
-            self._get_zip_file_path(download_config),
-            common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER,
-            common.MULTIPLEXED_SAMPLES_OUTPUT_DELIMETER,
-        )
 
     @staticmethod
     def get_bucket_paths(original_files: QuerySet[Self]) -> Dict[Tuple, List[Path]]:
