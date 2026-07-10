@@ -24,7 +24,7 @@ class LoadableResourceABC(TimestampedModel, models.Model):
     hash = models.CharField(max_length=32, null=True)
     loaded_at = models.DateTimeField(null=True)
 
-    def update_loadable_state(self, new_state: LoadableResourceStates) -> None:
+    def update_loadable_state(self, new_state: LoadableResourceStates, save: bool = True) -> Self:
         """Updates the state and synchronization tracking fields for a single loadable resource."""
         self.state = new_state
         self.updated_at = make_aware(datetime.now())
@@ -37,44 +37,30 @@ class LoadableResourceABC(TimestampedModel, models.Model):
             # loaded_at needs to be set after updated_at to ensure aggregations are re-computed
             self.loaded_at = self.updated_at + timedelta(microseconds=1)
             fields_to_update.extend(["hash", "loaded_at"])
-        self.save(update_fields=fields_to_update)
+
+        if save:
+            self.save(update_fields=fields_to_update)
+
+        return self
 
     @classmethod
     def bulk_update_loadable_state(
         cls, loadable_resources: QuerySet[Self], new_state: LoadableResourceStates
-    ) -> None:
+    ) -> QuerySet[Self]:
         """Performs a highly optimized batch update on a QuerySet of loadable resources."""
         if not loadable_resources.exists():
-            return
+            return loadable_resources
 
+        for loadable_resource in loadable_resources:
+            loadable_resource.update_loadable_state(new_state=new_state, save=False)
+
+        fields_to_update = ["state", "updated_at"]
         if new_state == LoadableResourceStates.SYNCED:
-            # This is an optimized approach to grabbing all hash values
-            # in order for the row updating to stay at the DB level
-            hash_cases = [
-                models.When(pk=lr.pk, then=models.Value(lr.current_hash))
-                for lr in loadable_resources
-            ]
+            fields_to_update.extend(["hash", "loaded_at"])
 
-            loadable_resources_pks = [lr.pk for lr in loadable_resources]
-            now_timestamp = make_aware(datetime.now())
-            # filter explicitly by primary keys rather than updating the original queryset directly.
-            # this prevents a race condition where a phantom row matching the original filters
-            # is added to the db after hash_cases evaluates, which would cause an invalid state
-            # inside the SQL CASE statement during the update.
-            cls.objects.filter(pk__in=loadable_resources_pks).update(
-                hash=models.Case(*hash_cases, output_field=cls._meta.get_field("hash")),
-                state=new_state,
-                updated_at=now_timestamp,
-                loaded_at=(now_timestamp + timedelta(microseconds=1)),
-            )
-            # This ensures that the objects' fields have their updated values for downstream use
-            for loadable_resource in loadable_resources:
-                loadable_resource.refresh_from_db(
-                    fields=["hash", "state", "updated_at", "loaded_at"]
-                )
-        else:
-            # As queryset was not opened up, no eager refresh needed as lazy evaluation is expected
-            loadable_resources.update(state=new_state)
+        cls.objects.bulk_update(loadable_resources, fields=fields_to_update)
+
+        return loadable_resources
 
     @property
     @abstractmethod
