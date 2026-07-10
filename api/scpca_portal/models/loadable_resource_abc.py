@@ -2,7 +2,7 @@ from abc import abstractmethod
 from datetime import datetime, timedelta
 
 from django.db import models
-from django.db.models import F, QuerySet
+from django.db.models import QuerySet
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -26,20 +26,16 @@ class LoadableResourceABC(TimestampedModel, models.Model):
 
     def update_loadable_state(self, new_state: LoadableResourceStates) -> None:
         """Updates the state and synchronization tracking fields for a single loadable resource."""
+        update_fields = ["state"]
+        self.state = new_state
         if new_state == LoadableResourceStates.SYNCED:
-            # Executes SQL Update directly on DB, ensuring that loaded_at is set after updated_at,
-            # which is important for determining whether aggregations need to be re-computed
-            type(self).objects.filter(pk=self.pk).update(
-                hash=self.current_hash,
-                state=new_state,
-                updated_at=make_aware(datetime.now()),
-                loaded_at=F("updated_at") + timedelta(microseconds=1),
-            )
-            # This ensures that the object's fields have their updated values for downstream use
-            self.refresh_from_db(fields=["hash", "state", "updated_at", "loaded_at"])
-        else:
-            self.state = new_state
-            self.save()
+            self.hash = self.current_hash
+            self.updated_at = make_aware(datetime.now())
+            # loaded_at needs to be set after updated_at to ensure aggregations are re-computed
+            self.loaded_at = self.updated_at + timedelta(microseconds=1)
+            # this is necessary so updated_at is not overwritten by auto_new during save op
+            update_fields.extend(["hash", "updated_at", "loaded_at"])
+        self.save(update_fields=update_fields)
 
     @classmethod
     def bulk_update_loadable_state(
@@ -59,11 +55,12 @@ class LoadableResourceABC(TimestampedModel, models.Model):
                 for loadable_resource in loadable_resources
             ]
 
+            now_timestamp = make_aware(datetime.now())
             loadable_resources.update(
                 hash=models.Case(*hash_cases, output_field=cls._meta.get_field("hash")),
                 state=new_state,
-                updated_at=make_aware(datetime.now()),
-                loaded_at=F("updated_at") + timedelta(microseconds=1),
+                updated_at=now_timestamp,
+                loaded_at=(now_timestamp + timedelta(microseconds=1)),
             )
             # This ensures that the objects' fields have their updated values for downstream use
             for loadable_resource in loadable_resources:
