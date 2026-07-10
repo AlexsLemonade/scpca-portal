@@ -1,6 +1,6 @@
 from argparse import ArgumentParser
 from datetime import datetime
-from typing import List
+from typing import Any, List
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -24,7 +24,7 @@ class Command(BaseCommand):
         # this is mainly for testing purposes
         parser.add_argument("--allow-bucket-wipe", type=bool, default=False)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.sync_original_files(**kwargs)
 
     def get_indented_files(self, files: List[OriginalFile]) -> str:
@@ -36,7 +36,7 @@ class Command(BaseCommand):
         updated_files: List[OriginalFile],
         created_files: List[OriginalFile],
         deleted_files: List[OriginalFile],
-        sync_timestamp,
+        sync_timestamp: datetime,
     ) -> None:
         """Log out stats from the files that changed (updated, created, deleted)"""
         logger.info(
@@ -46,7 +46,7 @@ class Command(BaseCommand):
             f"Deleted Files:\n{self.get_indented_files(deleted_files)}"
         )
 
-    def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs) -> None:
+    def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs: Any) -> None:
         logger.info("Initiating listing of bucket objects...")
 
         locked_project_ids = lockfile.get_locked_project_ids()

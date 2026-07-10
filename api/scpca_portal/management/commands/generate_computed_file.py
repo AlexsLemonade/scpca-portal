@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, BooleanOptionalAction
+from typing import Any
 
 from django.core.management.base import BaseCommand
 
@@ -28,7 +29,7 @@ class Command(BaseCommand):
         parser.add_argument("--download-config-name", type=str)
         parser.add_argument("--notify", default=False, action=BooleanOptionalAction)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.generate_computed_file(**kwargs)
 
     def generate_computed_file(
@@ -37,7 +38,7 @@ class Command(BaseCommand):
         sample_id: str,
         download_config_name: str,
         notify: bool,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
         utils.create_data_dirs()

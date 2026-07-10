@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 from datetime import datetime
+from typing import Any
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -25,10 +26,10 @@ class Command(BaseCommand):
         parser.add_argument("--sender", type=str, default=settings.EMAIL_SENDER)
         parser.add_argument("--recipient", type=str, default=settings.SLACK_NOTIFICATIONS_EMAIL)
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.dispatch_send_email(**kwargs)
 
-    def dispatch_send_email(self, sender: str, recipient: str, **kwargs) -> None:
+    def dispatch_send_email(self, sender: str, recipient: str, **kwargs: Any) -> None:
         command = [
             "python",
             "manage.py",
@@ -44,8 +45,8 @@ class Command(BaseCommand):
 
         response = batch.submit_job(
             jobName=job_name,
-            jobQueue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,
-            jobDefinition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,
+            jobQueue=settings.AWS_BATCH_FARGATE_JOB_QUEUE_NAME,  # type: ignore[misc]
+            jobDefinition=settings.AWS_BATCH_FARGATE_JOB_DEFINITION_NAME,  # type: ignore[misc]
             containerOverrides={
                 "command": command,
             },

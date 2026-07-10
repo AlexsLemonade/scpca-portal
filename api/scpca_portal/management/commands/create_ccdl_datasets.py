@@ -1,5 +1,5 @@
 from argparse import ArgumentParser, BooleanOptionalAction
-from typing import List
+from typing import Any, List
 
 from django.core.management.base import BaseCommand
 from django.template.defaultfilters import pluralize
@@ -39,11 +39,11 @@ class Command(BaseCommand):
             help=retry_failed_jobs_help_text,
         )
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.create_ccdl_datasets(**kwargs)
 
     def create_ccdl_datasets(
-        self, ignore_hash: bool, retry_failed_jobs: List[Job], **kwargs
+        self, ignore_hash: bool, retry_failed_jobs: List[Job], **kwargs: Any
     ) -> None:
         created_datasets, updated_datasets = CCDLDataset.create_or_update_ccdl_datasets(
             ignore_hash=ignore_hash

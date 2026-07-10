@@ -3,7 +3,7 @@ from rest_framework.exceptions import APIException
 
 
 class DatasetViewError(APIException):
-    status_code = status.HTTP_400_BAD_REQUEST
+    status_code: int = status.HTTP_400_BAD_REQUEST
     default_detail = "Invalid request: A dataset view error occurred."
     default_code = "bad_request"
 

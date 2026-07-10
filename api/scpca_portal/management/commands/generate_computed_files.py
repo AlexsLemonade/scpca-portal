@@ -1,4 +1,5 @@
 from argparse import ArgumentParser, BooleanOptionalAction
+from typing import Any
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
@@ -54,7 +55,7 @@ class Command(BaseCommand):
             "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
         )
 
-    def handle(self, *args, **kwargs) -> None:
+    def handle(self, *args: Any, **kwargs: Any) -> None:
         self.generate_computed_files(**kwargs)
 
     def generate_computed_files(
@@ -64,7 +65,7 @@ class Command(BaseCommand):
         max_workers: int,
         scpca_project_id: str,
         update_s3: bool,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Generates a project's computed files according predetermined download configurations"""
         utils.create_data_dirs()
