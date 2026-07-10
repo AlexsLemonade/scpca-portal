@@ -49,14 +49,17 @@ class LoadableResourceABC(TimestampedModel, models.Model):
             # This is an optimized approach to grabbing all hash values
             # in order for the row updating to stay at the DB level
             hash_cases = [
-                models.When(
-                    pk=loadable_resource.pk, then=models.Value(loadable_resource.current_hash)
-                )
-                for loadable_resource in loadable_resources
+                models.When(pk=lr.pk, then=models.Value(lr.current_hash))
+                for lr in loadable_resources
             ]
 
+            loadable_resources_pks = [lr.pk for lr in loadable_resources]
             now_timestamp = make_aware(datetime.now())
-            loadable_resources.update(
+            # filter explicitly by primary keys rather than updating the original queryset directly.
+            # this prevents a race condition where a phantom row matching the original filters
+            # is added to the db after hash_cases evaluates, which would cause an invalid state
+            # inside the SQL CASE statement during the update.
+            cls.objects.filter(pk__in=loadable_resources_pks).update(
                 hash=models.Case(*hash_cases, output_field=cls._meta.get_field("hash")),
                 state=new_state,
                 updated_at=now_timestamp,
