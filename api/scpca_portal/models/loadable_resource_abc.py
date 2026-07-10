@@ -26,16 +26,18 @@ class LoadableResourceABC(TimestampedModel, models.Model):
 
     def update_loadable_state(self, new_state: LoadableResourceStates) -> None:
         """Updates the state and synchronization tracking fields for a single loadable resource."""
-        update_fields = ["state"]
         self.state = new_state
+        self.updated_at = make_aware(datetime.now())
+        # this is necessary so updated_at is not overwritten by auto_new during save op,
+        # allowing for us to set loaded_at after updated_at (if need be)
+        fields_to_update = ["state", "updated_at"]
+
         if new_state == LoadableResourceStates.SYNCED:
             self.hash = self.current_hash
-            self.updated_at = make_aware(datetime.now())
             # loaded_at needs to be set after updated_at to ensure aggregations are re-computed
             self.loaded_at = self.updated_at + timedelta(microseconds=1)
-            # this is necessary so updated_at is not overwritten by auto_new during save op
-            update_fields.extend(["hash", "updated_at", "loaded_at"])
-        self.save(update_fields=update_fields)
+            fields_to_update.extend(["hash", "loaded_at"])
+        self.save(update_fields=fields_to_update)
 
     @classmethod
     def bulk_update_loadable_state(
