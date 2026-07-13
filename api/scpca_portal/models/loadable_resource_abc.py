@@ -16,7 +16,7 @@ from scpca_portal.models.original_file import OriginalFile
 logger = get_and_configure_logger(__name__)
 
 
-class LoadableResourceABC(TimestampedModel, models.Model):
+class LoadableResourceABC(TimestampedModel):
     class Meta:
         abstract = True
 
