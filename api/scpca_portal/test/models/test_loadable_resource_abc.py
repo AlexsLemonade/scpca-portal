@@ -1,4 +1,4 @@
-from unittest.mock import MagicMock
+from unittest.mock import patch
 
 from django.db.models import QuerySet
 from django.test import TestCase
@@ -21,6 +21,7 @@ class ConcreteLoadableResource(LoadableResourceABC):
         db_table = "concrete_loadable_resource"
 
     def __init__(self, original_files_qs=None):
+        super().__init__()
         self.state = LoadableResourceStates.NEW
         self.hash = None
         self.loaded_at = None
@@ -40,41 +41,50 @@ class TestLoadableResourceABC(TestCase):
             OriginalFileFactory(hash="opqrstuvwxyz"),
         ]
         self.qs = OriginalFile.objects.filter(pk__in=[of.pk for of in original_files])
-        ConcreteLoadableResource.objects = MagicMock()
-
         self.loadable_resource = ConcreteLoadableResource(original_files_qs=self.qs)
 
     def test_current_hash(self):
-        expected = "12345"
-        self.assertEqual(self.loadable_resource.current_hash, expected)
+        expected_hash = "928f7bcdcd08869cc44c1bf24e7abec6"
+        self.assertEqual(self.loadable_resource.current_hash, expected_hash)
 
     def test_update_loadable_state(self):
-        # test fresh object
-        state = LoadableResourceStates.NEW
-        self.loadable_resource.update_loadable_state(state)
+        with patch.object(self.loadable_resource, "save") as mock_save:
+            # test fresh object
+            state = LoadableResourceStates.NEW
+            self.loadable_resource.update_loadable_state(state)
+            mock_save.assert_called_once()
+            mock_save.reset_mock()
 
-        self.assertEqual(self.loadable_resource.state, state)
-        self.assertIsNotNone(self.loadable_resource.updated_at)
-        self.assertIsNone(self.loadable_resource.hash)
-        self.assertIsNone(self.loadable_resource.loaded_at)
+            self.assertEqual(self.loadable_resource.state, state)
+            self.assertIsNotNone(self.loadable_resource.updated_at)
+            self.assertIsNone(self.loadable_resource.hash)
+            self.assertIsNone(self.loadable_resource.loaded_at)
 
-        # test synced object
-        state = LoadableResourceStates.SYNCED
-        self.loadable_resource.update_loadable_state(state)
+            # test synced object
+            state = LoadableResourceStates.SYNCED
+            self.loadable_resource.update_loadable_state(state)
+            mock_save.assert_called_once()
+            mock_save.reset_mock()
 
-        expected_hash = "12345"
-        self.assertEqual(self.loadable_resource.state, LoadableResourceStates.SYNCED)
-        self.assertEqual(self.loadable_resource.hash, expected_hash)
-        self.assertIsNotNone(self.loadable_resource.updated_at)
-        self.assertIsNotNone(self.loadable_resource.loaded_at)
-        self.assertGreater(self.loadable_resource.loaded_at, self.loadable_resource.updated_at)
+            expected_hash = "928f7bcdcd08869cc44c1bf24e7abec6"
+            self.assertEqual(self.loadable_resource.state, LoadableResourceStates.SYNCED)
+            self.assertEqual(self.loadable_resource.hash, expected_hash)
+            self.assertIsNotNone(self.loadable_resource.updated_at)
+            self.assertIsNotNone(self.loadable_resource.loaded_at)
+            self.assertGreater(self.loadable_resource.loaded_at, self.loadable_resource.updated_at)
 
-        # test existing object
-        state = LoadableResourceStates.TAINTED
-        self.loadable_resource.update_loadable_state(state)
+            # test existing object
+            state = LoadableResourceStates.TAINTED
+            self.loadable_resource.update_loadable_state(state)
+            mock_save.assert_called_once()
+            mock_save.reset_mock()
 
-        self.assertEqual(self.loadable_resource.state, state)
-        self.assertEqual(self.loadable_resource.hash, expected_hash)
-        self.assertIsNotNone(self.loadable_resource.updated_at)
-        self.assertIsNotNone(self.loadable_resource.loaded_at)
-        self.assertGreater(self.loadable_resource.updated_at, self.loadable_resource.loaded_at)
+            self.assertEqual(self.loadable_resource.state, state)
+            self.assertEqual(self.loadable_resource.hash, expected_hash)
+            self.assertIsNotNone(self.loadable_resource.updated_at)
+            self.assertIsNotNone(self.loadable_resource.loaded_at)
+            self.assertGreater(self.loadable_resource.updated_at, self.loadable_resource.loaded_at)
+
+            # test save override
+            self.loadable_resource.update_loadable_state(state, save=False)
+            mock_save.assert_not_called()
