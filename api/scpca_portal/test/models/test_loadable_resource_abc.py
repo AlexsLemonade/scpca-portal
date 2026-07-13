@@ -17,9 +17,6 @@ class ConcreteLoadableResource(LoadableResourceABC):
     coupling these tests to Project, Sample, or Library models.
     """
 
-    class Meta:
-        db_table = "concrete_loadable_resource"
-
     def __init__(self, original_files_qs=None):
         super().__init__()
         self.state = LoadableResourceStates.NEW
@@ -40,8 +37,8 @@ class TestLoadableResourceABC(TestCase):
             OriginalFileFactory(hash="cdefghijklmn"),
             OriginalFileFactory(hash="opqrstuvwxyz"),
         ]
-        self.qs = OriginalFile.objects.filter(pk__in=[of.pk for of in original_files])
-        self.loadable_resource = ConcreteLoadableResource(original_files_qs=self.qs)
+        qs = OriginalFile.objects.filter(pk__in=[of.pk for of in original_files])
+        self.loadable_resource = ConcreteLoadableResource(original_files_qs=qs)
 
     def test_current_hash(self):
         expected_hash = "928f7bcdcd08869cc44c1bf24e7abec6"
