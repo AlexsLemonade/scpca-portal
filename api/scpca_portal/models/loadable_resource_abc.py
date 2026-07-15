@@ -20,23 +20,25 @@ class LoadableResourceABC(TimestampedModel):
     class Meta:
         abstract = True
 
-    state = models.TextField(choices=LoadableResourceStates.choices)
-    hash = models.CharField(max_length=32, null=True)
+    loaded_state = models.TextField(choices=LoadableResourceStates.choices)
+    loaded_hash = models.CharField(max_length=32, null=True)
     loaded_at = models.DateTimeField(null=True)
 
-    def update_loadable_state(self, new_state: LoadableResourceStates, save: bool = True) -> Self:
+    def update_loaded_state(
+        self, new_loaded_state: LoadableResourceStates, save: bool = True
+    ) -> Self:
         """Updates the state and synchronization tracking fields for a single loadable resource."""
-        self.state = new_state
+        self.loaded_state = new_loaded_state
         self.updated_at = make_aware(datetime.now())
         # this is necessary so updated_at is not overwritten by auto_new during save op,
         # allowing for us to set loaded_at after updated_at (if need be)
-        fields_to_update = ["state", "updated_at"]
+        fields_to_update = ["loaded_state", "updated_at"]
 
-        if new_state == LoadableResourceStates.SYNCED:
-            self.hash = self.current_hash
+        if new_loaded_state == LoadableResourceStates.SYNCED:
+            self.loaded_hash = self.current_loaded_hash
             # loaded_at needs to be set after updated_at to ensure aggregations are re-computed
             self.loaded_at = self.updated_at + timedelta(microseconds=1)
-            fields_to_update.extend(["hash", "loaded_at"])
+            fields_to_update.extend(["loaded_hash", "loaded_at"])
 
         if save:
             self.save(update_fields=fields_to_update)
@@ -44,19 +46,19 @@ class LoadableResourceABC(TimestampedModel):
         return self
 
     @classmethod
-    def bulk_update_loadable_state(
-        cls, loadable_resources: QuerySet[Self], new_state: LoadableResourceStates
+    def bulk_update_loaded_state(
+        cls, loadable_resources: QuerySet[Self], new_loaded_state: LoadableResourceStates
     ) -> QuerySet[Self]:
         """Performs a highly optimized batch update on a QuerySet of loadable resources."""
         if not loadable_resources.exists():
             return loadable_resources
 
         for loadable_resource in loadable_resources:
-            loadable_resource.update_loadable_state(new_state=new_state, save=False)
+            loadable_resource.update_loaded_state(new_loaded_state=new_loaded_state, save=False)
 
-        fields_to_update = ["state", "updated_at"]
-        if new_state == LoadableResourceStates.SYNCED:
-            fields_to_update.extend(["hash", "loaded_at"])
+        fields_to_update = ["loaded_state", "updated_at"]
+        if new_loaded_state == LoadableResourceStates.SYNCED:
+            fields_to_update.extend(["loaded_hash", "loaded_at"])
 
         cls.objects.bulk_update(loadable_resources, fields=fields_to_update)
 
@@ -68,6 +70,6 @@ class LoadableResourceABC(TimestampedModel):
         pass
 
     @property
-    def current_hash(self) -> str:
+    def current_loaded_hash(self) -> str:
         original_file_hashes = self.original_files.values_list("hash", flat=True)
         return utils.hash_values(original_file_hashes)
