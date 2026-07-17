@@ -8,9 +8,10 @@ from django.db.models import QuerySet
 
 from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import FileFormats, Modalities
-from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
+from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
+from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.library import Library
+from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 
 if TYPE_CHECKING:
     from scpca_portal.models import ComputedFile, Project
@@ -18,7 +19,7 @@ if TYPE_CHECKING:
 logger = get_and_configure_logger(__name__)
 
 
-class Sample(CommonDataAttributes, TimestampedModel):
+class Sample(CommonDataAttributes, LoadableResourceABC):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
@@ -77,6 +78,26 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         return sample
 
+    def update_from_dict(self, data: Dict) -> Self:
+        """Prepares ready for saving sample object."""
+        self.age = (data["age"],)
+        self.age_timing = (data["age_timing"],)
+        self.diagnosis = (data["diagnosis"],)
+        self.disease_timing = (data["disease_timing"],)
+        self.is_cell_line = (utils.boolean_from_string(data.get("is_cell_line", False)),)
+        self.is_xenograft = (utils.boolean_from_string(data.get("is_xenograft", False)),)
+        self.metadata = (data,)
+        self.multiplexed_with = (data.get("multiplexed_with", []),)
+        self.sample_cell_count_estimate = ((data.get("sample_cell_count_estimate", None)),)
+        self.seq_units = (data.get("seq_units", []),)
+        self.sex = (data["sex"],)
+        self.subdiagnosis = (data["subdiagnosis"],)
+        self.technologies = (data.get("technologies", []),)
+        self.tissue_location = (data["tissue_location"],)
+        self.treatment = (data.get("treatment", ""),)
+
+        return self
+
     @classmethod
     def bulk_create_from_dicts(cls, samples_metadata: List[Dict], project: "Project") -> None:
         """Creates a list of sample objects from sample metadata libraries and then saves them."""
@@ -86,6 +107,32 @@ class Sample(CommonDataAttributes, TimestampedModel):
 
         Sample.objects.bulk_create(samples)
 
+    @classmethod
+    def sync_metadata(cls) -> None:
+        updatable_samples = list(
+            cls.objects.filter(
+                loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
+            )
+        )
+
+        # this sequence could also be accomplished by refactoring load_samples_metadata
+        # to take a list of samples/projects
+        related_projects = {sample.project for sample in updatable_samples}
+        samples_metadata = []
+        for project in related_projects:
+            samples_metadata.extend(
+                metadata_parser.load_samples_metadata(project_id=project.scpca_id)
+            )
+
+        metadata_by_id = {md["scpca_sample_id"]: md for md in samples_metadata}
+        for sample in updatable_samples:
+            sample.update_from_dict(metadata_by_id[sample.scpca_id])
+            sample.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
+
+        fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
+        cls.objects.bulk_update(updatable_samples, fields=fields_to_update)
+
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def load_metadata(cls, project: "Project") -> None:
         """
