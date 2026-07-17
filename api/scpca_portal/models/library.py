@@ -6,14 +6,14 @@ from django.db.models import QuerySet
 
 from scpca_portal import common, metadata_parser
 from scpca_portal.enums import FileFormats, Modalities
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
 
 if TYPE_CHECKING:
     from api.scpca_portal.models import Project, Sample
 
 
-class Library(TimestampedModel):
+class Library(LoadableResourceABC):
     class Meta:
         db_table = "libraries"
         get_latest_by = "updated_at"
@@ -68,6 +68,10 @@ class Library(TimestampedModel):
 
         return library
 
+    # TODO: implement
+    def update_from_dict(self, data: Dict) -> Self:
+        return self
+
     @classmethod
     def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample: "Sample") -> None:
         libraries = []
@@ -81,6 +85,12 @@ class Library(TimestampedModel):
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
 
+    # TODO: implement
+    @classmethod
+    def sync_metadata(cls) -> None:
+        pass
+
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def load_bulk_metadata(cls, project: "Project") -> None:
         """
@@ -97,6 +107,7 @@ class Library(TimestampedModel):
             if sample := sample_by_id.get(lib_metadata["scpca_sample_id"]):
                 Library.bulk_create_from_dicts([lib_metadata], sample)
 
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def load_metadata(cls, project: "Project") -> None:
         """
