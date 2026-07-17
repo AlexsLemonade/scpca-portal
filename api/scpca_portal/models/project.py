@@ -9,14 +9,16 @@ from django.db.models import Count, Q, QuerySet
 
 from typing_extensions import Self
 
+from api.scpca_portal import metadata_parser
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import FileFormats, Modalities
-from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
+from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
+from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.library import Library
+from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
@@ -25,7 +27,7 @@ from scpca_portal.models.sample import Sample
 logger = get_and_configure_logger(__name__)
 
 
-class Project(CommonDataAttributes, TimestampedModel):
+class Project(CommonDataAttributes, LoadableResourceABC):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
@@ -66,6 +68,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     def __str__(self) -> str:
         return f"Project {self.scpca_id}"
 
+    # TODO: refactor to match update_from_dict before loadable resource feature branch lands
     @classmethod
     def get_from_dict(cls, data: Dict) -> Self:
         project = cls(scpca_id=data.pop("scpca_project_id"))
@@ -78,6 +81,18 @@ class Project(CommonDataAttributes, TimestampedModel):
                     setattr(project, key, data.get(key))
 
         return project
+
+    def update_from_dict(self, data: Dict) -> Self:
+        for key, value in data.items():
+            if not hasattr(self, key) or key == "scpca_portal_id":
+                continue
+
+            if key.startswith("includes_") or key.startswith("has_"):
+                value = utils.boolean_from_string(data.get(key, False))
+
+            setattr(self, key, value)
+
+        return self
 
     @classmethod
     def lock_projects(cls, locked_project_ids: List[str]) -> List[Self]:
@@ -281,6 +296,27 @@ class Project(CommonDataAttributes, TimestampedModel):
 
         return original_files.filter(is_merged=False)
 
+    @classmethod
+    def sync_metadata(cls) -> None:
+        projects_metadata = metadata_parser.load_projects_metadata(filter_on_project_ids=[])
+        metadata_by_id = {md["scpca_project_id"]: md for md in projects_metadata}
+
+        updatable_projects = list(
+            cls.objects.filter(
+                loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
+            )
+        )
+        if not updatable_projects:
+            return
+
+        for project in updatable_projects:
+            project.update_from_dict(metadata_by_id[project.scpca_id])
+            project.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
+
+        fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
+        cls.objects.bulk_update(updatable_projects, fields=fields_to_update)
+
+    # TODO:: remove before loadable resource feature branch lands
     def load_metadata(self) -> None:
         """
         Loads sample metadata and updates project aggregate values.
