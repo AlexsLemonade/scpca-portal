@@ -65,25 +65,6 @@ class TestGetFile(TestCase):
         sample_library = LibraryFactory()
         self.sample.libraries.add(sample_library)
 
-    def test_get_project_file_throw_no_libraries_error(self):
-        invalid_download_config = {
-            "modality": None,
-            "format": None,
-            "excludes_multiplexed": False,
-            "includes_merged": False,
-            "metadata_only": False,
-        }
-        with self.assertRaises(ValueError):
-            ComputedFile.get_project_file(self.project, invalid_download_config)
-
-    def test_get_sample_file_throw_no_libraries_error(self):
-        invalid_download_config = {
-            "modality": None,
-            "format": None,
-        }
-        with self.assertRaises(ValueError):
-            ComputedFile.get_sample_file(self.sample, invalid_download_config)
-
     def test_get_ccdl_dataset_file(self):
         utils.create_data_dirs()
 

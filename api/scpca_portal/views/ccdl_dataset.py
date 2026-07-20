@@ -4,7 +4,7 @@ from rest_framework.exceptions import PermissionDenied
 from drf_spectacular.utils import extend_schema, extend_schema_view
 
 from scpca_portal import filter
-from scpca_portal.models import APIToken, CCDLDataset
+from scpca_portal.models import APIToken, CCDLDataset, TokenDownload
 from scpca_portal.serializers import CCDLDatasetDetailSerializer, CCDLDatasetSerializer
 
 CCDLDatasetFilterSet = filter.build_auto_filterset(
@@ -61,6 +61,9 @@ class CCDLDatasetViewSet(viewsets.ReadOnlyModelViewSet):
             if not token:
                 message = f"Token header value {token_id} is either invalid or inactive."
                 raise PermissionDenied({"message": message, "token_id": token_id})
+
+            dataset_pk = self.kwargs.get("pk")
+            TokenDownload.track_ccdl_dataset(token_id, dataset_pk)
 
             serializer_context.update({"token": token})
 
