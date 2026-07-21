@@ -14,6 +14,6 @@ To cite data from a specific project please find the project abstract and public
 {% endfor %}
 ### Citing the ScPCA Portal
 
-When citing the ScPCA Portal, please cite the following preprint:
+When citing the ScPCA Portal, please cite the following publication:
 
-Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2024 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. _bioRxiv._ https://doi.org/10.1101/2024.04.19.590243
+Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2026 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. Cell Genom. 6:101283. https://doi.org/10.1016/j.xgen.2026.101283
