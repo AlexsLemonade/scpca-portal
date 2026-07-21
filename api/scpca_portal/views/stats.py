@@ -47,9 +47,9 @@ class StatsViewSet(viewsets.ViewSet):
                 "projects_count": Project.objects.count(),
                 "samples_count": len(
                     set().union(
-                        *OriginalFile.downloadable_objects.filter(
-                            sample_ids__isnull=False
-                        ).values_list("sample_ids", flat=True)
+                        *OriginalFile.downloadable_objects.order_by().values_list(
+                            "sample_ids", flat=True
+                        )
                     )
                 ),
             }

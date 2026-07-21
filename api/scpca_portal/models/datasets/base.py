@@ -14,7 +14,13 @@ from typing_extensions import Self
 
 from scpca_portal import common, lockfile, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import DatasetDataProjectConfig, DatasetFormats, JobStates, Modalities
+from scpca_portal.enums import (
+    DatasetDataProjectConfig,
+    DatasetFormats,
+    DatasetStates,
+    JobStates,
+    Modalities,
+)
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.computed_file import ComputedFile
@@ -52,6 +58,7 @@ class DatasetABC(TimestampedModel, models.Model):
     estimated_size_in_bytes = models.BigIntegerField(default=0)
 
     # Non user-editable - set during processing
+    state = models.TextField(choices=DatasetStates, default=DatasetStates.CREATED)
     started_at = models.DateTimeField(null=True)
     is_started = models.BooleanField(default=False)
     pending_at = models.DateTimeField(null=True)
