@@ -1,19 +1,17 @@
-from pathlib import Path
 from typing import TYPE_CHECKING, Dict, List, Self
 
-from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 
-from scpca_portal import common, metadata_parser, utils
+from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
 from scpca_portal.models.library import Library
 
 if TYPE_CHECKING:
-    from scpca_portal.models import ComputedFile, Project
+    from scpca_portal.models import Project
 
 logger = get_and_configure_logger(__name__)
 
@@ -203,22 +201,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
             and key not in ("scpca_sample_id", "scpca_project_id", "submitter")
         }
 
-    @property
-    def valid_download_config_names(self) -> List[str]:
-        return [
-            download_config_name
-            for download_config_name, download_config in common.SAMPLE_DOWNLOAD_CONFIGS.items()
-            if self.get_libraries(download_config).exists()
-        ]
-
-    @property
-    def valid_download_configs(self) -> List[Dict]:
-        return [
-            download_config
-            for download_config in common.SAMPLE_DOWNLOAD_CONFIGS.values()
-            if self.get_libraries(download_config).exists()
-        ]
-
     def get_metadata(self) -> Dict:
         excluded_metadata_attributes = {
             "scpca_project_id",
@@ -233,46 +215,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         sample_metadata["includes_anndata"] = self.includes_anndata
 
         return sample_metadata
-
-    def get_libraries(self, download_config: Dict = {}) -> QuerySet[Library]:
-        """
-        Return all of a sample's associated libraries filtered by the passed download config.
-        """
-        if not download_config:
-            return self.libraries.all()
-
-        if download_config not in common.SAMPLE_DOWNLOAD_CONFIGS.values():
-            raise ValueError("Invalid download_config passed. Unable to retrieve libraries.")
-
-        return self.libraries.filter(
-            modality=download_config["modality"],
-            formats__contains=[download_config["format"]],
-        )
-
-    def get_computed_file(self, download_config: Dict) -> "ComputedFile":
-        "Return the sample computed file that matches the passed download_config."
-        return self.computed_files.filter(
-            modality=download_config["modality"],
-            format=download_config["format"],
-        ).first()
-
-    def get_config_identifier(self, download_config: Dict) -> str:
-        """
-        Returns a unique identifier for the sample and download config combination.
-        Multiplexed samples are not considered unique as they share the same output.
-        """
-        return "_".join(self.multiplexed_ids + sorted(download_config.values()))
-
-    @staticmethod
-    def get_output_metadata_file_path(scpca_sample_id: str, modality: str) -> Path:
-        return {
-            Modalities.MULTIPLEXED: settings.OUTPUT_DATA_PATH
-            / f"{scpca_sample_id}_multiplexed_metadata.tsv",
-            Modalities.SINGLE_CELL: settings.OUTPUT_DATA_PATH
-            / f"{scpca_sample_id}_libraries_metadata.tsv",
-            Modalities.SPATIAL: settings.OUTPUT_DATA_PATH
-            / f"{scpca_sample_id}_spatial_metadata.tsv",
-        }.get(modality)
 
     @property
     def modalities(self) -> list[Modalities]:
@@ -293,10 +235,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
         )
 
     @property
-    def computed_files(self) -> QuerySet["ComputedFile"]:
-        return self.sample_computed_files.order_by("created_at")
-
-    @property
     def multiplexed_with_samples(self) -> QuerySet[Self]:
         return (
             Sample.objects.filter(libraries__in=self.libraries.filter(is_multiplexed=True))
@@ -315,32 +253,6 @@ class Sample(CommonDataAttributes, TimestampedModel):
     def is_last_multiplexed_sample(self) -> bool:
         """Return True if sample id is highest in list of multiplexed ids, False if not"""
         return self.scpca_id == self.multiplexed_ids[-1]
-
-    def get_output_file_name(self, download_config: Dict) -> str:
-        """
-        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
-        and returns the string as a unique zip file name.
-        """
-        name_segments = [
-            "_".join(self.multiplexed_ids),
-            download_config["modality"],
-        ]
-
-        # following the old computed file paradigm, spatial should be paired with sce
-        if download_config["modality"] == "SPATIAL":
-            name_segments.append("SINGLE_CELL_EXPERIMENT")
-        else:
-            name_segments.append(download_config["format"])
-
-        if self.has_multiplexed_data:
-            name_segments.append("MULTIPLEXED")
-
-        # Change to filename format must be accompanied by an entry in the docs.
-        # Each segment should have hyphens and no underscores
-        # Each segment should be joined by underscores
-        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
-
-        return f"{file_name}.zip"
 
     def purge(self) -> None:
         """Purges a sample and its associated libraries"""

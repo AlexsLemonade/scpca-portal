@@ -57,16 +57,9 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     workflow_version = models.TextField()
     includes_celltype_report = models.BooleanField(default=False)
 
-    project = models.ForeignKey(
-        "Project", null=True, on_delete=models.CASCADE, related_name="project_computed_files"
-    )
-    sample = models.ForeignKey(
-        "Sample", null=True, on_delete=models.CASCADE, related_name="sample_computed_files"
-    )
-
     def __str__(self) -> str:
         return (
-            f"'{self.project or self.sample}' "
+            f"'{getattr(self, "ccdldataset", None) or getattr(self, "userdataset", None)}' "
             f"{dict(self.OutputFileModalities.CHOICES).get(self.modality, 'No Modality')} "
             f"{dict(self.OutputFileFormats.CHOICES).get(self.format, 'No Format')} "
             f"computed file ({self.size_in_bytes}B)"
