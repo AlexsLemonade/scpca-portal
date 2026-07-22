@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import QuerySet
 
 from scpca_portal import common, metadata_parser
-from scpca_portal.enums import FileFormats, Modalities
+from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
 from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
 
@@ -68,8 +68,15 @@ class Library(LoadableResourceABC):
 
         return library
 
-    # TODO: implement
     def update_from_dict(self, data: Dict) -> Self:
+        # TODO: are format and modality fields immutable like scpca_id and project, or not?
+        self.is_multiplexed = data.get("is_multiplexed", False)
+        self.has_cite_seq_data = OriginalFile.downloadable_objects.filter(
+            library_id=data["scpca_library_id"], is_cite_seq=True
+        ).exists()
+        self.metadata = data
+        self.workflow_version = data["workflow_version"]
+
         return self
 
     @classmethod
@@ -85,10 +92,34 @@ class Library(LoadableResourceABC):
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
 
-    # TODO: implement
     @classmethod
-    def sync_metadata(cls) -> None:
-        pass
+    def get_loaded_state_metadata_dicts_by_id(
+        cls, loaded_states: List[LoadableResourceStates] = []
+    ) -> Dict[str, Dict]:
+        libraries = cls.objects.filter(loaded_states__in=loaded_states)
+        library_ids = set()
+        related_project_ids = set()
+
+        for library_id, related_project_id in libraries.values_list(
+            "scpca_id", "project__scpca_id"
+        ):
+            library_ids.add(library_id)
+            related_project_ids.add(related_project_id)
+
+        libraries_metadata_by_id = {}
+        for project_id in related_project_ids:
+            project_libraries_metadata = metadata_parser.load_libraries_metadata(
+                project_id=project_id
+            )
+            libraries_metadata_by_id.update(
+                {
+                    md["scpca_library_id"]: md
+                    for md in project_libraries_metadata
+                    if md["scpca_library_id"] in library_ids
+                }
+            )
+
+        return libraries_metadata_by_id
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod
