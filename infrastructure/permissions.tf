@@ -103,6 +103,15 @@ resource "aws_iam_policy" "s3_access_policy" {
           "arn:aws:s3:::${aws_s3_bucket.scpca_portal_bucket.bucket}/*",
           "arn:aws:s3:::${aws_s3_bucket.scpca_portal_cert_bucket.bucket}/*"
         ]
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "s3:PutObjectTagging"
+        ]
+        Resource = [
+          "arn:aws:s3:::${aws_s3_bucket.scpca_portal_bucket.bucket}/*"
+        ]
       }
     ]
   })

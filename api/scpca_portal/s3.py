@@ -225,6 +225,25 @@ def upload_output_file(key: str, bucket_name: str) -> bool:
     return True
 
 
+def tag_output_file(key: str, bucket_name: str, tags: Dict[str, str]) -> bool:
+    """Apply tags to the output file for S3 Lifecycle Policy Rule."""
+
+    if not tags:
+        raise ValueError("Tags cannot be empty.")
+    if len(tags) > 10:
+        raise ValueError("A maximum of 10 tags is allowed per object.")
+
+    tag_set = {"TagSet": [{"Key": k, "Value": v} for k, v in tags.items()]}
+
+    try:
+        aws_s3.put_object_tagging(Bucket=bucket_name, Key=key, Tagging=tag_set)
+    except Exception as error:
+        logger.error(f"Failed to tag computed file {key} due to the following error:\n\t{error}")
+        return False
+
+    return True
+
+
 def generate_pre_signed_link(filename: str, key: str, bucket_name: str) -> str:
     return aws_s3.generate_presigned_url(
         ClientMethod="get_object",
