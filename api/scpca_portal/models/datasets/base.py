@@ -2,17 +2,16 @@ import sys
 import uuid
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import TYPE_CHECKING, Iterable, List, Set
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import QuerySet
-from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import common, lockfile, metadata_file, readme_file, utils
+from scpca_portal import lockfile, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     DatasetDataProjectConfig,
@@ -28,6 +27,9 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
+
+if TYPE_CHECKING:
+    from scpca_portal.models import Job
 
 logger = get_and_configure_logger(__name__)
 
@@ -529,58 +531,40 @@ class DatasetABC(TimestampedModel, models.Model):
 
         return self.computed_file.get_dataset_download_url(self.download_filename)
 
-    def apply_job_state(self, job) -> None:
+    @property
+    def latest_job(self) -> "Job":
+        return self.jobs.order_by("-created_at").first()
+
+    def apply_job_state(self) -> None:
         """
-        Sets the dataset state (flag, reason, timestamps) based on the given job.
-        Resets states before applying changes.
+        Sets the dataset state based on the latest job state.
+        Populates expired_at timestamp if required
         """
-        # Resets all state flags and reasons
-        for state in JobStates:
-            state_str = state.lower()
+        match self.latest_job.state:
+            case JobStates.PENDING | JobStates.PROCESSING:
+                self.state = DatasetStates.PROCESSING
+            case JobStates.SUCCEEDED:
+                self.state = DatasetStates.SUCCEEDED
+            case JobStates.FAILED | JobStates.TERMINATED:
+                self.state = DatasetStates.FAILED
 
-            setattr(self, f"is_{state_str}", False)
-            reason_attr = f"{state_str}_reason"
-
-            if hasattr(self, reason_attr):
-                setattr(self, reason_attr, None)
-
-        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
-        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
-        for state in reset_states:
-            setattr(self, f"{state.lower()}_at", None)
-
-        # Sets new state based on the given job
-        state_str = job.state.lower()
-        reason_attr = f"{state_str}_reason"
-
-        setattr(self, f"is_{state_str}", True)
-        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
-
-        # Populate the expiration date if required
-        if state == JobStates.SUCCEEDED and self.expiration_delta:
+        if self.state == JobStates.SUCCEEDED and self.expiration_delta:
             self.expires_at = self.expiration_delta
 
-        if hasattr(self, f"{state_str}_reason"):
-            setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
+    @classmethod
+    def bulk_sync_state(cls, datasets: List[Self]) -> None:
+        """
+        Syncs each dataset with its latest job state.
+        Saves the datasets.
+        """
+        for dataset in datasets:
+            dataset.apply_job_state()
+        cls.bulk_update_state(datasets)
 
     @classmethod
     def bulk_update_state(cls, datasets: List[Self]) -> None:
         """
         Updates state attributes of the given datasets in bulk.
         """
-        STATE_UPDATE_ATTRS = [
-            "expires_at",
-            "is_pending",
-            "pending_at",
-            "is_processing",
-            "processing_at",
-            "is_succeeded",
-            "succeeded_at",
-            "is_failed",
-            "failed_at",
-            "failed_reason",
-            "is_terminated",
-            "terminated_at",
-            "terminated_reason",
-        ]
+        STATE_UPDATE_ATTRS = ["state", "expires_at"]
         cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
