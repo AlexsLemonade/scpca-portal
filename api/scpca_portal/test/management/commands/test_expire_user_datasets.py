@@ -5,6 +5,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
+from scpca_portal.enums import DatasetStates
 from scpca_portal.models import UserDataset
 from scpca_portal.test.factories import DatasetComputedFileFactory, UserDatasetFactory
 
@@ -20,8 +21,7 @@ class TestExpireUserDatasets(TestCase):
             UserDatasetFactory(
                 expires_at=self.now - timedelta(days=8) + timedelta(days=7),
                 is_expired=False,
-                is_succeeded=True,
-                succeeded_at=self.now - timedelta(days=8),
+                state=DatasetStates.SUCCEEDED,
                 computed_file=DatasetComputedFileFactory(),
             )
             for _ in range(3)
@@ -40,8 +40,7 @@ class TestExpireUserDatasets(TestCase):
             UserDatasetFactory(
                 expires_at=self.now + timedelta(days=7),
                 is_expired=False,
-                is_succeeded=True,
-                succeeded_at=self.now,
+                state=DatasetStates.SUCCEEDED,
                 computed_file=DatasetComputedFileFactory(),
             )
             for _ in range(3)

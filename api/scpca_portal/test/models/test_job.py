@@ -4,10 +4,9 @@ from unittest.mock import PropertyMock, patch
 from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.test import TestCase
-from django.utils.timezone import make_aware
 
 from scpca_portal import common
-from scpca_portal.enums import JobStates
+from scpca_portal.enums import DatasetStates, JobStates
 from scpca_portal.exceptions import (
     DatasetLockedProjectError,
     JobInvalidRetryStateError,
@@ -23,41 +22,18 @@ from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory, UserData
 
 
 class TestJob(TestCase):
-    def assertDatasetState(
-        self,
-        dataset,
-        is_pending=False,
-        is_processing=False,
-        is_succeeded=False,
-        is_failed=False,
-        failed_reason=None,
-        is_terminated=False,
-        terminated_reason=None,
-    ):
+    def assertDatasetState(self, dataset, job_state):
         """
         Helper for asserting the dataset state.
         """
-        self.assertEqual(dataset.is_pending, is_pending)
-        if is_pending:
-            self.assertIsInstance(dataset.pending_at, datetime)
+        if job_state in [JobStates.PENDING, JobStates.PROCESSING]:
+            self.assertEqual(dataset.state, DatasetStates.PROCESSING)
 
-        self.assertEqual(dataset.is_processing, is_processing)
-        if is_processing:
-            self.assertIsInstance(dataset.processing_at, datetime)
+        if job_state == JobStates.SUCCEEDED:
+            self.assertEqual(dataset.state, DatasetStates.SUCCEEDED)
 
-        self.assertEqual(dataset.is_succeeded, is_succeeded)
-        if is_succeeded:
-            self.assertIsInstance(dataset.succeeded_at, datetime)
-
-        self.assertEqual(dataset.is_failed, is_failed)
-        if is_failed:
-            self.assertIsInstance(dataset.failed_at, datetime)
-        self.assertEqual(dataset.failed_reason, failed_reason)
-
-        self.assertEqual(dataset.is_terminated, is_terminated)
-        if is_terminated:
-            self.assertIsInstance(dataset.terminated_at, datetime)
-        self.assertEqual(dataset.terminated_reason, terminated_reason)
+        if job_state in [JobStates.FAILED, JobStates.TERMINATED]:
+            self.assertEqual(dataset.state, DatasetStates.FAILED)
 
     def test_validate_dataset_type(self):
         # assert that dataset attr is of subtype DatasetABC
@@ -74,46 +50,41 @@ class TestJob(TestCase):
             job.save()
 
     def test_apply_state(self):
-        job = JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory())
+        job = JobFactory(
+            state=JobStates.PENDING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
+        )
 
         # Update the state to PROCESSING
         job.apply_state(JobStates.PROCESSING)
+        job.save()
         self.assertEqual(job.state, JobStates.PROCESSING)
         self.assertIsInstance(job.processing_at, datetime)
-        self.assertDatasetState(job.dataset, is_pending=False, is_processing=True)
+        self.assertDatasetState(job.dataset, JobStates.PROCESSING)
 
-        # Update the state to SUCEEDED
+        # Update the state to SUCCEEDED
         job.apply_state(JobStates.SUCCEEDED)
+        job.save()
         self.assertEqual(job.state, JobStates.SUCCEEDED)
         self.assertIsInstance(job.succeeded_at, datetime)
-        self.assertDatasetState(job.dataset, is_processing=False, is_succeeded=True)
+        self.assertDatasetState(job.dataset, JobStates.SUCCEEDED)
 
         # Update the state to FAILED
         failed_reason = f"Job {JobStates.FAILED}"
         job.apply_state(JobStates.FAILED, failed_reason)
+        job.save()
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, failed_reason)
         self.assertIsInstance(job.failed_at, datetime)
-        self.assertDatasetState(
-            job.dataset,
-            is_succeeded=False,
-            is_failed=True,
-            failed_reason=failed_reason,
-        )
+        self.assertDatasetState(job.dataset, JobStates.FAILED)
 
         # Update the state to TERMINATED
         terminated_reason = f"Job {JobStates.TERMINATED}"
         job.apply_state(JobStates.TERMINATED, terminated_reason)
+        job.save()
         self.assertEqual(job.state, JobStates.TERMINATED)
         self.assertEqual(job.terminated_reason, terminated_reason)
         self.assertIsInstance(job.terminated_at, datetime)
-        self.assertDatasetState(
-            job.dataset,
-            is_failed=False,
-            failed_reason=None,
-            is_terminated=True,
-            terminated_reason=terminated_reason,
-        )
+        self.assertDatasetState(job.dataset, JobStates.TERMINATED)
 
     @patch("scpca_portal.batch.submit_job")
     def test_submit(self, mock_batch_submit_job):
@@ -121,7 +92,7 @@ class TestJob(TestCase):
         mock_batch_job_id = "MOCK_JOB_ID"  # The job id returned via AWS Batch response
         mock_batch_submit_job.return_value = mock_batch_job_id
 
-        dataset = UserDatasetFactory(is_processing=False)
+        dataset = UserDatasetFactory(state=DatasetStates.PROCESSING)
         job = Job.get_dataset_job(dataset)
         job.dataset = dataset
 
@@ -165,13 +136,13 @@ class TestJob(TestCase):
 
         # Assert "Job is not in a pending state" exception thrown correctly
         non_pending_job = JobFactory(
-            state=JobStates.SUCCEEDED, dataset=CCDLDatasetFactory(is_processing=False)
+            state=JobStates.SUCCEEDED, dataset=CCDLDatasetFactory(state=DatasetStates.SUCCEEDED)
         )
         with self.assertRaises(JobSubmitNotPendingError):
             non_pending_job.submit()
 
         # Assert "Dataset has a locked project" exception thrown correctly
-        dataset = CCDLDatasetFactory(is_processing=False)
+        dataset = CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         job = Job.get_dataset_job(dataset)
         job.dataset = dataset
 
@@ -199,15 +170,13 @@ class TestJob(TestCase):
         expected_submitted_jobs = [
             JobFactory(
                 state=JobStates.PENDING,
-                dataset=CCDLDatasetFactory(is_pending=True, is_processing=False),
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
             )
             for _ in range(3)
         ]
 
         for state in common.SUBMITTED_JOB_STATES:
-            JobFactory(
-                state=state, dataset=CCDLDatasetFactory(is_pending=False, is_processing=False)
-            )
+            JobFactory(state=state, dataset=CCDLDatasetFactory())
 
         # Before submission, there is 1 job in a PROCESSING state
         self.assertEqual(Job.objects.filter(state=JobStates.PROCESSING).count(), 1)
@@ -228,7 +197,9 @@ class TestJob(TestCase):
     def test_submit_pending_failure(self, mock_batch_submit_job):
         # Set up 3 saved PENDING jobs
         expected_pending_jobs = [
-            JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory(is_pending=False))
+            JobFactory(
+                state=JobStates.PENDING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
+            )
             for _ in range(3)
         ]
 
@@ -249,7 +220,10 @@ class TestJob(TestCase):
     def test_submit_pending_no_submission(self, mock_batch_submit_job):
         # Set up already submitted jobs
         for _ in range(3):
-            JobFactory(state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True))
+            JobFactory(
+                state=JobStates.PROCESSING,
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
+            )
         mock_batch_submit_job.return_value = []
 
         # Should return an empty list without calling submit_job
@@ -270,7 +244,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
         changed = processing_job.sync_state()
@@ -308,7 +282,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
         changed = processing_job.sync_state()
@@ -319,7 +293,7 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=processing_job.pk)
         self.assertEqual(saved_job.state, JobStates.SUCCEEDED)
         self.assertIsInstance(saved_job.succeeded_at, datetime)
-        self.assertDatasetState(saved_job.dataset, is_processing=False, is_succeeded=True)
+        self.assertDatasetState(saved_job.dataset, JobStates.SUCCEEDED)
 
         # Set up mock for get_jobs for AWS 'FAILED' status
         mock_batch_get_jobs.reset_mock()
@@ -331,7 +305,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
         changed = processing_job.sync_state()
@@ -343,12 +317,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.FAILED)
         self.assertEqual(saved_job.failed_reason, "Job FAILED")
         self.assertIsInstance(saved_job.failed_at, datetime)
-        self.assertDatasetState(
-            saved_job.dataset,
-            is_processing=False,
-            is_failed=True,
-            failed_reason=saved_job.failed_reason,
-        )
+        self.assertDatasetState(saved_job.dataset, JobStates.FAILED)
 
         # Set up mock for get_jobs for AWS Batch 'TERMINATED' status
         mock_batch_get_jobs.reset_mock()
@@ -361,7 +330,7 @@ class TestJob(TestCase):
         ]
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
         changed = processing_job.sync_state()
@@ -373,18 +342,12 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
         self.assertEqual(saved_job.terminated_reason, "Job TERMINATED")
-        self.assertDatasetState(
-            saved_job.dataset,
-            is_processing=False,
-            is_terminated=True,
-            terminated_reason=saved_job.terminated_reason,
-        )
+        self.assertDatasetState(saved_job.dataset, JobStates.TERMINATED)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_sync_state_handle_exception(self, mock_batch_get_jobs):
         pending_job = JobFactory(
-            state=JobStates.PENDING,
-            dataset=CCDLDatasetFactory(is_pending=True, pending_at=make_aware(datetime.now())),
+            state=JobStates.PENDING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
         with self.assertRaises(JobSyncNotProcessingError):
@@ -396,16 +359,14 @@ class TestJob(TestCase):
         # Job should remain in PROCESSING state
         saved_job = Job.objects.get(pk=pending_job.pk)
         self.assertEqual(saved_job.state, pending_job.state)
-        self.assertDatasetState(saved_job.dataset, is_pending=True)
+        self.assertDatasetState(saved_job.dataset, JobStates.PENDING)
 
         # Set up mock side effect for Exception
         mock_batch_get_jobs.side_effect = Exception()
 
         processing_job = JobFactory(
             state=JobStates.PROCESSING,
-            dataset=CCDLDatasetFactory(
-                is_processing=True, processing_at=make_aware(datetime.now())
-            ),
+            dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
         )
 
         with self.assertRaises(JobSyncStateFailedError):
@@ -416,7 +377,7 @@ class TestJob(TestCase):
         # Job should remain in PROCESSING state on boto3 request failure
         saved_job = Job.objects.get(pk=processing_job.pk)
         self.assertEqual(saved_job.state, processing_job.state)
-        self.assertDatasetState(saved_job.dataset, is_processing=True)
+        self.assertDatasetState(saved_job.dataset, JobStates.PROCESSING)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state(self, mock_batch_get_jobs):
@@ -424,9 +385,7 @@ class TestJob(TestCase):
         jobs_to_sync = [
             JobFactory(
                 state=JobStates.PROCESSING,
-                dataset=CCDLDatasetFactory(
-                    is_processing=True, processing_at=make_aware(datetime.now())
-                ),
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
             )
             for _ in range(8)
         ]
@@ -458,41 +417,34 @@ class TestJob(TestCase):
 
         # PROCESSING jobs should not be updated
         for processing_job in processing_jobs:
-            self.assertDatasetState(processing_job.dataset, is_processing=True)
+            self.assertDatasetState(processing_job.dataset, JobStates.PROCESSING)
 
         # SUCCEEDED jobs should be updated
         for succeeded_job in succeeded_jobs:
             self.assertIsNone(processing_job.failed_reason)
             self.assertIsInstance(succeeded_job.succeeded_at, datetime)
-            self.assertDatasetState(succeeded_job.dataset, is_processing=False, is_succeeded=True)
+            self.assertDatasetState(succeeded_job.dataset, JobStates.SUCCEEDED)
 
         # FAILED jobs should be updated
         for failed_job in failed_jobs:
             self.assertEqual(failed_job.failed_reason, "Job FAILED")
             self.assertIsInstance(failed_job.failed_at, datetime)
-            self.assertDatasetState(
-                failed_job.dataset,
-                is_processing=False,
-                is_failed=True,
-                failed_reason=failed_job.failed_reason,
-            )
+            self.assertDatasetState(failed_job.dataset, JobStates.FAILED)
 
         # TERMINATED jobs should be updated
         for terminated_job in terminated_jobs:
             self.assertEqual(terminated_job.terminated_reason, "Job TERMINATED")
             self.assertIsInstance(terminated_job.terminated_at, datetime)
-            self.assertDatasetState(
-                terminated_job.dataset,
-                is_processing=False,
-                is_terminated=True,
-                terminated_reason=terminated_job.terminated_reason,
-            )
+            self.assertDatasetState(terminated_job.dataset, JobStates.TERMINATED)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_bulk_sync_state_no_matching_batch_job_found(self, mock_batch_get_jobs):
         # Set up mock for get_jobs with no matched AWS job found
         jobs_to_sync = [
-            JobFactory(state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True))
+            JobFactory(
+                state=JobStates.PROCESSING,
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
+            )
             for _ in range(4)
         ]
         mock_response = [
@@ -514,12 +466,7 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.FAILED)
         self.assertEqual(saved_job.failed_reason, "Job FAILED")
         self.assertIsInstance(saved_job.failed_at, datetime)
-        self.assertDatasetState(
-            saved_job.dataset,
-            is_processing=False,
-            is_failed=True,
-            failed_reason=saved_job.failed_reason,
-        )
+        self.assertDatasetState(saved_job.dataset, JobStates.FAILED)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate(self, mock_batch_terminate_job):
@@ -527,7 +474,7 @@ class TestJob(TestCase):
         mock_batch_terminate_job.return_value = True
 
         processing_job = JobFactory(
-            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True)
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
         processing_job.terminate()
@@ -537,12 +484,7 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=processing_job.pk)
         self.assertEqual(saved_job.state, JobStates.TERMINATED)
         self.assertIsInstance(saved_job.terminated_at, datetime)
-        self.assertDatasetState(
-            saved_job.dataset,
-            is_processing=False,
-            is_terminated=True,
-            terminated_reason=saved_job.terminated_reason,
-        )
+        self.assertDatasetState(saved_job.dataset, JobStates.TERMINATED)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_handle_exception(self, mock_batch_terminate_job):
@@ -551,9 +493,7 @@ class TestJob(TestCase):
 
         processing_job = JobFactory(
             state=JobStates.PROCESSING,
-            dataset=CCDLDatasetFactory(
-                is_processing=True, processing_at=make_aware(datetime.now())
-            ),
+            dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
         )
 
         with self.assertRaises(JobTerminationFailedError):
@@ -564,14 +504,14 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=processing_job.pk)
         # The job state should remain unchanged
         self.assertEqual(saved_job.state, processing_job.state)
-        self.assertDatasetState(saved_job.dataset, is_processing=True)
+        self.assertDatasetState(saved_job.dataset, JobStates.PROCESSING)
 
         # Reset mock call attributes for JobInvalidTerminateStateError
         mock_batch_terminate_job.reset_mock()
 
         succeeded_job = JobFactory(
             state=JobStates.SUCCEEDED,
-            dataset=CCDLDatasetFactory(is_succeeded=True, succeeded_at=make_aware(datetime.now())),
+            dataset=CCDLDatasetFactory(state=DatasetStates.SUCCEEDED),
         )
 
         with self.assertRaises(JobInvalidTerminateStateError):
@@ -583,15 +523,18 @@ class TestJob(TestCase):
         saved_job = Job.objects.get(pk=succeeded_job.pk)
         # The job state should remain unchanged
         self.assertEqual(saved_job.state, succeeded_job.state)
-        self.assertDatasetState(saved_job.dataset, is_succeeded=True)
+        self.assertDatasetState(saved_job.dataset, JobStates.SUCCEEDED)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_processing(self, mock_batch_terminate_job):
         # Set up 3 jobs in PROCESSING state
         for _ in range(3):
-            JobFactory(state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(is_processing=True))
+            JobFactory(
+                state=JobStates.PROCESSING,
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
+            )
 
-        # Should call terminate_job 3 times for processing, incompleted jobs
+        # Should call terminate_job 3 times for processing, incomplete jobs
         response = Job.terminate_processing()
         mock_batch_terminate_job.assert_called()
         self.assertEqual(mock_batch_terminate_job.call_count, 3)
@@ -601,12 +544,7 @@ class TestJob(TestCase):
         for saved_job in Job.objects.all():
             self.assertEqual(saved_job.state, JobStates.TERMINATED)
             self.assertIsInstance(saved_job.terminated_at, datetime)
-            self.assertDatasetState(
-                saved_job.dataset,
-                is_processing=False,
-                is_terminated=True,
-                terminated_reason=saved_job.terminated_reason,
-            )
+            self.assertDatasetState(saved_job.dataset, JobStates.TERMINATED)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_processing_failure(self, mock_batch_terminate_job):
@@ -614,9 +552,7 @@ class TestJob(TestCase):
         for _ in range(3):
             JobFactory(
                 state=JobStates.PROCESSING,
-                dataset=CCDLDatasetFactory(
-                    is_processing=True, processing_at=make_aware(datetime.now())
-                ),
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
             )
         mock_batch_terminate_job.return_value = []
 
@@ -630,13 +566,13 @@ class TestJob(TestCase):
         for saved_job in Job.objects.all():
             self.assertEqual(saved_job.state, JobStates.PROCESSING)
             self.assertIsNone(saved_job.terminated_at)
-            self.assertDatasetState(saved_job.dataset, is_processing=True)
+            self.assertDatasetState(saved_job.dataset, JobStates.PROCESSING)
 
     @patch("scpca_portal.batch.terminate_job")
     def test_terminate_processing_no_termination(self, mock_batch_terminate_job):
         # Set up jobs that are already in the final states
         for state in common.FINAL_JOB_STATES:
-            JobFactory(state=state, dataset=CCDLDatasetFactory(is_processing=False))
+            JobFactory(state=state, dataset=CCDLDatasetFactory(state=DatasetStates.FAILED))
         mock_batch_terminate_job.return_value = []
 
         # Should return an empty list without calling terminate_job
@@ -648,7 +584,7 @@ class TestJob(TestCase):
         # Set up a non-terminated job
         job = JobFactory(
             state=JobStates.PROCESSING,
-            dataset=CCDLDatasetFactory(is_processing=True),
+            dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
         )
 
         with self.assertRaises(JobInvalidRetryStateError):
@@ -666,7 +602,7 @@ class TestJob(TestCase):
 
         # After execution, the call should returns a new saved instance for retry
         retry_job = job.create_retry_job()
-        # Should correctly copy the exsiting field values
+        # Should correctly copy the existing field values
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
@@ -688,7 +624,7 @@ class TestJob(TestCase):
                 batch_job_queue=batch_job_queue,
                 batch_container_overrides=batch_container_overrides,
                 attempt=attempt,
-                dataset=CCDLDatasetFactory(is_processing=False),
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
             )
             for _ in range(3)
         ]
@@ -752,7 +688,9 @@ class TestJob(TestCase):
             )
 
     def test_increment_attempt_or_fail(self):
-        job = JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory(is_processing=False))
+        job = JobFactory(
+            state=JobStates.PENDING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
+        )
 
         for _ in range(common.MAX_JOB_ATTEMPTS):
             self.assertEqual(job.state, JobStates.PENDING)
