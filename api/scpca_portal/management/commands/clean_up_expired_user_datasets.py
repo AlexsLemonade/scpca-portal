@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Any
 
 from django.core.management.base import BaseCommand
@@ -6,6 +6,7 @@ from django.template.defaultfilters import pluralize
 from django.utils.timezone import make_aware
 
 from scpca_portal.config.logging import get_and_configure_logger
+from scpca_portal.enums import DatasetStates
 from scpca_portal.models import UserDataset
 
 logger = get_and_configure_logger(__name__)
@@ -22,7 +23,7 @@ class Command(BaseCommand):
         self.clean_up_expired_user_datasets()
 
     def clean_up_expired_user_datasets(self) -> None:
-        datasets = UserDataset.objects.filter(expires_at=None, is_succeeded=True)
+        datasets = UserDataset.objects.filter(state=DatasetStates.SUCCEEDED)
 
         if not datasets.exists():
             logger.info("No datasets to clean up.")
@@ -34,10 +35,12 @@ class Command(BaseCommand):
 
         for dataset in datasets:
             # Populate the timestamp
-            dataset.expires_at = dataset.expiration_delta
-            updated_fields.add("expires_at")
-            # Mark as expired
-            if dataset.expiration_delta < now:
+            if dataset.expires_at is None:
+                dataset.expires_at = dataset.expiration_delta
+                updated_fields.add("expires_at")
+            # Clean up the legacy resources and mark as expired
+            # 8-day expiration via S3 Lifecycle policy + 1 day
+            if dataset.expiration_delta + timedelta(days=2) <= now:
                 dataset.is_expired = True
                 updated_fields.add("is_expired")
                 if computed_file := dataset.computed_file:
