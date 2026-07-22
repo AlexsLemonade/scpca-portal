@@ -61,22 +61,9 @@ class DatasetABC(TimestampedModel, models.Model):
 
     # Non user-editable - set during processing
     state = models.TextField(choices=DatasetStates, default=DatasetStates.CREATED)
-    started_at = models.DateTimeField(null=True)
-    is_started = models.BooleanField(default=False)
-    pending_at = models.DateTimeField(null=True)
-    is_pending = models.BooleanField(default=False)
-    processing_at = models.DateTimeField(null=True)
-    is_processing = models.BooleanField(default=False)
-    succeeded_at = models.DateTimeField(null=True)
-    is_succeeded = models.BooleanField(default=False)
-    failed_at = models.DateTimeField(null=True)
-    is_failed = models.BooleanField(default=False)
-    failed_reason = models.TextField(null=True)
+
     expires_at = models.DateTimeField(null=True)
     is_expired = models.BooleanField(default=False)  # Set by cronjob
-    terminated_at = models.DateTimeField(null=True)
-    is_terminated = models.BooleanField(default=False)
-    terminated_reason = models.TextField(null=True)
 
     computed_file = models.OneToOneField(
         ComputedFile,
