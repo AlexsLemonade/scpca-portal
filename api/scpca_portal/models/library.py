@@ -96,21 +96,22 @@ class Library(LoadableResourceABC):
     def get_loaded_state_metadata_dicts_by_id(
         cls, loaded_states: List[LoadableResourceStates] = []
     ) -> Dict[str, Dict]:
-        libraries = cls.objects.filter(loaded_states__in=loaded_states)
-        library_ids = set()
-        related_project_ids = set()
-
-        for library_id, related_project_id in libraries.values_list(
-            "scpca_id", "project__scpca_id"
-        ):
-            library_ids.add(library_id)
-            related_project_ids.add(related_project_id)
+        libraries = set(cls.objects.filter(loaded_states__in=loaded_states))
+        library_ids = set(library.scpca_id for library in libraries)
+        related_projects = set(library.project for library in libraries)
 
         libraries_metadata_by_id = {}
-        for project_id in related_project_ids:
+        for project in related_projects:
             project_libraries_metadata = metadata_parser.load_libraries_metadata(
-                project_id=project_id
+                project_id=project.scpca_id
             )
+
+            if project.has_bulk_rna_seq:
+                project_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
+                    project_id=project.scpca_id
+                )
+                project_libraries_metadata += project_bulk_libraries_metadata
+
             libraries_metadata_by_id.update(
                 {
                     md["scpca_library_id"]: md
