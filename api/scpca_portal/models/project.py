@@ -297,26 +297,18 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         return original_files.filter(is_merged=False)
 
     @classmethod
-    def sync_metadata(cls) -> None:
-        projects_metadata = metadata_parser.load_projects_metadata(filter_on_project_ids=[])
-        metadata_by_id = {md["scpca_project_id"]: md for md in projects_metadata}
-
-        updatable_projects = list(
-            cls.objects.filter(
-                loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
-            )
+    def get_loaded_state_metadata_dicts_by_id(
+        cls, loaded_states: List[LoadableResourceStates] = []
+    ) -> Dict[str, Dict]:
+        project_ids = list(
+            cls.objects.filter(loaded_states__in=loaded_states).values_list("scpca_id", flat=True)
         )
-        if not updatable_projects:
-            return
+        projects_metadata = metadata_parser.load_projects_metadata(
+            filter_on_project_ids=project_ids
+        )
+        return {md["scpca_project_id"]: md for md in projects_metadata}
 
-        for project in updatable_projects:
-            project.update_from_dict(metadata_by_id[project.scpca_id])
-            project.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
-
-        fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
-        cls.objects.bulk_update(updatable_projects, fields=fields_to_update)
-
-    # TODO:: remove before loadable resource feature branch lands
+    # TODO: remove before loadable resource feature branch lands
     def load_metadata(self) -> None:
         """
         Loads sample metadata and updates project aggregate values.

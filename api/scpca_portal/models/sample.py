@@ -108,29 +108,29 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_create(samples)
 
     @classmethod
-    def sync_metadata(cls) -> None:
-        updatable_samples = list(
-            cls.objects.filter(
-                loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
+    def get_loaded_state_metadata_dicts_by_id(
+        cls, loaded_states: List[LoadableResourceStates] = []
+    ) -> Dict[str, Dict]:
+        samples = cls.objects.filter(loaded_states__in=loaded_states)
+        sample_ids = set()
+        related_project_ids = set()
+
+        for sample_id, related_project_id in samples.values_list("scpca_id", "project__scpca_id"):
+            sample_ids.add(sample_id)
+            related_project_ids.add(related_project_id)
+
+        samples_metadata_by_id = {}
+        for project_id in related_project_ids:
+            project_samples_metadata = metadata_parser.load_samples_metadata(project_id=project_id)
+            samples_metadata_by_id.update(
+                {
+                    md["scpca_sample_id"]: md
+                    for md in project_samples_metadata
+                    if md["scpca_sample_id"] in sample_ids
+                }
             )
-        )
 
-        # this sequence could also be accomplished by refactoring load_samples_metadata
-        # to take a list of samples/projects
-        related_projects = {sample.project for sample in updatable_samples}
-        samples_metadata = []
-        for project in related_projects:
-            samples_metadata.extend(
-                metadata_parser.load_samples_metadata(project_id=project.scpca_id)
-            )
-
-        metadata_by_id = {md["scpca_sample_id"]: md for md in samples_metadata}
-        for sample in updatable_samples:
-            sample.update_from_dict(metadata_by_id[sample.scpca_id])
-            sample.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
-
-        fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
-        cls.objects.bulk_update(updatable_samples, fields=fields_to_update)
+        return samples_metadata_by_id
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod

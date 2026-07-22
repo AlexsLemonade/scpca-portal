@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from django.db import models
 from django.db.models import QuerySet
@@ -37,8 +37,30 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     @abstractmethod
-    def sync_metadata(cls) -> None:
+    def get_loaded_state_metadata_dicts_by_id(
+        cls, loaded_states: List[LoadableResourceStates] = []
+    ) -> Dict[str, Dict]:
         pass
+
+    @classmethod
+    def sync_metadata(cls) -> None:
+        updatable_resources = list(
+            cls.objects.filter(
+                loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
+            )
+        )
+        if not updatable_resources:
+            return
+
+        metadata_by_id = cls.get_loaded_state_metadata_dicts_by_id(
+            loaded_states=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
+        )
+        for resource in updatable_resources:
+            resource.update_from_dict(metadata_by_id[getattr(resource, "scpca_id")])
+            resource.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
+
+        fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
+        cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
 
     @classmethod
     # not defined as an abstractmethod because Library has no aggregations
