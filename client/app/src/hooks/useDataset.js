@@ -163,23 +163,17 @@ export const useDataset = () => {
     return sampleIds.map((id) => samplesMap[id])
   }
 
-  // TODO: Implementation might change
   const getDatasetState = (dataset) => {
-    const {
-      is_processing: isProcessing,
-      is_succeeded: isSucceeded,
-      is_failed: isFailed,
-      is_terminated: isTerminated,
-      is_expired: isExpired
-    } = dataset
+    const { state, is_expired: isExpired } = dataset
 
-    const processed = isSucceeded || isFailed || isTerminated
+    const isCreated = state === 'CREATED'
+    const isProcessing = state === 'PROCESSING'
+    const isSucceeded = state === 'SUCCEEDED'
+    const isFailed = state === 'FAILED'
 
     return {
-      isUnprocessed: !isProcessing || !processed,
+      isCreated,
       isProcessing: isProcessing && !isFailed,
-      isFailed,
-      isTerminated,
       isReady: isSucceeded && !isExpired,
       isExpired: isSucceeded && isExpired
     }

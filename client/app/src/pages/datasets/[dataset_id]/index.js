@@ -44,7 +44,7 @@ const Dataset = ({ dataset: initialDataset }) => {
       const datasetRequest = await get(dataset)
       setDataset(datasetRequest)
       // stop polling when done
-      if (!datasetRequest.is_processing) {
+      if (!datasetRequest.state === 'PROCESSING') {
         clearInterval(pollTimer.current)
       }
     }
