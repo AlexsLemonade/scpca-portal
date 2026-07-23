@@ -36,12 +36,10 @@ class TestJob(TestCase):
             self.assertEqual(dataset.state, DatasetStates.FAILED)
 
     def test_validate_dataset_type(self):
-        # assert that dataset attr is of subtype DatasetABC
-        job = JobFactory()
-
-        job.dataset = CCDLDataset()
-        job.save()
-
+        # Assert that dataset attr is of subtype DatasetABC
+        # Validate CCDL dataset
+        job = JobFactory(dataset=CCDLDataset())
+        # Validate user dataset
         job.dataset = UserDataset()
         job.save()
 

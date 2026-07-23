@@ -136,10 +136,8 @@ class Job(TimestampedModel):
 
         with transaction.atomic():
             super().save(*args, **kwargs)
-
-            if self.dataset:
-                self.dataset.apply_job_state()
-                self.dataset.get_class().bulk_update_state([self.dataset])
+            self.dataset.apply_job_state()
+            self.dataset.get_class().bulk_update_state([self.dataset])
 
     def create_retry_job(self, *, save: bool = True) -> Self:
         """
