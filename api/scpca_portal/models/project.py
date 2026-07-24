@@ -14,7 +14,6 @@ from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
 from scpca_portal.models.base import CommonDataAttributes
-from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.library import Library
@@ -126,27 +125,6 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         )
 
     @property
-    def samples_to_generate(self) -> List[Sample]:
-        """Return all non multiplexed samples and only one sample from multiplexed libraries."""
-        return [sample for sample in self.samples.all() if sample.is_last_multiplexed_sample]
-
-    @property
-    def valid_download_config_names(self) -> List[str]:
-        return [
-            download_config_name
-            for download_config_name, download_config in common.PROJECT_DOWNLOAD_CONFIGS.items()
-            if self.get_libraries(download_config).exists()
-        ]
-
-    @property
-    def valid_download_configs(self) -> List[Dict]:
-        return [
-            download_config
-            for download_config in common.PROJECT_DOWNLOAD_CONFIGS.values()
-            if self.get_libraries(download_config).exists()
-        ]
-
-    @property
     def original_files(self) -> QuerySet[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
@@ -155,10 +133,6 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     @property
     def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
-
-    @property
-    def computed_files(self) -> QuerySet[ComputedFile]:
-        return self.project_computed_files.order_by("created_at")
 
     @property
     def url(self) -> str:
@@ -170,85 +144,6 @@ class Project(CommonDataAttributes, LoadableResourceABC):
             "pi_name": self.pi_name,
             "project_title": self.title,
         }
-
-    def get_libraries(self, download_config: Dict = {}) -> QuerySet[Library]:
-        """
-        Return all of a project's associated libraries filtered by the passed download config.
-        """
-        if not download_config or download_config.get("metadata_only"):
-            return self.libraries.all()
-
-        if download_config not in common.PROJECT_DOWNLOAD_CONFIGS.values():
-            raise ValueError("Invalid download_config passed. Unable to retrieve libraries.")
-
-        # You cannot include multiplexed when there are no multiplexed libraries
-        if not download_config["excludes_multiplexed"] and not self.has_multiplexed_data:
-            return self.libraries.none()
-
-        if download_config["includes_merged"]:
-            # If the download config requests merged and there is no merged file in the project,
-            # return an empty queryset
-            if (
-                download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT
-                and not self.includes_merged_sce
-            ):
-                return self.libraries.none()
-            elif (
-                download_config["format"] == FileFormats.ANN_DATA
-                and not self.includes_merged_anndata
-            ):
-                return self.libraries.none()
-
-        # non-bulk libraries
-        libraries_queryset = self.libraries.filter(
-            modality=download_config["modality"],
-            formats__contains=[download_config["format"]],
-        )
-
-        if download_config["excludes_multiplexed"]:
-            return libraries_queryset.exclude(is_multiplexed=True)
-
-        return libraries_queryset
-
-    def get_output_file_name(self, download_config: Dict) -> str:
-        """
-        Accumulates all applicable name segments, concatenates them with an underscore delimiter,
-        and returns the string as a unique zip file name.
-        """
-        if download_config.get("metadata_only", False):
-            return f"{self.scpca_id}_ALL_METADATA.zip"
-
-        name_segments = [self.scpca_id, download_config["modality"]]
-        # following the old computed file paradigm, spatial should be paired with sce
-        if download_config["modality"] == "SPATIAL":
-            name_segments.append("SINGLE_CELL_EXPERIMENT")
-        else:
-            name_segments.append(download_config["format"])
-
-        if download_config.get("includes_merged", False):
-            name_segments.append("MERGED")
-
-        if not download_config.get("excludes_multiplexed", False) and self.has_multiplexed_data:
-            name_segments.append("MULTIPLEXED")
-
-        # Change to filename format must be accompanied by an entry in the docs.
-        # Each segment should have hyphens and no underscores
-        # Each segment should be joined by underscores
-        file_name = "_".join([segment.replace("_", "-") for segment in name_segments])
-
-        return f"{file_name}.zip"
-
-    def get_computed_file(self, download_config: Dict) -> ComputedFile:
-        "Return the project computed file that matches the passed download_config."
-        if download_config["metadata_only"]:
-            return self.computed_files.filter(metadata_only=True).first()
-
-        return self.computed_files.filter(
-            modality=download_config["modality"],
-            format=download_config["format"],
-            has_multiplexed_data=(not download_config["excludes_multiplexed"]),
-            includes_merged=download_config["includes_merged"],
-        ).first()
 
     def get_downloadable_sample_count(self) -> int:
         """

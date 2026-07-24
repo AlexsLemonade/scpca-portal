@@ -40,46 +40,45 @@ apt install docker-ce docker-ce-cli -y
 sudo usermod -a -G docker ubuntu && newgrp docker
 
 if [[ ${stage} == "staging" || ${stage} == "prod" ]]; then
-	# Create and install SSL Certificate for the API.
-	# Only necessary on staging and prod.
-	# We cannot use ACM for this because *.bio is not a Top Level Domain that Route53 supports.
-	# Certbot must be installed regardless of whether or not a cert is present because of the auto renewal cron job (see below).
-	apt-get update
-	apt install certbot python3-certbot-nginx -y
+    # Create and install SSL Certificate for the API.
+    # Only necessary on staging and prod.
+    # We cannot use ACM for this because *.bio is not a Top Level Domain that Route53 supports.
+    # Certbot must be installed regardless of whether or not a cert is present because of the auto renewal cron job (see below).
+    apt-get update
+    apt install certbot python3-certbot-nginx -y
 
-	# Write script which syncs cert with s3 remote store
-	cat <<"EOF" > certbot_s3_sync.sh
+    # Write script which syncs cert with s3 remote store
+    cat <<"EOF" > certbot_s3_sync.sh
 ${certbot_s3_sync_script}
 EOF
-	chmod +x ./certbot_s3_sync.sh
+    chmod +x ./certbot_s3_sync.sh
 
-	# Write script responsible for certbot cert renewal
-	cat <<"EOF" > certbot_renew_deploy_hook.sh
+    # Write script responsible for certbot cert renewal
+    cat <<"EOF" > certbot_renew_deploy_hook.sh
 ${certbot_renew_deploy_hook_script}
 EOF
-	chmod +x ./certbot_renew_deploy_hook.sh
+    chmod +x ./certbot_renew_deploy_hook.sh
 
-	# Add certbot cert auto renewal entry to cron
-	(crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
+    # Add certbot cert auto renewal entry to cron
+    (crontab -l 2>/dev/null; echo "${certbot_crontab_entry}") | crontab -
 
     # Check here for the cert in S3, if present then pull it down from s3, if not then run certbot.
     if aws s3api head-object --bucket "${scpca_portal_cert_bucket}" --key letsencrypt.zip > /dev/null 2>&1; then
         aws s3 cp "s3://${scpca_portal_cert_bucket}/letsencrypt.zip" letsencrypt.zip
-        unzip letsencrypt.zip -d /etc/
-        mv /etc/letsencrypt/nginx.conf /etc/nginx/
+        # -o overwrites the existing nginx.conf without prompt
+        unzip -o letsencrypt.zip -d /etc/
         service nginx restart
-		rm letsencrypt.zip
+        rm letsencrypt.zip
     else
-		# The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
+        # The certbot challenge cannot be completed until the aws_lb_target_group_attachment resources are created.
         sleep 180
         BASE_URL="scpca.alexslemonade.org"
-		PREFIX="api"
+        PREFIX="api"
         if [[ ${stage} == "staging" ]]; then
-			PREFIX="$PREFIX.staging"
-		fi
+            PREFIX="$PREFIX.staging"
+        fi
         certbot --nginx -d $PREFIX.$BASE_URL -n --agree-tos --redirect -m ${slack_certbot_email}
-		./certbot_s3_sync.sh
-
+        ./certbot_s3_sync.sh
     fi
 fi
 
@@ -118,12 +117,17 @@ cat <<EOF >awslogs.json
                         "retention_in_days": 30
                     },
                     {
+                        "file_path": "/var/log/cron/expire_user_datasets.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${expire_user_datasets_log_stream}",
+                        "retention_in_days": 30
+                    },
+                    {
                         "file_path": "/var/log/cron/certbot_renew.log",
                         "log_group_name": "${log_group}",
                         "log_stream_name": "${certbot_renew_log_stream}",
                         "retention_in_days": 30
                     }
-
                 ]
             }
         }

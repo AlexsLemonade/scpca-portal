@@ -4,7 +4,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 
-from scpca_portal import common, metadata_parser
+from scpca_portal import metadata_parser
 from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
 from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
@@ -198,49 +198,8 @@ class Library(LoadableResourceABC):
             for sample in self.samples.all()
         ]
 
-    def get_original_files_by_download_config(
-        self, download_config: Dict
-    ) -> QuerySet[OriginalFile]:
-        """
-        Return all of a library's file paths that are suitable for the passed download config.
-        """
-        if download_config.get("metadata_only", False):
-            return OriginalFile.objects.none()
-
-        original_files = OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
-        if not download_config.get("includes_merged", False):
-            if download_config["format"] == FileFormats.ANN_DATA:
-                return original_files.exclude(is_single_cell_experiment=True)
-            if download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT:
-                return original_files.exclude(is_anndata=True)
-
-        return original_files.exclude(is_single_cell_experiment=True).exclude(is_anndata=True)
-
     @staticmethod
     def get_libraries_metadata(libraries: QuerySet[Self]) -> List[Dict]:
         return [
             lib_md for library in libraries for lib_md in library.get_combined_library_metadata()
         ]
-
-    @staticmethod
-    def get_libraries_original_files(
-        libraries: QuerySet[Self], download_config: Dict
-    ) -> List[OriginalFile]:
-        """
-        Return file paths associated with the libraries according to the passed download_config.
-        Files are then downloaded and included in computed files.
-        """
-        library_original_files = [
-            of
-            for lib in libraries
-            for of in lib.get_original_files_by_download_config(download_config)
-        ]
-
-        if download_config in common.PROJECT_DOWNLOAD_CONFIGS.values():
-            project = libraries.first().project
-            project_original_files = [
-                of for of in project.get_original_files_by_download_config(download_config)
-            ]
-            return project_original_files + library_original_files
-
-        return library_original_files

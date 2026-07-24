@@ -2,7 +2,8 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from scpca_portal.test.factories import ProjectFactory, SampleFactory
+from scpca_portal.models import Sample
+from scpca_portal.test.factories import OriginalFileFactory, ProjectFactory, SampleFactory
 
 
 class StatsTestCase(APITestCase):
@@ -16,6 +17,9 @@ class StatsTestCase(APITestCase):
             project=ProjectFactory(),
             seq_units=["cell", "bulk"],
             technologies=["10Xv4", "10Xv5"],
+        )
+        OriginalFileFactory(
+            is_downloadable=True, sample_ids=list(Sample.objects.values_list("scpca_id", flat=True))
         )
 
     def test_get(self):

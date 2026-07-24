@@ -52,8 +52,8 @@ class UserDatasetSingleCellExperiment:
     }
     COMPUTED_FILE_LIST = [
         "README.md",
-        "SCPCP999990_bulk_rna/SCPCP999990_bulk_metadata.tsv",
-        "SCPCP999990_bulk_rna/SCPCP999990_bulk_quant.tsv",
+        "SCPCP999990_bulk/SCPCP999990_bulk_metadata.tsv",
+        "SCPCP999990_bulk/SCPCP999990_bulk_quant.tsv",
         "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_celltype-report.html",
         "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_filtered.rds",
         "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_processed.rds",
