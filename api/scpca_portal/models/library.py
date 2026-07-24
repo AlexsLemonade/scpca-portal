@@ -6,14 +6,14 @@ from django.db.models import QuerySet
 
 from scpca_portal import metadata_parser
 from scpca_portal.enums import FileFormats, Modalities
-from scpca_portal.models.base import TimestampedModel
+from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
 
 if TYPE_CHECKING:
     from api.scpca_portal.models import Project, Sample
 
 
-class Library(TimestampedModel):
+class Library(LoadableResourceABC):
     class Meta:
         db_table = "libraries"
         get_latest_by = "updated_at"

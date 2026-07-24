@@ -7,8 +7,9 @@ from django.db.models import QuerySet
 from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
-from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
+from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.library import Library
+from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 
 if TYPE_CHECKING:
     from scpca_portal.models import Project
@@ -16,7 +17,7 @@ if TYPE_CHECKING:
 logger = get_and_configure_logger(__name__)
 
 
-class Sample(CommonDataAttributes, TimestampedModel):
+class Sample(CommonDataAttributes, LoadableResourceABC):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
