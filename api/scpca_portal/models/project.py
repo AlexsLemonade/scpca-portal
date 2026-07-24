@@ -9,8 +9,7 @@ from django.db.models import Count, Q, QuerySet
 
 from typing_extensions import Self
 
-from api.scpca_portal import metadata_parser
-from scpca_portal import common, utils
+from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
 from scpca_portal.models.base import CommonDataAttributes
