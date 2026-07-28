@@ -17,28 +17,28 @@ class ConcreteLoadableResource(LoadableResourceABC):
     coupling these tests to Project, Sample, or Library models.
     """
 
-    def __init__(self, original_files_qs=None):
+    def __init__(self, loaded_original_files_qs=None):
         super().__init__()
         self.loaded_state = LoadableResourceStates.NEW
         self.loaded_hash = None
         self.loaded_at = None
         self.updated_at = None
-        self._original_files_qs = original_files_qs or OriginalFile.objects.none()
+        self._loaded_original_files_qs = loaded_original_files_qs or OriginalFile.objects.none()
 
     @property
-    def original_files(self) -> QuerySet[OriginalFile]:
-        return self._original_files_qs
+    def loaded_original_files(self) -> QuerySet[OriginalFile]:
+        return self._loaded_original_files_qs
 
 
 class TestLoadableResourceABC(TestCase):
     def setUp(self):
-        original_files = [
+        loaded_original_files = [
             OriginalFileFactory(hash="1234567890ab"),
             OriginalFileFactory(hash="cdefghijklmn"),
             OriginalFileFactory(hash="opqrstuvwxyz"),
         ]
-        qs = OriginalFile.objects.filter(pk__in=[of.pk for of in original_files])
-        self.loadable_resource = ConcreteLoadableResource(original_files_qs=qs)
+        qs = OriginalFile.objects.filter(pk__in=[of.pk for of in loaded_original_files])
+        self.loadable_resource = ConcreteLoadableResource(loaded_original_files_qs=qs)
 
     def test_current_loaded_hash(self):
         expected_loaded_hash = "928f7bcdcd08869cc44c1bf24e7abec6"
