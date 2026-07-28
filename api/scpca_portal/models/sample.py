@@ -10,6 +10,7 @@ from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.library import Library
 from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
+from scpca_portal.models.original_file import OriginalFile
 
 if TYPE_CHECKING:
     from scpca_portal.models import Project
@@ -247,6 +248,14 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             # either in different models or by different names
             and key not in ("scpca_sample_id", "scpca_project_id", "submitter")
         }
+
+    @property
+    def loaded_original_files(self) -> QuerySet[OriginalFile]:
+        """
+        This property returns all files, from sample down to library, associated with the sample,
+        whether downloadable or not.
+        """
+        return OriginalFile.objects.filter(sample_ids__contains=[self.scpca_id])
 
     def get_metadata(self) -> Dict:
         excluded_metadata_attributes = {

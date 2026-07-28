@@ -173,6 +173,13 @@ class Library(LoadableResourceABC):
     def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
 
+    @property
+    def loaded_original_files(self) -> QuerySet[OriginalFile]:
+        """
+        This property returns all files associated with the library, whether downloadable or not.
+        """
+        return OriginalFile.objects.filter(library_id=self.scpca_id)
+
     def get_metadata(self, demux_cell_count_estimate_id: str) -> Dict:
         excluded_metadata_attributes = {
             "scpca_sample_id",

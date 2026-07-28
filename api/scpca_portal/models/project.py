@@ -125,6 +125,9 @@ class Project(CommonDataAttributes, LoadableResourceABC):
 
     @property
     def original_files(self) -> QuerySet[OriginalFile]:
+        """
+        This property returns all downloadable project level files associated with the project.
+        """
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
@@ -132,6 +135,14 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     @property
     def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
+
+    @property
+    def loaded_original_files(self) -> QuerySet[OriginalFile]:
+        """
+        This property returns all files, from project down to library, associated with the project,
+        whether downloadable or not.
+        """
+        return OriginalFile.objects.filter(project_id=self.scpca_id)
 
     @property
     def url(self) -> str:

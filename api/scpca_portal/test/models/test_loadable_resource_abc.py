@@ -30,17 +30,17 @@ class ConcreteLoadableResource(LoadableResourceABC):
         self,
         scpca_id="SCPCX999999999",
         loaded_state=LoadableResourceStates.NEW,
-        original_files_qs=None,
+        loaded_original_files_qs=None,
         **kwargs,
     ):
         # loaded_hash is forced to None here because CharField(null=True) with no explicit
         # default otherwise resolves to "", which would break the "no hash yet" assertions below
         super().__init__(scpca_id=scpca_id, loaded_state=loaded_state, loaded_hash=None, **kwargs)
-        self._original_files_qs = original_files_qs or OriginalFile.objects.none()
+        self._loaded_original_files_qs = loaded_original_files_qs or OriginalFile.objects.none()
 
     @property
-    def original_files(self) -> QuerySet[OriginalFile]:
-        return self._original_files_qs
+    def loaded_original_files(self) -> QuerySet[OriginalFile]:
+        return self._loaded_original_files_qs
 
     @classmethod
     def get_from_dict(cls, data: Dict, *args: Any, **kwargs: Any) -> Self:
@@ -59,20 +59,20 @@ class ConcreteLoadableResource(LoadableResourceABC):
 
 class TestLoadableResourceABC(TestCase):
     def setUp(self):
-        original_files = [
+        loaded_original_files = [
             OriginalFileFactory(hash="1234567890ab"),
             OriginalFileFactory(hash="cdefghijklmn"),
             OriginalFileFactory(hash="opqrstuvwxyz"),
         ]
-        self.original_files_qs = OriginalFile.objects.filter(
-            pk__in=[of.pk for of in original_files]
+        self.loaded_original_files_qs = OriginalFile.objects.filter(
+            pk__in=[of.pk for of in loaded_original_files]
         )
 
     def make_resource(self, scpca_id, loaded_state=LoadableResourceStates.NEW):
         return ConcreteLoadableResource(
             scpca_id=scpca_id,
             loaded_state=loaded_state,
-            original_files_qs=self.original_files_qs,
+            loaded_original_files_qs=self.loaded_original_files_qs,
         )
 
     def test_current_loaded_hash(self):

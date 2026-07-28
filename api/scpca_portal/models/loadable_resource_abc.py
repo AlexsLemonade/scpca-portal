@@ -109,10 +109,10 @@ class LoadableResourceABC(TimestampedModel):
 
     @property
     @abstractmethod
-    def original_files(self) -> QuerySet[OriginalFile]:
+    def loaded_original_files(self) -> QuerySet[OriginalFile]:
         pass
 
     @property
     def current_loaded_hash(self) -> str:
-        original_file_hashes = self.original_files.values_list("hash", flat=True)
-        return utils.hash_values(original_file_hashes)
+        loaded_original_file_hashes = self.loaded_original_files.values_list("hash", flat=True)
+        return utils.hash_values(loaded_original_file_hashes)

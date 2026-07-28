@@ -275,7 +275,7 @@ def format_bytes(size_in_bytes: int) -> str:
     return f"{float_format} {sizes[i]}"
 
 
-def hash_values(values: List[str]) -> str:
+def hash_values(values: Iterable[str]) -> str:
     """
     Return the hash value of a passed list of strings.
     """
