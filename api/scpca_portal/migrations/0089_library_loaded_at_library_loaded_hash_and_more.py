@@ -2,11 +2,36 @@
 
 from django.db import migrations, models
 
+from scpca_portal import utils
 
-def set_original_loaded_state(apps, schema_editor):
+
+def backfill_loaded_state(apps, schema_editor):
     for model_name in ("Project", "Sample", "Library"):
         model = apps.get_model("scpca_portal", model_name)
         model.objects.all().update(loaded_state="SYNCED")
+
+
+def backfill_loaded_hash(apps, schema_editor):
+    OriginalFile = apps.get_model("scpca_portal", "OriginalFile")
+    original_file_filter_fields = {
+        "Project": ("project_id", lambda scpca_id: scpca_id),
+        # contains modifier expects a value wrapped inside a list
+        "Sample": ("sample_ids__contains", lambda scpca_id: [scpca_id]),
+        "Library": ("library_id", lambda scpca_id: scpca_id),
+    }
+
+    for model_name, (filter_field, transform) in original_file_filter_fields.items():
+        model = apps.get_model("scpca_portal", model_name)
+
+        updated_objects = []
+        for obj in model.objects.all():
+            loaded_file_hashes = OriginalFile.objects.filter(
+                **{filter_field: transform(obj.scpca_id)}
+            ).values_list("hash", flat=True)
+            obj.loaded_hash = utils.hash_values(loaded_file_hashes)
+            updated_objects.append(obj)
+
+        model.objects.bulk_update(updated_objects, ["loaded_hash"])
 
 
 class Migration(migrations.Migration):
@@ -22,47 +47,9 @@ class Migration(migrations.Migration):
             field=models.DateTimeField(null=True),
         ),
         migrations.AddField(
-            model_name="project",
-            name="loaded_hash",
-            field=models.CharField(max_length=32, null=True),
-        ),
-        # Have loaded_state field start out nullable
-        migrations.AddField(
-            model_name="project",
-            name="loaded_state",
-            field=models.TextField(
-                choices=[
-                    ("LOCKED", "Locked"),
-                    ("NEW", "New"),
-                    ("TAINTED", "Tainted"),
-                    ("SYNCED", "Synced"),
-                ],
-                null=True,
-            ),
-        ),
-        migrations.AddField(
             model_name="sample",
             name="loaded_at",
             field=models.DateTimeField(null=True),
-        ),
-        migrations.AddField(
-            model_name="sample",
-            name="loaded_hash",
-            field=models.CharField(max_length=32, null=True),
-        ),
-        # Have loaded_state field start out nullable
-        migrations.AddField(
-            model_name="sample",
-            name="loaded_state",
-            field=models.TextField(
-                choices=[
-                    ("LOCKED", "Locked"),
-                    ("NEW", "New"),
-                    ("TAINTED", "Tainted"),
-                    ("SYNCED", "Synced"),
-                ],
-                null=True,
-            ),
         ),
         migrations.AddField(
             model_name="library",
@@ -70,11 +57,48 @@ class Migration(migrations.Migration):
             field=models.DateTimeField(null=True),
         ),
         migrations.AddField(
+            model_name="project",
+            name="loaded_hash",
+            field=models.CharField(max_length=32, null=True),
+        ),
+        migrations.AddField(
+            model_name="sample",
+            name="loaded_hash",
+            field=models.CharField(max_length=32, null=True),
+        ),
+        migrations.AddField(
             model_name="library",
             name="loaded_hash",
             field=models.CharField(max_length=32, null=True),
         ),
+        migrations.RunPython(backfill_loaded_hash, reverse_code=migrations.RunPython.noop),
         # Have loaded_state field start out nullable
+        migrations.AddField(
+            model_name="project",
+            name="loaded_state",
+            field=models.TextField(
+                choices=[
+                    ("LOCKED", "Locked"),
+                    ("NEW", "New"),
+                    ("TAINTED", "Tainted"),
+                    ("SYNCED", "Synced"),
+                ],
+                null=True,
+            ),
+        ),
+        migrations.AddField(
+            model_name="sample",
+            name="loaded_state",
+            field=models.TextField(
+                choices=[
+                    ("LOCKED", "Locked"),
+                    ("NEW", "New"),
+                    ("TAINTED", "Tainted"),
+                    ("SYNCED", "Synced"),
+                ],
+                null=True,
+            ),
+        ),
         migrations.AddField(
             model_name="library",
             name="loaded_state",
@@ -88,25 +112,12 @@ class Migration(migrations.Migration):
                 null=True,
             ),
         ),
-        # Backfill existing rows before (tightening the constraint)
+        # Backfill existing rows before tightening the constraint
         migrations.RunPython(
-            set_original_loaded_state,
+            backfill_loaded_state,
             reverse_code=migrations.RunPython.noop,
         ),
-        # Make the field non-nullable (resource must have loaded_state set explicitly)
-        migrations.AlterField(
-            model_name="library",
-            name="loaded_state",
-            field=models.TextField(
-                choices=[
-                    ("LOCKED", "Locked"),
-                    ("NEW", "New"),
-                    ("TAINTED", "Tainted"),
-                    ("SYNCED", "Synced"),
-                ],
-                null=False,
-            ),
-        ),
+        # Convert the field to non-nullable
         migrations.AlterField(
             model_name="project",
             name="loaded_state",
@@ -122,6 +133,19 @@ class Migration(migrations.Migration):
         ),
         migrations.AlterField(
             model_name="sample",
+            name="loaded_state",
+            field=models.TextField(
+                choices=[
+                    ("LOCKED", "Locked"),
+                    ("NEW", "New"),
+                    ("TAINTED", "Tainted"),
+                    ("SYNCED", "Synced"),
+                ],
+                null=False,
+            ),
+        ),
+        migrations.AlterField(
+            model_name="library",
             name="loaded_state",
             field=models.TextField(
                 choices=[
