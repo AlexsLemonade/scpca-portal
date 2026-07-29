@@ -181,9 +181,8 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     @classmethod
     def create_new_objects(cls) -> None:
         new_project_ids = (
-            OriginalFile.objects.exclude(
-                project_id__in=cls.objects.values_list("scpca_id", flat=True)
-            )
+            OriginalFile.objects.exclude(project_id__isnull=True)
+            .exclude(project_id__in=cls.objects.values_list("scpca_id", flat=True))
             .values_list("project_id", flat=True)
             .distinct()
         )
@@ -199,16 +198,12 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     @classmethod
     def remove_deleted_objects(cls) -> None:
         # TODO: What type of cleanup or notification is necessary
-        # to alert datasets who's underlying mutated data?
+        # to alert datasets who's underlying data has beeen mutated?
         cls.objects.exclude(
             scpca_id__in=OriginalFile.objects.exclude(project_id__isnull=True).values_list(
                 "project_id", flat=True
             )
         ).delete()
-
-    @classmethod
-    def taint_modified_objects(cls) -> None:
-        pass
 
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
