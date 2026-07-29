@@ -1,5 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime, timedelta
+from typing import Iterable
 
 from django.db import models
 from django.db.models import QuerySet
@@ -47,10 +48,10 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     def bulk_update_loaded_state(
-        cls, loadable_resources: QuerySet[Self], new_loaded_state: LoadableResourceStates
-    ) -> QuerySet[Self]:
-        """Performs a highly optimized batch update on a QuerySet of loadable resources."""
-        if not loadable_resources.exists():
+        cls, loadable_resources: Iterable[Self], new_loaded_state: LoadableResourceStates
+    ) -> Iterable[Self]:
+        """Performs a highly optimized batch update on a QuerySet or list of loadable resources."""
+        if not loadable_resources:
             return loadable_resources
 
         for loadable_resource in loadable_resources:
@@ -105,9 +106,13 @@ class LoadableResourceABC(TimestampedModel):
         pass
 
     @classmethod
-    @abstractmethod
     def taint_modified_objects(cls) -> None:
-        pass
+        tainted_objs = [
+            synced_obj
+            for synced_obj in cls.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
+            if synced_obj.loaded_hash != synced_obj.current_loaded_hash
+        ]
+        cls.bulk_update_loaded_state(tainted_objs, LoadableResourceStates.TAINTED)
 
     @classmethod
     def sync_model(cls) -> None:
