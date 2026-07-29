@@ -11,7 +11,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import LoadableResourceStates, Modalities
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
@@ -177,6 +177,38 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         self.update_project_aggregate_properties()
         self.update_project_sample_aggregate_counts()
         self.update_project_summaries_aggregate_properties()
+
+    @classmethod
+    def create_new_objects(cls) -> None:
+        new_project_ids = (
+            OriginalFile.objects.exclude(
+                project_id__in=cls.objects.values_list("scpca_id", flat=True)
+            )
+            .values_list("project_id", flat=True)
+            .distinct()
+        )
+
+        new_projects = []
+        for new_project_id in new_project_ids:
+            new_projects.append(
+                cls(scpca_id=new_project_id, loaded_state=LoadableResourceStates.NEW)
+            )
+
+        cls.objects.bulk_create(new_projects)
+
+    @classmethod
+    def remove_deleted_objects(cls) -> None:
+        # TODO: What type of cleanup or notification is necessary
+        # to alert datasets who's underlying mutated data?
+        cls.objects.exclude(
+            scpca_id__in=OriginalFile.objects.exclude(project_id__isnull=True).values_list(
+                "project_id", flat=True
+            )
+        ).delete()
+
+    @classmethod
+    def taint_modified_objects(cls) -> None:
+        pass
 
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
