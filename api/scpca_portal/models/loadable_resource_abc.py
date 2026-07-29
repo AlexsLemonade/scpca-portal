@@ -73,3 +73,30 @@ class LoadableResourceABC(TimestampedModel):
     def current_loaded_hash(self) -> str:
         loaded_original_file_hashes = self.loaded_original_files.values_list("hash", flat=True)
         return utils.hash_values(loaded_original_file_hashes)
+
+    @classmethod
+    @abstractmethod
+    def create_new_objects(cls) -> None:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def remove_deleted_objects(cls) -> None:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def handle_locked_objects(cls) -> None:
+        pass
+
+    @classmethod
+    @abstractmethod
+    def taint_modified_objects(cls) -> None:
+        pass
+
+    @classmethod
+    def sync_model(cls) -> None:
+        cls.create_new_objects()
+        cls.remove_deleted_objects()
+        cls.handle_locked_objects()
+        cls.taint_modified_objects()
