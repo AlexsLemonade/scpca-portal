@@ -84,4 +84,5 @@ class LoadableResourceABC(TimestampedModel):
         #   call refactored aggregate methods,
         #       which accept a (resource) queryset,
         #       and returns the unsaved objs and list of modified fields (aggregated in this method)
-        #   a bulk_update is called: cls.objects.bulk_update(resources, fields=modified_fields)
+        #   a single bulk_update is then called:
+        #       cls.objects.bulk_update(resources, fields=modified_fields)
