@@ -53,8 +53,8 @@ class ConcreteLoadableResource(LoadableResourceABC):
         return self
 
     @classmethod
-    def get_loaded_state_metadata_dicts_by_id(cls, loaded_states=[]) -> Dict[str, Dict]:
-        pass
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
+        return {}
 
 
 class TestLoadableResourceABC(TestCase):
