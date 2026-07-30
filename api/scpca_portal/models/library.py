@@ -24,7 +24,6 @@ class Library(LoadableResourceABC):
     is_multiplexed = models.BooleanField(default=False)
     metadata = models.JSONField(default=dict)
     modality = models.TextField(choices=Modalities.choices)
-    scpca_id = models.TextField(unique=True)
     workflow_version = models.TextField()
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="libraries")

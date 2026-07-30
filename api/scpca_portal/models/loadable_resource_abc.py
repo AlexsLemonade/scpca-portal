@@ -21,6 +21,10 @@ class LoadableResourceABC(TimestampedModel):
     class Meta:
         abstract = True
 
+    # this attribute acts as the defacto primary key on deriving models
+    scpca_id = models.TextField(unique=True)
+
+    # loaded attrs
     loaded_state = models.TextField(
         choices=LoadableResourceStates.choices, default=LoadableResourceStates.NEW
     )
@@ -52,7 +56,7 @@ class LoadableResourceABC(TimestampedModel):
             loaded_states=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
         )
         for resource in updatable_resources:
-            resource.update_from_dict(metadata_by_id[getattr(resource, "scpca_id")])
+            resource.update_from_dict(metadata_by_id[resource.scpca_id])
             resource.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
