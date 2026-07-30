@@ -5,7 +5,7 @@ from django.db import models
 from django.db.models import QuerySet
 
 from scpca_portal import metadata_parser
-from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
 
@@ -112,12 +112,9 @@ class Library(LoadableResourceABC):
         sample.libraries.add(*libraries)
 
     @classmethod
-    def get_loaded_state_metadata_dicts_by_id(
-        cls, loaded_states: List[LoadableResourceStates] = []
-    ) -> Dict[str, Dict]:
-        libraries = set(cls.objects.filter(loaded_states__in=loaded_states))
-        library_ids = set(library.scpca_id for library in libraries)
-        related_projects = set(library.project for library in libraries)
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
+        library_ids = set(library.scpca_id for library in resources)
+        related_projects = set(library.project for library in resources)
 
         libraries_metadata_by_id = {}
         for project in related_projects:

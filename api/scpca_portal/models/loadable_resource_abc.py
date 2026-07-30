@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import Dict, List
+from typing import Dict
 
 from django.db import models
 from django.db.models import QuerySet
@@ -37,24 +37,18 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     @abstractmethod
-    def get_loaded_state_metadata_dicts_by_id(
-        cls, loaded_states: List[LoadableResourceStates] = []
-    ) -> Dict[str, Dict]:
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[Self]) -> Dict[str, Dict]:
         pass
 
     @classmethod
     def sync_metadata(cls) -> None:
-        updatable_resources = list(
-            cls.objects.filter(
-                loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
-            )
+        updatable_resources = cls.objects.filter(
+            loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
         )
-        if not updatable_resources:
+        if not updatable_resources.exists():
             return
 
-        metadata_by_id = cls.get_loaded_state_metadata_dicts_by_id(
-            loaded_states=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
-        )
+        metadata_by_id = cls.get_metadata_dicts_by_id(updatable_resources)
         for resource in updatable_resources:
             resource.update_from_dict(metadata_by_id[resource.scpca_id])
             resource.update_loaded_state(LoadableResourceStates.SYNCED, save=False)

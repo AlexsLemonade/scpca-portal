@@ -11,7 +11,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import LoadableResourceStates, Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
@@ -179,12 +179,8 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         return bulk_rna_seq_sample_ids
 
     @classmethod
-    def get_loaded_state_metadata_dicts_by_id(
-        cls, loaded_states: List[LoadableResourceStates] = []
-    ) -> Dict[str, Dict]:
-        project_ids = list(
-            cls.objects.filter(loaded_states__in=loaded_states).values_list("scpca_id", flat=True)
-        )
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
+        project_ids = list(resources.values_list("scpca_id", flat=True))
         projects_metadata = metadata_parser.load_projects_metadata(
             filter_on_project_ids=project_ids
         )

@@ -6,7 +6,7 @@ from django.db.models import QuerySet
 
 from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
+from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.library import Library
 from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
@@ -51,6 +51,7 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
     def __str__(self) -> str:
         return f"Sample {self.scpca_id} of {self.project}"
 
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def get_from_dict(cls, data: Dict, project: "Project") -> Self:
         """Prepares ready for saving sample object."""
@@ -106,14 +107,11 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_create(samples)
 
     @classmethod
-    def get_loaded_state_metadata_dicts_by_id(
-        cls, loaded_states: List[LoadableResourceStates] = []
-    ) -> Dict[str, Dict]:
-        samples = cls.objects.filter(loaded_states__in=loaded_states)
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
         sample_ids = set()
         related_project_ids = set()
 
-        for sample_id, related_project_id in samples.values_list("scpca_id", "project__scpca_id"):
+        for sample_id, related_project_id in resources.values_list("scpca_id", "project__scpca_id"):
             sample_ids.add(sample_id)
             related_project_ids.add(related_project_id)
 
