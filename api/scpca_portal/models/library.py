@@ -32,6 +32,7 @@ class Library(LoadableResourceABC):
     def __str__(self) -> str:
         return f"Library {self.scpca_id}"
 
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def get_from_dict(cls, data: Dict, project: "Project") -> Self:
         library_id = data["scpca_library_id"]
@@ -69,12 +70,31 @@ class Library(LoadableResourceABC):
         return library
 
     def update_from_dict(self, data: Dict) -> Self:
-        # TODO: are format and modality fields immutable like scpca_id and project, or not?
+        original_files = OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
+
+        modality = ""
+        if original_files.filter(is_single_cell=True).exists():
+            modality = Modalities.SINGLE_CELL
+        elif original_files.filter(is_spatial=True).exists():
+            modality = Modalities.SPATIAL
+        elif data.get("seq_unit") == "bulk":
+            modality = Modalities.BULK_RNA_SEQ
+
+        formats = []
+        if modality == Modalities.SPATIAL:
+            if original_files.filter(is_spatial_spaceranger=True).exists():
+                formats.append(FileFormats.SPATIAL_SPACERANGER)
+        else:
+            if original_files.filter(is_single_cell_experiment=True).exists():
+                formats.append(FileFormats.SINGLE_CELL_EXPERIMENT)
+            if original_files.filter(is_anndata=True).exists():
+                formats.append(FileFormats.ANN_DATA)
+
+        self.formats = sorted(formats)
         self.is_multiplexed = data.get("is_multiplexed", False)
-        self.has_cite_seq_data = OriginalFile.downloadable_objects.filter(
-            library_id=data["scpca_library_id"], is_cite_seq=True
-        ).exists()
+        self.has_cite_seq_data = original_files.filter(is_cite_seq=True).exists()
         self.metadata = data
+        self.modality = modality
         self.workflow_version = data["workflow_version"]
 
         return self
