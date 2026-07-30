@@ -11,7 +11,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
+from scpca_portal.enums import LoadableResourceStates, Modalities
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
@@ -178,28 +178,6 @@ class Project(CommonDataAttributes, LoadableResourceABC):
                     )
                 )
         return bulk_rna_seq_sample_ids
-
-    def get_original_files_by_download_config(
-        self, download_config: Dict
-    ) -> QuerySet[OriginalFile]:
-        """
-        Return all of a project's file paths that are suitable for the passed download config.
-        """
-        # Spatial samples do not have bulk or merged project files
-        if download_config["modality"] == Modalities.SPATIAL:
-            return OriginalFile.objects.none()
-
-        original_files = OriginalFile.downloadable_objects.filter(
-            project_id=self.scpca_id, is_project_file=True
-        )
-
-        if download_config["includes_merged"]:
-            if download_config["format"] == FileFormats.ANN_DATA:
-                return original_files.exclude(is_single_cell_experiment=True)
-            if download_config["format"] == FileFormats.SINGLE_CELL_EXPERIMENT:
-                return original_files.exclude(is_anndata=True)
-
-        return original_files.filter(is_merged=False)
 
     @classmethod
     def get_loaded_state_metadata_dicts_by_id(
