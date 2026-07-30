@@ -2,7 +2,7 @@ from abc import abstractmethod
 from datetime import datetime, timedelta
 
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import QuerySet  # , F
 from django.utils.timezone import make_aware
 
 from typing_extensions import Self
@@ -73,3 +73,15 @@ class LoadableResourceABC(TimestampedModel):
     def current_loaded_hash(self) -> str:
         loaded_original_file_hashes = self.loaded_original_files.values_list("hash", flat=True)
         return utils.hash_values(loaded_original_file_hashes)
+
+    @classmethod
+    def sync_aggregations(cls) -> None:
+        # Implemented as "pass" here, overriden on the Project and Sample models
+        pass
+
+        # Implementation approach:
+        #   resources = cls.objects.filter(loaded_at__gt=F("updated_at")):
+        #   call refactored aggregate methods,
+        #       which accept a (resource) queryset,
+        #       and returns the unsaved objs and list of modified fields (aggregated in this method)
+        #   a bulk_update is called: cls.objects.bulk_update(resources, fields=modified_fields)
