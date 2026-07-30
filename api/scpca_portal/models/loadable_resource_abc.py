@@ -20,7 +20,9 @@ class LoadableResourceABC(TimestampedModel):
     class Meta:
         abstract = True
 
-    loaded_state = models.TextField(choices=LoadableResourceStates.choices)
+    loaded_state = models.TextField(
+        choices=LoadableResourceStates.choices, default=LoadableResourceStates.NEW
+    )
     loaded_hash = models.CharField(max_length=32, null=True)
     loaded_at = models.DateTimeField(null=True)
 
@@ -67,6 +69,10 @@ class LoadableResourceABC(TimestampedModel):
     @property
     @abstractmethod
     def loaded_original_files(self) -> QuerySet[OriginalFile]:
+        """
+        This property returns all original files associated with the resource
+        and its subordinate relations, whether downloadable or not.
+        """
         pass
 
     @property
