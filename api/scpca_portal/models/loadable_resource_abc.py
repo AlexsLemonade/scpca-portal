@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import Any, Dict, List
+from typing import Dict, List
 
 from django.db import models
 from django.db.models import QuerySet
@@ -26,12 +26,6 @@ class LoadableResourceABC(TimestampedModel):
     )
     loaded_hash = models.CharField(max_length=32, null=True)
     loaded_at = models.DateTimeField(null=True)
-
-    @classmethod
-    @abstractmethod
-    # args and kwargs enable overloading so Sample and Library can pass a project obj
-    def get_from_dict(cls, data: Dict, *args: Any, **kwargs: Any) -> Self:
-        pass
 
     @abstractmethod
     def update_from_dict(self, data: Dict) -> Self:
