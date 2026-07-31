@@ -12,10 +12,11 @@ from typing_extensions import Self
 from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import Modalities
-from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
+from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.library import Library
+from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project_summary import ProjectSummary
 from scpca_portal.models.publication import Publication
@@ -24,7 +25,7 @@ from scpca_portal.models.sample import Sample
 logger = get_and_configure_logger(__name__)
 
 
-class Project(CommonDataAttributes, TimestampedModel):
+class Project(CommonDataAttributes, LoadableResourceABC):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
@@ -111,6 +112,9 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     @property
     def original_files(self) -> QuerySet[OriginalFile]:
+        """
+        This property returns all downloadable project level files associated with the project.
+        """
         return OriginalFile.downloadable_objects.filter(
             project_id=self.scpca_id, is_project_file=True
         )
@@ -118,6 +122,14 @@ class Project(CommonDataAttributes, TimestampedModel):
     @property
     def original_file_paths(self) -> List[str]:
         return sorted(self.original_files.values_list("s3_key", flat=True))
+
+    @property
+    def loaded_original_files(self) -> QuerySet[OriginalFile]:
+        """
+        This property returns all files, from project down to library, associated with the project,
+        whether downloadable or not.
+        """
+        return OriginalFile.objects.filter(project_id=self.scpca_id)
 
     @property
     def url(self) -> str:
