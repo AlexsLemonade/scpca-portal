@@ -1,7 +1,7 @@
-from typing import Any, Dict
+from typing import Dict
 from unittest.mock import patch
 
-from django.db import models
+from django.db import connection, models
 from django.db.models import QuerySet
 from django.test import TestCase
 
@@ -26,25 +26,13 @@ class ConcreteLoadableResource(LoadableResourceABC):
     has_cite_seq_data = models.BooleanField(default=False)
     has_multiplexed_data = models.BooleanField(default=False)
 
-    def __init__(
-        self,
-        scpca_id="SCPCX999999999",
-        loaded_state=LoadableResourceStates.NEW,
-        loaded_original_files_qs=None,
-        **kwargs,
-    ):
-        # loaded_hash is forced to None here because CharField(null=True) with no explicit
-        # default otherwise resolves to "", which would break the "no hash yet" assertions below
-        super().__init__(scpca_id=scpca_id, loaded_state=loaded_state, loaded_hash=None, **kwargs)
-        self._loaded_original_files_qs = loaded_original_files_qs or OriginalFile.objects.none()
-
     @property
     def loaded_original_files(self) -> QuerySet[OriginalFile]:
-        return self._loaded_original_files_qs
+        return getattr(self, "_loaded_original_files_qs", None) or OriginalFile.objects.none()
 
-    @classmethod
-    def get_from_dict(cls, data: Dict, *args: Any, **kwargs: Any) -> Self:
-        pass
+    @loaded_original_files.setter
+    def loaded_original_files(self, qs: QuerySet[OriginalFile]) -> None:
+        self._loaded_original_files_qs = qs
 
     def update_from_dict(self, data: Dict) -> Self:
         self.has_bulk_rna_seq = data["has_bulk_rna_seq"]
@@ -58,6 +46,18 @@ class ConcreteLoadableResource(LoadableResourceABC):
 
 
 class TestLoadableResourceABC(TestCase):
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        with connection.schema_editor() as schema_editor:
+            schema_editor.create_model(ConcreteLoadableResource)
+
+    @classmethod
+    def tearDownClass(cls):
+        with connection.schema_editor() as schema_editor:
+            schema_editor.delete_model(ConcreteLoadableResource)
+        super().tearDownClass()
+
     def setUp(self):
         loaded_original_files = [
             OriginalFileFactory(hash="1234567890ab"),
@@ -69,11 +69,12 @@ class TestLoadableResourceABC(TestCase):
         )
 
     def make_resource(self, scpca_id, loaded_state=LoadableResourceStates.NEW):
-        return ConcreteLoadableResource(
-            scpca_id=scpca_id,
-            loaded_state=loaded_state,
-            loaded_original_files_qs=self.loaded_original_files_qs,
+        resource = ConcreteLoadableResource(
+            scpca_id=scpca_id, loaded_state=loaded_state, loaded_hash=None
         )
+        resource.loaded_original_files = self.loaded_original_files_qs
+
+        return resource
 
     def test_current_loaded_hash(self):
         expected_loaded_hash = "928f7bcdcd08869cc44c1bf24e7abec6"
@@ -125,7 +126,15 @@ class TestLoadableResourceABC(TestCase):
 
     def test_sync_metadata(self):
         new_resource = self.make_resource("SCPCX000001", LoadableResourceStates.NEW)
+        new_resource.save()
+
         tainted_resource = self.make_resource("SCPCX000002", LoadableResourceStates.TAINTED)
+        tainted_resource.save()
+
+        # synced resource should be left untouched
+        synced_resource = self.make_resource("SCPCX000003", LoadableResourceStates.SYNCED)
+        synced_resource.save()
+
         updatable_resources = [new_resource, tainted_resource]
 
         metadata_by_id = {
@@ -141,27 +150,26 @@ class TestLoadableResourceABC(TestCase):
             },
         }
 
-        with (
-            patch.object(ConcreteLoadableResource, "objects") as mock_manager,
-            patch.object(
-                ConcreteLoadableResource,
-                "get_loaded_state_metadata_dicts_by_id",
-                return_value=metadata_by_id,
-            ) as mock_get_metadata,
-        ):
-            mock_manager.filter.return_value = updatable_resources
-
+        with patch.object(
+            ConcreteLoadableResource,
+            "get_metadata_dicts_by_id",
+            return_value=metadata_by_id,
+        ) as mock_get_metadata:
             ConcreteLoadableResource.sync_metadata()
 
-            # verify inputs (correct states are queried for and passed through for metadata lookup)
-            mock_manager.filter.assert_called_once_with(
-                loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
-            )
-            mock_get_metadata.assert_called_once_with(
-                loaded_states=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
+            # verify inputs (only NEW and TAINTED resources are passed through for metadata lookup)
+            mock_get_metadata.assert_called_once()
+            (resources_arg,) = mock_get_metadata.call_args.args
+            self.assertListEqual(
+                sorted([resource.scpca_id for resource in resources_arg]),
+                ["SCPCX000001", "SCPCX000002"],
             )
 
-            # verify outputs (each resource is updated from its own metadata dict and marked synced)
+            # verify outputs
+            # (each resource is updated from its own metadata dict, marked synced, and persisted)
+            for resource in updatable_resources:
+                resource.refresh_from_db()
+
             self.assertTrue(new_resource.has_bulk_rna_seq)
             self.assertTrue(new_resource.has_cite_seq_data)
             self.assertFalse(new_resource.has_multiplexed_data)
@@ -175,25 +183,19 @@ class TestLoadableResourceABC(TestCase):
                 self.assertIsNotNone(resource.loaded_hash)
                 self.assertIsNotNone(resource.loaded_at)
 
-            # verify outputs (persisted via a single bulk_update covering all non-pk fields)0
-            mock_manager.bulk_update.assert_called_once()
-            args, kwargs = mock_manager.bulk_update.call_args
-            self.assertEqual(list(args[0]), updatable_resources)
-            expected_fields = [
-                f.name for f in ConcreteLoadableResource._meta.concrete_fields if not f.primary_key
-            ]
-            self.assertCountEqual(kwargs["fields"], expected_fields)
+            # verify synced resource was not touched
+            synced_resource.refresh_from_db()
+            self.assertFalse(synced_resource.has_bulk_rna_seq)
+            self.assertFalse(synced_resource.has_cite_seq_data)
+            self.assertFalse(synced_resource.has_multiplexed_data)
 
-        # test no updatable resources
-        with (
-            patch.object(ConcreteLoadableResource, "objects") as mock_manager,
-            patch.object(
-                ConcreteLoadableResource, "get_loaded_state_metadata_dicts_by_id"
-            ) as mock_get_metadata,
-        ):
-            mock_manager.filter.return_value = []
+    def test_sync_metadata_no_updatable_resource(self):
+        synced_resource = self.make_resource("SCPCX000001", LoadableResourceStates.SYNCED)
+        synced_resource.save()
 
+        with patch.object(
+            ConcreteLoadableResource, "get_metadata_dicts_by_id"
+        ) as mock_get_metadata:
             ConcreteLoadableResource.sync_metadata()
 
-            mock_get_metadata.assert_not_called()
-            mock_manager.bulk_update.assert_not_called()
+        mock_get_metadata.assert_not_called()
