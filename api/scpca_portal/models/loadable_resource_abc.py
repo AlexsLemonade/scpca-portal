@@ -35,32 +35,6 @@ class LoadableResourceABC(TimestampedModel):
     def update_from_dict(self, data: Dict) -> Self:
         pass
 
-    @classmethod
-    @abstractmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[Self]) -> Dict[str, Dict]:
-        pass
-
-    @classmethod
-    def sync_metadata(cls) -> None:
-        updatable_resources = cls.objects.filter(
-            loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
-        )
-        if not updatable_resources.exists():
-            return
-
-        metadata_by_id = cls.get_metadata_dicts_by_id(updatable_resources)
-        for resource in updatable_resources:
-            resource.update_from_dict(metadata_by_id[resource.scpca_id])
-            resource.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
-
-        fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
-        cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
-
-    @classmethod
-    # not defined as an abstractmethod because Library has no aggregations
-    def sync_aggregations(cls) -> None:
-        pass
-
     def update_loaded_state(
         self, new_loaded_state: LoadableResourceStates, save: bool = True
     ) -> Self:
@@ -114,3 +88,24 @@ class LoadableResourceABC(TimestampedModel):
     def current_loaded_hash(self) -> str:
         loaded_original_file_hashes = self.loaded_original_files.values_list("hash", flat=True)
         return utils.hash_values(loaded_original_file_hashes)
+
+    @classmethod
+    @abstractmethod
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[Self]) -> Dict[str, Dict]:
+        pass
+
+    @classmethod
+    def sync_metadata(cls) -> None:
+        updatable_resources = cls.objects.filter(
+            loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
+        )
+        if not updatable_resources.exists():
+            return
+
+        metadata_by_id = cls.get_metadata_dicts_by_id(updatable_resources)
+        for resource in updatable_resources:
+            resource.update_from_dict(metadata_by_id[resource.scpca_id])
+            resource.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
+
+        fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
+        cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
