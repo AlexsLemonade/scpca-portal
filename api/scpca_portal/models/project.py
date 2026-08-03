@@ -9,7 +9,7 @@ from django.db.models import Count, Q, QuerySet
 
 from typing_extensions import Self
 
-from scpca_portal import common, utils
+from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes
@@ -66,6 +66,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     def __str__(self) -> str:
         return f"Project {self.scpca_id}"
 
+    # TODO: refactor to match update_from_dict before loadable resource feature branch lands
     @classmethod
     def get_from_dict(cls, data: Dict) -> Self:
         project = cls(scpca_id=data.pop("scpca_project_id"))
@@ -78,6 +79,18 @@ class Project(CommonDataAttributes, LoadableResourceABC):
                     setattr(project, key, data.get(key))
 
         return project
+
+    def update_from_dict(self, data: Dict) -> Self:
+        for key, value in data.items():
+            if not hasattr(self, key) or key == "scpca_portal_id":
+                continue
+
+            if key.startswith("includes_") or key.startswith("has_"):
+                value = utils.boolean_from_string(data.get(key, False))
+
+            setattr(self, key, value)
+
+        return self
 
     @classmethod
     def lock_projects(cls, locked_project_ids: List[str]) -> List[Self]:
@@ -166,6 +179,15 @@ class Project(CommonDataAttributes, LoadableResourceABC):
                 )
         return bulk_rna_seq_sample_ids
 
+    @classmethod
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
+        project_ids = list(resources.values_list("scpca_id", flat=True))
+        projects_metadata = metadata_parser.load_projects_metadata(
+            filter_on_project_ids=project_ids
+        )
+        return {md["scpca_project_id"]: md for md in projects_metadata}
+
+    # TODO: remove before loadable resource feature branch lands
     def load_metadata(self) -> None:
         """
         Loads sample metadata and updates project aggregate values.
