@@ -53,6 +53,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     pi_name = models.TextField()
     s3_input_bucket = models.TextField(default=settings.AWS_S3_INPUT_BUCKET_NAME)
     sample_count = models.IntegerField(default=0)
+    scpca_id = models.TextField(unique=True)
     seq_units = ArrayField(models.TextField(), default=list)
     technologies = ArrayField(models.TextField(), default=list)
     title = models.TextField()
