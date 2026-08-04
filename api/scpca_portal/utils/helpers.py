@@ -160,7 +160,17 @@ def filter_dict_list_by_keys(
     return [filter_dict_by_keys(dictionary, included_keys) for dictionary in list_of_dicts]
 
 
-def exclude_dicts_by_key_substrings(
+def filter_dicts_by_value_substrings(
+    list_of_dicts: List[Dict], key: str, substrings: List[str]
+) -> List[Dict]:
+    """
+    Returns a new list of dicts which filters on all dicts in the passed list of dicts
+    with at least one substring in the value accessed by the passed key.
+    """
+    return [d for d in list_of_dicts if any(sub in d[key] for sub in substrings)]
+
+
+def exclude_dicts_by_value_substrings(
     list_of_dicts: List[Dict], key: str, substrings: List[str]
 ) -> List[Dict]:
     """

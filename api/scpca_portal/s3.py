@@ -76,7 +76,7 @@ def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = [])
         utils.transform_values(bucket_object, S3_OBJECT_VALUES, prefix)
 
     if excluded_key_substrings:
-        bucket_objects = utils.exclude_dicts_by_key_substrings(
+        bucket_objects = utils.exclude_dicts_by_value_substrings(
             bucket_objects, "s3_key", excluded_key_substrings
         )
 
