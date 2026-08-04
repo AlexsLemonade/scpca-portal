@@ -96,6 +96,7 @@ class OriginalFile(TimestampedModel):
             is_supplementary=(FileFormats.SUPPLEMENTARY in formats),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
+            is_lockfile=s3_key_info.is_lockfile,
             is_downloadable=OriginalFile._is_downloadable(s3_key_info),
         )
 
@@ -114,6 +115,9 @@ class OriginalFile(TimestampedModel):
         if FileFormats.METADATA in s3_key_info.formats:
             # the bulk metadata file is downloadable, while all others are not
             return Modalities.BULK_RNA_SEQ in s3_key_info.modalities
+
+        if s3_key_info.is_lockfile:
+            return False
 
         return True
 
