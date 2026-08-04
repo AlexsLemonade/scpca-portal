@@ -34,20 +34,6 @@ S3_OBJECT_VALUES = {
 }
 
 
-def _exclude_objects_with_key_substrings(
-    bucket_objects: List[Dict], substrings: List[str]
-) -> List[Dict]:
-    """
-    Return filtered version of passed bucket objects,
-    removing all objects whose s3 keys include any of the passed substrings.
-    """
-    return [
-        bucket_object
-        for bucket_object in bucket_objects
-        if not any(sub in bucket_object["s3_key"] for sub in substrings)
-    ]
-
-
 def _remove_listed_directories(listed_objects: List[Dict]) -> List[Dict]:
     """Returns cleaned list of object files without directories objects."""
     return [obj for obj in listed_objects if not obj["s3_key"].endswith("/")]
@@ -90,8 +76,8 @@ def list_bucket_objects(bucket: str, *, excluded_key_substrings: List[str] = [])
         utils.transform_values(bucket_object, S3_OBJECT_VALUES, prefix)
 
     if excluded_key_substrings:
-        bucket_objects = _exclude_objects_with_key_substrings(
-            bucket_objects, excluded_key_substrings
+        bucket_objects = utils.exclude_dicts_by_key_substrings(
+            bucket_objects, "s3_key", excluded_key_substrings
         )
 
     return _remove_listed_directories(bucket_objects)

@@ -160,6 +160,16 @@ def filter_dict_list_by_keys(
     return [filter_dict_by_keys(dictionary, included_keys) for dictionary in list_of_dicts]
 
 
+def exclude_dicts_by_key_substrings(
+    list_of_dicts: List[Dict], key: str, substrings: List[str]
+) -> List[Dict]:
+    """
+    Returns a new list of dicts which excludes all dicts in the passed list of dicts
+    with at least one substring in the value accessed by the passed key.
+    """
+    return [d for d in list_of_dicts if not any(sub in d[key] for sub in substrings)]
+
+
 def get_keys_from_dicts(dicts: List[Dict]) -> Set:
     """Takes a list of dictionaries and returns a set equal to the union of their keys."""
     return set(k for d in dicts for k in d.keys())
