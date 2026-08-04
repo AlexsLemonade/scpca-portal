@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 
-from scpca_portal import lockfile, s3
+from scpca_portal import lockfile, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import OriginalFile, Project
 
@@ -52,16 +52,24 @@ class Command(BaseCommand):
         locked_project_ids = lockfile.get_locked_project_ids()
         Project.lock_projects(locked_project_ids)
 
-        bucket_objects = s3.list_bucket_objects(bucket, excluded_key_substrings=locked_project_ids)
+        bucket_objects = s3.list_bucket_objects(bucket)
+        passed_objects = utils.exclude_dicts_by_value_substrings(
+            bucket_objects, "s3_key", locked_project_ids
+        )
+
+        if lockfile_objects := utils.filter_dicts_by_value_substrings(
+            bucket_objects, "s3_key", [lockfile.LOCKFILE_FILE_SUFFIX]
+        ):
+            passed_objects += lockfile_objects
 
         logger.info("Syncing database...")
         sync_timestamp = make_aware(datetime.now())
 
         logger.info("Updating modified existing OriginalFiles.")
-        updated_files = OriginalFile.bulk_update_from_dicts(bucket_objects, bucket, sync_timestamp)
+        updated_files = OriginalFile.bulk_update_from_dicts(passed_objects, bucket, sync_timestamp)
 
         logger.info("Inserting new OriginalFiles.")
-        created_files = OriginalFile.bulk_create_from_dicts(bucket_objects, bucket, sync_timestamp)
+        created_files = OriginalFile.bulk_create_from_dicts(passed_objects, bucket, sync_timestamp)
 
         logger.info("Purging OriginalFiles that were deleted from s3.")
         deleted_files = OriginalFile.purge_deleted_files(bucket, sync_timestamp, allow_bucket_wipe)
