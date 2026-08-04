@@ -59,6 +59,7 @@ class OriginalFile(TimestampedModel):
     is_merged = models.BooleanField(default=False)
     is_project_file = models.BooleanField(default=False)
     is_downloadable = models.BooleanField(default=True)
+    is_lockfile = models.BooleanField(default=True)
 
     # queryset managers
     objects = models.Manager()
