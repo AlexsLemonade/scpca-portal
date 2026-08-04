@@ -32,6 +32,12 @@ class DatasetJobProcessor(JobProcessorABC):
         ("tag_new_computed_file", S3TaggingError): "handle_tag_failure",
     }
 
+    # Exception types
+    # Determine the next step for failed job handling
+    retryable_exceptions = [DatasetLockedProjectError, S3UploadError]
+    slack_notification_exceptions = [S3TaggingError]
+    email_notification_exceptions = [DatasetMissingLibrariesError]
+
     # Logging
     def on_run(self) -> None:
         logger.info(f"Processing {self.job.id} - {self.job.batch_job_id} - {self.job.dataset}")
@@ -46,7 +52,7 @@ class DatasetJobProcessor(JobProcessorABC):
     def on_uncaught_exception(self, step: str, e: Exception) -> None:
         logger.info("Encountered uncaught exception.")
         logger.exception(e)
-        self.job.save()
+
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
@@ -68,29 +74,38 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.computed_file.save()
         self.job.dataset.save()
 
-    def handle_locked_project(self, step: str, e: Exception) -> None:
-        self.job.apply_state(JobStates.FAILED, reason="Dataset contains locked project.")
+    def handle_failure(self, e: Exception):
+        self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
-        self.job.create_retry_job()
+
+        e_type = type(e)
+        if e_type in self.retryable_exceptions:
+            self.job.create_retry_job()
+        elif e_type in self.slack_notification_exceptions:
+            logger.info("Send Slack notification for manual handling.")
+            notifications.send_slack_notification(self.job)
+        elif e_type in self.email_notification_exceptions:
+            if self.job.dataset.email:
+                logger.info("Sending dataset job error email.")
+                notifications.send_dataset_job_error_email(self.job)
+        else:
+            raise RuntimeError(f"No exception type is defined for: {e_type.__name__}")
+
+    def handle_locked_project(self, step: str, e: Exception) -> None:
+        # Create a new retry job
+        self.handle_failure(e)
 
     def handle_missing_libraries(self, step: str, e: Exception) -> None:
-        self.job.apply_state(JobStates.FAILED, reason="Dataset contains missing libraries.")
-        self.job.save()
-        if self.job.dataset.email:
-            logger.info("Sending dataset job error email.")
-            notifications.send_dataset_job_error_email(self.job)
+        # Send unrecoverable error email
+        self.handle_failure(e)
 
     def handle_upload_failure(self, step: str, e: Exception) -> None:
-        self.job.apply_state(JobStates.FAILED, reason="Failed to upload the computed file to S3.")
-        self.job.save()
-        self.job.create_retry_job()
+        # Create a new retry job
+        self.handle_failure(e)
 
     def handle_tag_failure(self, step: str, e: Exception) -> None:
-        # Notify about S3 tagging failure via Slack to enable manual tagging
-        self.job.apply_state(JobStates.FAILED, reason="Failed to tag the computed file on S3.")
-        self.job.save()
-        logger.info("Send Slack notification for manual tagging alert.")
-        notifications.send_computed_file_tagging_error_email(self.job)
+        # Require manual tagging
+        self.handle_failure(e)
 
     def upload_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key
