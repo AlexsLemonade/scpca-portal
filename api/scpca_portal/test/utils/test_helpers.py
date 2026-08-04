@@ -112,6 +112,41 @@ class TestFilterDictListByKeys(TestCase):
         self.assertEqual(actual_result, expected_result)
 
 
+class TestFilterDictsByValueSubstrings(TestCase):
+    def test_filter_dicts_by_value_substrings(self):
+        list_of_dicts = [
+            {"name": "apple pie", "type": "dessert"},
+            {"name": "banana bread", "type": "dessert"},
+            {"name": "chicken soup", "type": "meal"},
+        ]
+        key = "name"
+        substrings = ["apple", "bread"]
+
+        expected_result = [
+            {"name": "apple pie", "type": "dessert"},
+            {"name": "banana bread", "type": "dessert"},
+        ]
+        actual_result = utils.filter_dicts_by_value_substrings(list_of_dicts, key, substrings)
+
+        self.assertEqual(actual_result, expected_result)
+
+
+class TestExcludeDictsByValueSubstrings(TestCase):
+    def test_exclude_dicts_by_value_substrings(self):
+        list_of_dicts = [
+            {"name": "apple pie", "type": "dessert"},
+            {"name": "banana bread", "type": "dessert"},
+            {"name": "chicken soup", "type": "meal"},
+        ]
+        key = "name"
+        substrings = ["apple", "bread"]
+
+        expected_result = [{"name": "chicken soup", "type": "meal"}]
+        actual_result = utils.exclude_dicts_by_value_substrings(list_of_dicts, key, substrings)
+
+        self.assertEqual(actual_result, expected_result)
+
+
 class TestGetKeysFromDicts(TestCase):
     def test_get_keys_from_dicts_same_keys(self):
         list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"c": 4, "b": 5, "a": 6}]
