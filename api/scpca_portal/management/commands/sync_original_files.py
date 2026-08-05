@@ -6,7 +6,7 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 
-from scpca_portal import lockfile, s3, utils
+from scpca_portal import common, lockfile, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import OriginalFile, Project
 
@@ -58,7 +58,7 @@ class Command(BaseCommand):
         )
 
         if lockfile_objects := utils.filter_dicts_by_value_substrings(
-            bucket_objects, "s3_key", [lockfile.LOCKFILE_FILE_SUFFIX]
+            bucket_objects, "s3_key", [common.LOCKFILE_FILE_SUFFIX]
         ):
             passed_objects += lockfile_objects
 
