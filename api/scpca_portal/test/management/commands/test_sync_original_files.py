@@ -4,7 +4,8 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal.models import OriginalFile
+from scpca_portal.models import OriginalFile, Project
+from scpca_portal.test.factories import LeafProjectFactory
 
 
 class TestSyncOriginalFiles(TestCase):
@@ -83,7 +84,8 @@ class TestSyncOriginalFiles(TestCase):
 
         self.empty_objects_list = []
 
-    def test_sync_original_files(self):
+    @patch("scpca_portal.lockfile.get_locked_project_ids", return_value=[])
+    def test_sync_original_files(self, _):
         # TEST ORIGINAL FILE CREATION
         with patch("scpca_portal.s3.list_bucket_objects", return_value=self.original_objects_list):
             self.sync_original_files()
@@ -136,3 +138,46 @@ class TestSyncOriginalFiles(TestCase):
         with patch("scpca_portal.s3.list_bucket_objects", return_value=self.empty_objects_list):
             self.sync_original_files(allow_bucket_wipe=True)
         self.assertFalse(OriginalFile.objects.exists())
+
+    def test_sync_original_files_locked_project(self):
+        locked_project_id = "SCPCP999993"
+        LeafProjectFactory(scpca_id=locked_project_id)
+
+        locked_project_file = {
+            "LastModified": "2024-04-19T18:44:06.000Z",
+            "StorageClass": "STANDARD",
+            "s3_key": f"{locked_project_id}/{locked_project_id}_bulk_metadata.tsv",
+            "size_in_bytes": 442,
+            "hash": "7bf430b2c2832db1405c254553fe5c30",
+        }
+        locked_project_lockfile = {
+            "LastModified": "2024-04-19T18:44:06.000Z",
+            "StorageClass": "STANDARD",
+            "s3_key": f"{locked_project_id}.lock",
+            "size_in_bytes": 0,
+            "hash": "d41d8cd98f00b204e9800998ecf8427e",
+        }
+
+        # TEST LOCKING - locked project's files are excluded, but its lockfile still syncs
+        with patch(
+            "scpca_portal.lockfile.get_locked_project_ids", return_value=[locked_project_id]
+        ):
+            with patch(
+                "scpca_portal.s3.list_bucket_objects",
+                return_value=[locked_project_file, locked_project_lockfile],
+            ):
+                self.sync_original_files()
+
+        self.assertTrue(Project.objects.get(scpca_id=locked_project_id).is_locked)
+        self.assertFalse(OriginalFile.objects.filter(s3_key=locked_project_file["s3_key"]).exists())
+        self.assertTrue(
+            OriginalFile.objects.filter(s3_key=locked_project_lockfile["s3_key"]).exists()
+        )
+
+        # TEST UNLOCKING - lockfile removed, project's files now sync normally
+        with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=[]):
+            with patch("scpca_portal.s3.list_bucket_objects", return_value=[locked_project_file]):
+                self.sync_original_files()
+
+        self.assertFalse(Project.objects.get(scpca_id=locked_project_id).is_locked)
+        self.assertTrue(OriginalFile.objects.filter(s3_key=locked_project_file["s3_key"]).exists())
