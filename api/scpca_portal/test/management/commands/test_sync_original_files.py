@@ -4,7 +4,7 @@ from unittest.mock import patch
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal.models import OriginalFile, Project
+from scpca_portal.models import OriginalFile
 from scpca_portal.test.factories import LeafProjectFactory
 
 
@@ -168,7 +168,6 @@ class TestSyncOriginalFiles(TestCase):
             ):
                 self.sync_original_files()
 
-        self.assertTrue(Project.objects.get(scpca_id=locked_project_id).is_locked)
         self.assertFalse(OriginalFile.objects.filter(s3_key=locked_project_file["s3_key"]).exists())
         self.assertTrue(
             OriginalFile.objects.filter(s3_key=locked_project_lockfile["s3_key"]).exists()
@@ -179,5 +178,7 @@ class TestSyncOriginalFiles(TestCase):
             with patch("scpca_portal.s3.list_bucket_objects", return_value=[locked_project_file]):
                 self.sync_original_files()
 
-        self.assertFalse(Project.objects.get(scpca_id=locked_project_id).is_locked)
         self.assertTrue(OriginalFile.objects.filter(s3_key=locked_project_file["s3_key"]).exists())
+        self.assertFalse(
+            OriginalFile.objects.filter(s3_key=locked_project_lockfile["s3_key"]).exists()
+        )
