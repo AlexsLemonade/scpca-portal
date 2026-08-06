@@ -5,13 +5,19 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
-from scpca_portal.enums import DatasetStates, JobStates
+from scpca_portal.enums import DatasetStates, FailedJobActions, JobStates
 from scpca_portal.exceptions import DatasetMissingLibrariesError, S3TaggingError, S3UploadError
 from scpca_portal.job_processors import DatasetJobProcessor
 from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory, UserDatasetFactory
 
 
 class TestDatasetJobProcessor(TestCase):
+    def setUp(self):
+        self.exception_actions = {
+            ("create_new_computed_file", DatasetMissingLibrariesError): FailedJobActions.EMAIL,
+            ("upload_new_computed_file", S3UploadError): FailedJobActions.RETRY,
+            ("tag_new_computed_file", S3TaggingError): FailedJobActions.SLACK,
+        }
 
     def test_on_run_done_expires_at_for_user_dataset(self):
         succeeded_at = make_aware(datetime.now())
@@ -47,9 +53,10 @@ class TestDatasetJobProcessor(TestCase):
         )
 
         processor = DatasetJobProcessor(job)
+        step = "create_new_computed_file"
         exception = DatasetMissingLibrariesError()
 
-        processor.handle_failure(exception)
+        processor.handle_failure(step, exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
@@ -62,9 +69,10 @@ class TestDatasetJobProcessor(TestCase):
         )
 
         processor = DatasetJobProcessor(job)
+        step = "tag_new_computed_file"
         exception = S3TaggingError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
-        processor.handle_failure(exception)
+        processor.handle_failure(step, exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
@@ -76,12 +84,12 @@ class TestDatasetJobProcessor(TestCase):
         )
 
         processor = DatasetJobProcessor(job)
+        step = "upload_new_computed_file"
         exception = S3UploadError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
-        processor.handle_failure(exception)
+        processor.handle_failure(step, exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
-        self.assertEqual(
-            job.dataset.latest_job.state, JobStates.PENDING
-        )  # a new retry job is created
+        # Should create a new retry job
+        self.assertEqual(job.dataset.latest_job.state, JobStates.PENDING)

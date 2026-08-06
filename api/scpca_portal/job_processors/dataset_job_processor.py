@@ -1,6 +1,6 @@
 from scpca_portal import notifications, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import JobStates
+from scpca_portal.enums import FailedJobActions, JobStates
 from scpca_portal.exceptions import (
     DatasetLockedProjectError,
     DatasetMissingLibrariesError,
@@ -25,6 +25,7 @@ class DatasetJobProcessor(JobProcessorABC):
         "send_notification",
     ]
 
+    # Handlers to call when steps fail
     exception_handlers = {
         ("create_new_computed_file", DatasetLockedProjectError): "handle_locked_project",
         ("create_new_computed_file", DatasetMissingLibrariesError): "handle_missing_libraries",
@@ -32,11 +33,13 @@ class DatasetJobProcessor(JobProcessorABC):
         ("tag_new_computed_file", S3TaggingError): "handle_tag_failure",
     }
 
-    # Exception types
-    # Determine the next step for failed job handling
-    retryable_exceptions = [DatasetLockedProjectError, S3UploadError]
-    slack_notification_exceptions = [S3TaggingError]
-    email_notification_exceptions = [DatasetMissingLibrariesError]
+    # Actions to take after handling each exception
+    exception_actions = {
+        ("create_new_computed_file", DatasetLockedProjectError): FailedJobActions.RETRY,
+        ("create_new_computed_file", DatasetMissingLibrariesError): FailedJobActions.EMAIL,
+        ("upload_new_computed_file", S3UploadError): FailedJobActions.RETRY,
+        ("tag_new_computed_file", S3TaggingError): FailedJobActions.SLACK,
+    }
 
     # Logging
     def on_run(self) -> None:
@@ -74,38 +77,36 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.computed_file.save()
         self.job.dataset.save()
 
-    def handle_failure(self, e: Exception):
+    def handle_failure(self, step: str, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
 
-        e_type = type(e)
-        if e_type in self.retryable_exceptions:
-            self.job.create_retry_job()
-        elif e_type in self.slack_notification_exceptions:
-            logger.info("Send Slack notification for manual handling.")
-            notifications.send_slack_notification(self.job)
-        elif e_type in self.email_notification_exceptions:
-            if self.job.dataset.email:
-                logger.info("Sending dataset job error email.")
-                notifications.send_dataset_job_error_email(self.job)
-        else:
-            raise RuntimeError(f"No exception type is defined for: {e_type.__name__}")
+        action = self.exception_actions[(step, type(e))]
+
+        match action:
+            case FailedJobActions.EMAIL:
+                if self.job.dataset.email:
+                    logger.info("Sending dataset job error email.")
+                    notifications.send_dataset_job_error_email(self.job)
+            case FailedJobActions.RETRY:
+                self.job.create_retry_job()
+            case FailedJobActions.SLACK:
+                logger.info("Send Slack notification for manual handling.")
+                notifications.send_slack_notification(self.job)
+            case _:
+                raise RuntimeError(f"No action is set for {step} : {type(e).__name__}")
 
     def handle_locked_project(self, step: str, e: Exception) -> None:
-        # Create a new retry job
-        self.handle_failure(e)
+        self.handle_failure(step, e)
 
     def handle_missing_libraries(self, step: str, e: Exception) -> None:
-        # Send unrecoverable error email
-        self.handle_failure(e)
+        self.handle_failure(step, e)
 
     def handle_upload_failure(self, step: str, e: Exception) -> None:
-        # Create a new retry job
-        self.handle_failure(e)
+        self.handle_failure(step, e)
 
     def handle_tag_failure(self, step: str, e: Exception) -> None:
-        # Require manual tagging
-        self.handle_failure(e)
+        self.handle_failure(step, e)
 
     def upload_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key
