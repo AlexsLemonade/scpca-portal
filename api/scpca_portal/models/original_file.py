@@ -122,6 +122,31 @@ class OriginalFile(TimestampedModel):
         return True
 
     @classmethod
+    def get_syncable_files(
+        cls, bucket_objects: List[Dict], bucket: str, sync_timestamp: datetime
+    ) -> Tuple[List[Self], List[Self]]:
+        original_files_by_project_id = defaultdict(list)
+        lockfiles = []
+
+        for bucket_object in bucket_objects:
+            original_file = cls.get_from_dict(bucket_object, bucket, sync_timestamp)
+
+            project_key = original_file.project_id if original_file.project_id else "portal-wide"
+            original_files_by_project_id[project_key].append(original_file)
+
+            if original_file.is_lockfile:
+                lockfiles.append(original_file)
+
+        for lockfile in lockfiles:
+            del original_files_by_project_id[lockfile.project_id]
+
+        syncable_original_files = utils.flatten_contents(
+            [original_files_by_project_id.values(), lockfiles]
+        )
+
+        return syncable_original_files, lockfiles
+
+    @classmethod
     def bulk_create(cls, syncable_original_files: List[Self]) -> List[Self]:
         new_original_files = []
         for syncable_original_file in syncable_original_files:
