@@ -38,7 +38,9 @@ class TestJob(TestCase):
     def test_validate_dataset_type(self):
         # Assert that dataset attr is of subtype DatasetABC
         # Validate CCDL dataset
-        job = JobFactory(dataset=CCDLDataset())
+        ccdl_dataset = CCDLDatasetFactory()
+        ccdl_dataset.save()  # Saved dataset should exist at the time of job creation
+        job = JobFactory(dataset=ccdl_dataset)
         # Validate user dataset
         job.dataset = UserDataset()
         job.save()

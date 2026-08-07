@@ -135,9 +135,8 @@ class Job(TimestampedModel):
         self.validate_dataset()
 
         with transaction.atomic():
-            super().save(*args, **kwargs)
+            super().save(*args, **kwargs)  # Make sure the job is saved before syncing dataset state
             self.dataset.apply_job_state()
-            self.dataset.get_class().bulk_update_state([self.dataset])
 
     def create_retry_job(self, *, save: bool = True) -> Self:
         """
@@ -191,7 +190,7 @@ class Job(TimestampedModel):
             cls.objects.bulk_create(retry_jobs)
             if retry_datasets:
                 for dataset_cls, datasets in retry_datasets.items():
-                    dataset_cls.bulk_sync_state(datasets)
+                    dataset_cls.bulk_apply_job_state(datasets)
 
         return retry_jobs
 
@@ -269,7 +268,7 @@ class Job(TimestampedModel):
         cls.bulk_update_state(synced_jobs)
         if synced_datasets:
             for dataset_cls, datasets in synced_datasets.items():
-                dataset_cls.bulk_sync_state(datasets)
+                dataset_cls.bulk_apply_job_state(datasets)
 
         if failed_job_ids:
             logger.info(f"{len(failed_job_ids)} jobs failed to sync.")
@@ -419,7 +418,7 @@ class Job(TimestampedModel):
             cls.bulk_update_state(submitted_jobs)
             if submitted_datasets:
                 for dataset_cls, datasets in submitted_datasets.items():
-                    dataset_cls.bulk_sync_state(datasets)
+                    dataset_cls.bulk_apply_job_state(datasets)
 
         return submitted_jobs, pending_jobs, failed_jobs
 
@@ -488,7 +487,7 @@ class Job(TimestampedModel):
             cls.bulk_update_state(terminated_jobs)
             if terminated_datasets:
                 for dataset_cls, datasets in terminated_datasets.items():
-                    dataset_cls.bulk_sync_state(datasets)
+                    dataset_cls.bulk_apply_job_state(datasets)
 
         if final_state_jobs:
             logger.info(f"{len(final_state_jobs)} jobs were not in a terminable state.")

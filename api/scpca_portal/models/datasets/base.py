@@ -522,12 +522,17 @@ class DatasetABC(TimestampedModel, models.Model):
     def latest_job(self) -> "Job":
         return self.jobs.order_by("-created_at").first()
 
-    def apply_job_state(self) -> None:
+    def apply_job_state(self, *, save: bool = True) -> None:
         """
-        Sets the dataset state based on the latest job state.
-        Populates expired_at timestamp if required
+        Syncs the dataset state with its latest job state.
+        Populates expired_at timestamp if required.
+        Optionally saves the dataset state.
         """
-        match self.latest_job.state:
+        job = self.latest_job
+        if job is None:
+            return None
+
+        match job.state:
             case JobStates.PENDING | JobStates.PROCESSING:
                 self.state = DatasetStates.PROCESSING
             case JobStates.SUCCEEDED:
@@ -535,23 +540,22 @@ class DatasetABC(TimestampedModel, models.Model):
             case JobStates.FAILED | JobStates.TERMINATED:
                 self.state = DatasetStates.FAILED
 
-        if self.state == JobStates.SUCCEEDED and self.expiration_delta:
+        if self.state == DatasetStates.SUCCEEDED and self.expiration_delta:
             self.expires_at = self.expiration_delta
 
-    @classmethod
-    def bulk_sync_state(cls, datasets: List[Self]) -> None:
-        """
-        Syncs each dataset with its latest job state.
-        Saves the datasets.
-        """
-        for dataset in datasets:
-            dataset.apply_job_state()
-        cls.bulk_update_state(datasets)
+        if save:
+            self.save()
 
     @classmethod
-    def bulk_update_state(cls, datasets: List[Self]) -> None:
+    def bulk_apply_job_state(cls, datasets: List[Self], *, save: bool = True) -> None:
         """
-        Updates state attributes of the given datasets in bulk.
+        Syncs each dataset with its latest job state.
+        Optionally saves the datasets.
         """
         STATE_UPDATE_ATTRS = ["state", "expires_at"]
-        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
+
+        for dataset in datasets:
+            dataset.apply_job_state(save=False)
+
+        if save:
+            cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)

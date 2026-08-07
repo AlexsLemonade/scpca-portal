@@ -75,6 +75,9 @@ class UserDataset(DatasetABC):
 
     @property
     def expiration_delta(self) -> datetime | None:
+        job = self.latest_job
+        if job is None:
+            return None
         return self.latest_job.succeeded_at + timedelta(days=7)
 
     @property
