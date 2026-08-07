@@ -52,6 +52,7 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
     def __str__(self) -> str:
         return f"Sample {self.scpca_id} of {self.project}"
 
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def get_from_dict(cls, data: Dict, project: "Project") -> Self:
         """Prepares ready for saving sample object."""
@@ -77,6 +78,26 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
         return sample
 
+    def update_from_dict(self, data: Dict) -> Self:
+        """Prepares ready for saving sample object."""
+        self.age = (data["age"],)
+        self.age_timing = (data["age_timing"],)
+        self.diagnosis = (data["diagnosis"],)
+        self.disease_timing = (data["disease_timing"],)
+        self.is_cell_line = (utils.boolean_from_string(data.get("is_cell_line", False)),)
+        self.is_xenograft = (utils.boolean_from_string(data.get("is_xenograft", False)),)
+        self.metadata = (data,)
+        self.multiplexed_with = (data.get("multiplexed_with", []),)
+        self.sample_cell_count_estimate = ((data.get("sample_cell_count_estimate", None)),)
+        self.seq_units = (data.get("seq_units", []),)
+        self.sex = (data["sex"],)
+        self.subdiagnosis = (data["subdiagnosis"],)
+        self.technologies = (data.get("technologies", []),)
+        self.tissue_location = (data["tissue_location"],)
+        self.treatment = (data.get("treatment", ""),)
+
+        return self
+
     @classmethod
     def bulk_create_from_dicts(cls, samples_metadata: List[Dict], project: "Project") -> None:
         """Creates a list of sample objects from sample metadata libraries and then saves them."""
@@ -86,6 +107,29 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
         Sample.objects.bulk_create(samples)
 
+    @classmethod
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
+        sample_ids = set()
+        related_project_ids = set()
+
+        for sample_id, related_project_id in resources.values_list("scpca_id", "project__scpca_id"):
+            sample_ids.add(sample_id)
+            related_project_ids.add(related_project_id)
+
+        samples_metadata_by_id = {}
+        for project_id in related_project_ids:
+            project_samples_metadata = metadata_parser.load_samples_metadata(project_id=project_id)
+            samples_metadata_by_id.update(
+                {
+                    md["scpca_sample_id"]: md
+                    for md in project_samples_metadata
+                    if md["scpca_sample_id"] in sample_ids
+                }
+            )
+
+        return samples_metadata_by_id
+
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def load_metadata(cls, project: "Project") -> None:
         """

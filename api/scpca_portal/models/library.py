@@ -32,6 +32,7 @@ class Library(LoadableResourceABC):
     def __str__(self) -> str:
         return f"Library {self.scpca_id}"
 
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def get_from_dict(cls, data: Dict, project: "Project") -> Self:
         library_id = data["scpca_library_id"]
@@ -68,6 +69,36 @@ class Library(LoadableResourceABC):
 
         return library
 
+    def update_from_dict(self, data: Dict) -> Self:
+        original_files = OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
+
+        modality = ""
+        if original_files.filter(is_single_cell=True).exists():
+            modality = Modalities.SINGLE_CELL
+        elif original_files.filter(is_spatial=True).exists():
+            modality = Modalities.SPATIAL
+        elif data.get("seq_unit") == "bulk":
+            modality = Modalities.BULK_RNA_SEQ
+
+        formats = []
+        if modality == Modalities.SPATIAL:
+            if original_files.filter(is_spatial_spaceranger=True).exists():
+                formats.append(FileFormats.SPATIAL_SPACERANGER)
+        else:
+            if original_files.filter(is_single_cell_experiment=True).exists():
+                formats.append(FileFormats.SINGLE_CELL_EXPERIMENT)
+            if original_files.filter(is_anndata=True).exists():
+                formats.append(FileFormats.ANN_DATA)
+
+        self.formats = sorted(formats)
+        self.is_multiplexed = data.get("is_multiplexed", False)
+        self.has_cite_seq_data = original_files.filter(is_cite_seq=True).exists()
+        self.metadata = data
+        self.modality = modality
+        self.workflow_version = data["workflow_version"]
+
+        return self
+
     @classmethod
     def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample: "Sample") -> None:
         libraries = []
@@ -81,6 +112,34 @@ class Library(LoadableResourceABC):
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
 
+    @classmethod
+    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
+        library_ids = set(library.scpca_id for library in resources)
+        related_projects = set(library.project for library in resources)
+
+        libraries_metadata_by_id = {}
+        for project in related_projects:
+            project_libraries_metadata = metadata_parser.load_libraries_metadata(
+                project_id=project.scpca_id
+            )
+
+            if project.has_bulk_rna_seq:
+                project_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
+                    project_id=project.scpca_id
+                )
+                project_libraries_metadata += project_bulk_libraries_metadata
+
+            libraries_metadata_by_id.update(
+                {
+                    md["scpca_library_id"]: md
+                    for md in project_libraries_metadata
+                    if md["scpca_library_id"] in library_ids
+                }
+            )
+
+        return libraries_metadata_by_id
+
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def load_bulk_metadata(cls, project: "Project") -> None:
         """
@@ -97,6 +156,7 @@ class Library(LoadableResourceABC):
             if sample := sample_by_id.get(lib_metadata["scpca_sample_id"]):
                 Library.bulk_create_from_dicts([lib_metadata], sample)
 
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def load_metadata(cls, project: "Project") -> None:
         """
