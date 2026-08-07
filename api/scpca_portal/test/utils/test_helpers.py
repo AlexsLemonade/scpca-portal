@@ -65,6 +65,20 @@ class TestGetToday(TestCase):
         self.assertEqual(utils.get_today_string(), "2022-10-08")
 
 
+class FlattenContents(TestCase):
+    def test_flat_list_remains_unchanged(self):
+        input_data = [1, 2, 3, 4]
+        self.assertEqual(utils.flatten_contents(input_data), [1, 2, 3, 4])
+
+    def test_nested_list_flattening(self):
+        input_data = [1, [2, [3, [4, [5]]]]]
+        self.assertEqual(utils.flatten_contents(input_data), [1, 2, 3, 4, 5])
+
+    def test_string_and_bytes_protection(self):
+        input_data = ["hello", ["world", b"bytes_data"]]
+        self.assertEqual(utils.flatten_contents(input_data), ["hello", "world", b"bytes_data"])
+
+
 class TestFilterDictListByKeys(TestCase):
     def test_included_keys_exist(self):
         list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}]

@@ -5,9 +5,10 @@ import inspect
 import math
 import shutil
 from collections import namedtuple
+from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Iterable, List, Set, Tuple
+from typing import Any, Callable, Dict, Generator, List, Set, Tuple
 
 from django.conf import settings
 
@@ -137,6 +138,20 @@ def get_docs_url(path: str) -> str:
 def get_today_string(format: str = "%Y-%m-%d") -> str:
     """Returns today's date formatted. Defaults to ISO 8601."""
     return datetime.today().strftime(format)
+
+
+def flatten_contents(container: Iterable) -> List:
+    """Returns a flattened list from passed container of items of arbitrary depths"""
+
+    def _generator(container: Iterable):
+        for item in container:
+            # Flatten sub-containers, but protect strings and bytes from being split
+            if isinstance(item, Iterable) and not isinstance(item, (str, bytes)):
+                yield from _generator(item)
+            else:
+                yield item
+
+    return list(_generator(container))
 
 
 def filter_dict_by_keys(dictionary: Dict[str, Any], included_keys: Set[str]) -> Dict[str, Any]:
