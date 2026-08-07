@@ -6,9 +6,9 @@ from django.conf import settings
 from django.core.management.base import BaseCommand
 from django.utils.timezone import make_aware
 
-from scpca_portal import s3
+from scpca_portal import lockfile, s3
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import OriginalFile
+from scpca_portal.models import OriginalFile, Project
 
 logger = get_and_configure_logger(__name__)
 
@@ -48,6 +48,12 @@ class Command(BaseCommand):
 
     def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs) -> None:
         logger.info("Initiating listing of bucket objects...")
+
+        # TODO: remove these 2 lines before the feature branch is merged in,
+        # as the project locking workflow is replaced with the loadable resource state workflow
+        locked_project_ids = lockfile.get_locked_project_ids()
+        Project.lock_projects(locked_project_ids)
+
         bucket_objects = s3.list_bucket_objects(bucket)
         sync_timestamp = make_aware(datetime.now())
 
