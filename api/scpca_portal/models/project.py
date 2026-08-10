@@ -11,7 +11,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import LoadableResourceStates, Modalities
+from scpca_portal.enums import Modalities
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
@@ -211,9 +211,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
 
         new_projects = []
         for new_project_id in new_project_ids:
-            new_projects.append(
-                cls(scpca_id=new_project_id, loaded_state=LoadableResourceStates.NEW)
-            )
+            new_projects.append(cls(scpca_id=new_project_id))
 
         cls.objects.bulk_create(new_projects)
 

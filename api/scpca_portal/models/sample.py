@@ -2,7 +2,7 @@ from typing import TYPE_CHECKING, Dict, List, Self
 
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import F, Func, QuerySet
 
 from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
@@ -235,6 +235,38 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             updated_samples.append(sample)
 
         Sample.objects.bulk_update(updated_samples, updated_attrs)
+
+    @classmethod
+    def create_new_objects(cls) -> None:
+        new_sample_project_id_pairs = (
+            OriginalFile.objects.exclude(sample_ids=[])
+            .annotate(sample_id=Func(F("sample_ids"), function="unnest"))
+            .exclude(sample_id__in=cls.objects.values_list("scpca_id", flat=True))
+            .values_list("sample_id", "project_id")
+            .distinct()
+        )
+
+        # Resolve Project via the FK's related_model
+        # to avoid a circular import (Project already imports Sample)
+        Project = cls._meta.get_field("project").related_model
+        projects_by_id = Project.objects.in_bulk(
+            [project_id for _, project_id in new_sample_project_id_pairs], field_name="scpca_id"
+        )
+
+        new_samples = []
+        for new_sample_id, project_id in new_sample_project_id_pairs:
+            new_samples.append(cls(scpca_id=new_sample_id, project=projects_by_id[project_id]))
+
+        cls.objects.bulk_create(new_samples)
+
+    @classmethod
+    def remove_deleted_objects(cls) -> None:
+        # TODO: before merging into dev: do we need to clarify mechanism to alert user datasets?
+        cls.objects.exclude(
+            scpca_id__in=OriginalFile.objects.exclude(sample_ids=[])
+            .annotate(sample_id=Func(F("sample_ids"), function="unnest"))
+            .values_list("sample_id", flat=True)
+        ).delete()
 
     @property
     def additional_metadata(self) -> dict[str, str]:
