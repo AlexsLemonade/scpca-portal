@@ -39,7 +39,7 @@ class OriginalFile(TimestampedModel):
 
     # inferred relationship ids
     project_id = models.TextField(null=True)
-    sample_ids = ArrayField(models.TextField(null=True), default=list)
+    sample_ids = ArrayField(models.TextField(), default=list)
     library_id = models.TextField(null=True)
 
     # existence attributes

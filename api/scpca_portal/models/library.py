@@ -182,6 +182,52 @@ class Library(LoadableResourceABC):
         if project.has_bulk_rna_seq:
             Library.load_bulk_metadata(project)
 
+    @classmethod
+    def create_new_objects(cls) -> None:
+        new_library_sample_project_id_tuples = (
+            OriginalFile.objects.exclude(library_id__isnull=True)
+            .exclude(library_id__in=cls.objects.values_list("scpca_id", flat=True))
+            .values_list("library_id", "sample_ids", "project_id")
+            .distinct()
+        )
+
+        # Resolve Project via the FK's related_model
+        # to avoid a circular import (Project already imports Library)
+        Project = cls._meta.get_field("project").related_model
+        projects_by_id = Project.objects.in_bulk(
+            [project_id for _, _, project_id in new_library_sample_project_id_tuples],
+            field_name="scpca_id",
+        )
+
+        new_libraries = cls.objects.bulk_create(
+            cls(scpca_id=new_library_id, project=projects_by_id[project_id])
+            for new_library_id, sample_ids, project_id in new_library_sample_project_id_tuples
+        )
+        libraries_by_id = {library.scpca_id: library for library in new_libraries}
+
+        # Resolve Sample via the many-to-many's related_model
+        # to avoid a circular import (Sample already imports Library)
+        Sample = cls._meta.get_field("samples").related_model
+        associated_sample_ids = {
+            sample_id
+            for _, sample_ids, _ in new_library_sample_project_id_tuples
+            for sample_id in sample_ids
+        }
+        samples_by_id = Sample.objects.in_bulk(associated_sample_ids, field_name="scpca_id")
+
+        for library_id, sample_ids, _ in new_library_sample_project_id_tuples:
+            library_samples = [samples_by_id[sample_id] for sample_id in sample_ids]
+            libraries_by_id[library_id].samples.add(*library_samples)
+
+    @classmethod
+    def remove_deleted_objects(cls) -> None:
+        # TODO: before merging feature into dev: need to clarify mechanism to alert user datasets
+        cls.objects.exclude(
+            scpca_id__in=OriginalFile.objects.exclude(library_id__isnull=True).values_list(
+                "library_id", flat=True
+            )
+        ).delete()
+
     @property
     def original_files(self) -> QuerySet[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)
