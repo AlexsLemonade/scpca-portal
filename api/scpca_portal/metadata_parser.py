@@ -4,7 +4,7 @@ from typing import Dict, List
 
 from django.conf import settings
 
-from scpca_portal import common, utils
+from scpca_portal import common, s3, utils
 from scpca_portal.models.original_file import OriginalFile
 
 PROJECT_METADATA_KEYS = [
@@ -128,3 +128,31 @@ def load_bulk_metadata(
         utils.transform_keys(bulk_metadata_dict, BULK_METADATA_KEYS)
 
     return bulk_metadata_dicts
+
+
+def download_and_load_all_bulk_metadata(
+    *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
+    """
+    Opens, loads and parses bulk metadata located at inputted metadata_file_path.
+    Transforms keys in data dicts to match associated model attributes.
+    """
+    bulk_metadata_files = OriginalFile.objects.filter(
+        is_metadata=True, is_bulk=True, project_id__isnull=False, s3_bucket=bucket
+    )
+
+    if not bulk_metadata_files.exists():
+        return []
+
+    s3.download_files(bulk_metadata_files)
+
+    all_bulk_metadata_dicts = []
+    for bulk_metadata_file in bulk_metadata_files:
+        with open(bulk_metadata_file.local_file_path) as raw_file:
+            bulk_metadata_dicts = [
+                utils.transform_keys(bulk_metadata_dict, BULK_METADATA_KEYS)
+                for bulk_metadata_dict in csv.DictReader(raw_file, delimiter=common.TAB)
+            ]
+            all_bulk_metadata_dicts.extend(bulk_metadata_dicts)
+
+    return all_bulk_metadata_dicts
