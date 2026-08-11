@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import Dict, Iterable
+from typing import Dict, Iterable, List
 
 from django.db import models
 from django.db.models import QuerySet
@@ -125,25 +125,42 @@ class LoadableResourceABC(TimestampedModel):
     def remove_deleted_objects(cls) -> None:
         pass
 
+    @staticmethod
+    @abstractmethod
+    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
+        pass
+
     @classmethod
     def handle_locked_objects(cls) -> None:
-        # 3 Step Process:
-        #   1) query OF table for all present lockfiles
-        #      and grab values_list for locked project ids
-        #   2) all projects with a loaded_state of LOCKED not in the values_list, set to SYNCED
-        #   3) all projects with ids in the values_list, set loaded_state to LOCKED
+        """
+        This method handles two independent actions:
+        1. Locking resources who's projects are associated with a lockfile in the OF table
+        2. Unlocking projects that were previously in a locked state
+        but who's project's lockfile has since been removed.
 
-        # NOTE: We should consider a new state called UNLOCKED, so projects no longer LOCKED
-        # can transition to something other than SYNCED.
-        # We don't want to transition directly to TAINTED,
-        # because the TAINTED transition is dependent on hashing comparison logic,
-        # which should live in exclusively in one place (taint_modified_objects).
+        Unlocked existing projects are moved to a SYCNED state, while
+        unlocked new projects are moved to a NEW state.
+        """
+        lockfile_project_ids = list(
+            OriginalFile.objects.filter(is_lockfile=True).values_list("project_id", flat=True)
+        )
 
-        # NOTE: To stay consistent with sync_models being dependent solely on the OF table
-        # and not the S3 bucket,
-        # project lockfiles must be converted to original files and read from the OF table.
-        # Currently, the lockfile module reads directly from S3.
-        pass
+        unlocked_libraries = cls.objects.filter(loaded_state=LoadableResourceStates.LOCKED).exclude(
+            **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
+        )
+        # existing unlocked libraries should be set to SYNCED
+        cls.bulk_update_loaded_state(
+            unlocked_libraries.filter(loaded_at__isnull=False), LoadableResourceStates.SYNCED
+        )
+        # new unlocked libraries should be set to NEW
+        cls.bulk_update_loaded_state(
+            unlocked_libraries.filter(loaded_at__isnull=True), LoadableResourceStates.NEW
+        )
+
+        locked_libraries = cls.objects.filter(
+            **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
+        )
+        cls.bulk_update_loaded_state(locked_libraries, LoadableResourceStates.LOCKED)
 
     @classmethod
     def taint_modified_objects(cls) -> None:

@@ -283,6 +283,10 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
         cls.objects.exclude(scpca_id__in=persisted_sample_ids).delete()
 
+    @staticmethod
+    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
+        return {"project__scpca_id__in": lockfile_project_ids}
+
     @property
     def additional_metadata(self) -> dict[str, str]:
         return {

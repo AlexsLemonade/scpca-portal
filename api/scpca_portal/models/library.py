@@ -237,6 +237,10 @@ class Library(LoadableResourceABC):
 
         cls.objects.exclude(scpca_id__in=persisted_library_ids).delete()
 
+    @staticmethod
+    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
+        return {"project__scpca_id__in": lockfile_project_ids}
+
     @property
     def original_files(self) -> QuerySet[OriginalFile]:
         return OriginalFile.downloadable_objects.filter(library_id=self.scpca_id)

@@ -225,6 +225,10 @@ class Project(CommonDataAttributes, LoadableResourceABC):
             )
         ).delete()
 
+    @staticmethod
+    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
+        return {"project__scpca_id__in": lockfile_project_ids}
+
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
         self.purge_computed_files(delete_from_s3)
