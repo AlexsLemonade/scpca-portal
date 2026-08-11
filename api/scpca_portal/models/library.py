@@ -184,12 +184,19 @@ class Library(LoadableResourceABC):
 
     @classmethod
     def create_new_objects(cls) -> None:
-        new_library_sample_project_id_tuples = (
+        existing_library_ids = set(cls.objects.values_list("scpca_id", flat=True))
+        new_library_sample_project_id_tuples = list(
             OriginalFile.objects.exclude(library_id__isnull=True)
-            .exclude(library_id__in=cls.objects.values_list("scpca_id", flat=True))
+            .exclude(library_id__in=existing_library_ids)
             .values_list("library_id", "sample_ids", "project_id")
             .distinct()
         )
+        new_bulk_library_sample_project_id_tuples = [
+            (library_id, [sample_id], project_id)
+            for project_id, sample_id, library_id in cls.get_bulk_object_id_tuples()
+            if library_id not in existing_library_ids
+        ]
+        new_library_sample_project_id_tuples += new_bulk_library_sample_project_id_tuples
 
         # Resolve Project via the FK's related_model
         # to avoid a circular import (Project already imports Library)
@@ -222,11 +229,13 @@ class Library(LoadableResourceABC):
     @classmethod
     def remove_deleted_objects(cls) -> None:
         # TODO: before merging feature into dev: need to clarify mechanism to alert user datasets
-        cls.objects.exclude(
-            scpca_id__in=OriginalFile.objects.exclude(library_id__isnull=True).values_list(
-                "library_id", flat=True
-            )
-        ).delete()
+        bulk_library_ids = {library_id for _, _, library_id in cls.get_bulk_object_id_tuples()}
+        original_file_library_ids = OriginalFile.objects.exclude(
+            library_id__isnull=True
+        ).values_list("library_id", flat=True)
+        persisted_library_ids = bulk_library_ids | set(original_file_library_ids)
+
+        cls.objects.exclude(scpca_id__in=persisted_library_ids).delete()
 
     @property
     def original_files(self) -> QuerySet[OriginalFile]:
