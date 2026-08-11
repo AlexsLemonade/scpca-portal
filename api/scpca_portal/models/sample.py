@@ -238,13 +238,24 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
     @classmethod
     def create_new_objects(cls) -> None:
-        new_sample_project_id_pairs = (
+        existing_sample_ids = set(cls.objects.values_list("scpca_id", flat=True))
+        new_sample_project_id_pairs = list(
             OriginalFile.objects.exclude(sample_ids=[])
             .annotate(sample_id=Func(F("sample_ids"), function="unnest"))
-            .exclude(sample_id__in=cls.objects.values_list("scpca_id", flat=True))
+            .exclude(sample_id__in=existing_sample_ids)
             .values_list("sample_id", "project_id")
             .distinct()
         )
+        new_bulk_sample_project_id_pairs = list(
+            # a set here is necessary to weed out bulk samples with multilple libraries
+            set(
+                (sample_id, project_id)
+                for project_id, sample_id, _ in cls.get_bulk_object_id_tuples()
+                if sample_id not in existing_sample_ids
+            )
+        )
+
+        new_sample_project_id_pairs += new_bulk_sample_project_id_pairs
 
         # Resolve Project via the FK's related_model
         # to avoid a circular import (Project already imports Sample)
@@ -262,11 +273,15 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
     @classmethod
     def remove_deleted_objects(cls) -> None:
         # TODO: before merging into dev: do we need to clarify mechanism to alert user datasets?
-        cls.objects.exclude(
-            scpca_id__in=OriginalFile.objects.exclude(sample_ids=[])
+        bulk_sample_ids = {sample_id for _, sample_id, _ in cls.get_bulk_object_id_tuples()}
+        original_file_sample_ids = (
+            OriginalFile.objects.exclude(sample_ids=[])
             .annotate(sample_id=Func(F("sample_ids"), function="unnest"))
             .values_list("sample_id", flat=True)
-        ).delete()
+        )
+        persisted_sample_ids = bulk_sample_ids | set(original_file_sample_ids)
+
+        cls.objects.exclude(scpca_id__in=persisted_sample_ids).delete()
 
     @property
     def additional_metadata(self) -> dict[str, str]:
