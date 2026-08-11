@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import utils
+from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models.base import TimestampedModel
@@ -107,6 +107,13 @@ class LoadableResourceABC(TimestampedModel):
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
         cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
+
+    @staticmethod
+    def get_bulk_object_id_tuples() -> list[tuple[str, str, str]]:
+        return [
+            (bulk_md["scpca_project_id"], bulk_md["scpca_sample_id"], bulk_md["scpca_library_id"])
+            for bulk_md in metadata_parser.download_and_load_all_bulk_metadata()
+        ]
 
     @classmethod
     @abstractmethod
