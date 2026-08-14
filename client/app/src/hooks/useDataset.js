@@ -166,16 +166,12 @@ export const useDataset = () => {
   const getDatasetState = (dataset) => {
     const { state, is_expired: isExpired } = dataset
 
-    const isCreated = state === 'CREATED'
-    const isProcessing = state === 'PROCESSING'
-    const isSucceeded = state === 'SUCCEEDED'
-    const isFailed = state === 'FAILED'
-
     return {
-      isCreated,
-      isProcessing: isProcessing && !isFailed,
-      isReady: isSucceeded && !isExpired,
-      isExpired: isSucceeded && isExpired
+      isCreated: state === 'CREATED',
+      isProcessing: state === 'PROCESSING',
+      isSucceeded: state === 'SUCCEEDED',
+      isFailed: state === 'FAILED',
+      isExpired
     }
   }
 
