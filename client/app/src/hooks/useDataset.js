@@ -164,14 +164,14 @@ export const useDataset = () => {
   }
 
   const getDatasetState = (dataset) => {
-    const { state, is_expired: isExpired } = dataset
+    const { state } = dataset
 
     return {
       isCreated: state === 'CREATED',
       isProcessing: state === 'PROCESSING',
       isSucceeded: state === 'SUCCEEDED',
       isFailed: state === 'FAILED',
-      isExpired
+      isExpired: state === 'EXPIRED'
     }
   }
 
