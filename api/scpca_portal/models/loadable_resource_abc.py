@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import Dict, Iterable, List
+from typing import Any, Dict, Iterable, List
 
 from django.db import models
 from django.db.models import QuerySet
@@ -87,7 +87,29 @@ class LoadableResourceABC(TimestampedModel):
     @property
     def current_loaded_hash(self) -> str:
         loaded_original_file_hashes = self.loaded_original_files.values_list("hash", flat=True)
+        if not loaded_original_file_hashes:
+            return ""
+
         return utils.hash_values(loaded_original_file_hashes)
+
+    def get_current_metadata_hash(self, metadata_dict: Dict[str, Any]) -> str:
+        delimeter = "@%#"
+        hashable_metadata_values = [
+            f"{key}{delimeter}{value}" for key, value in sorted(metadata_dict.items())
+        ]
+
+        return utils.hash_values(hashable_metadata_values)
+
+    def get_current_combined_hash(self, metadata_dict: Dict[str, Any]):
+        hash_values = [
+            hash_value
+            for hash_value in [
+                self.current_loaded_hash,
+                self.get_current_metadata_hash(metadata_dict),
+            ]
+            if hash_value
+        ]
+        return utils.hash_values(hash_values)
 
     @classmethod
     @abstractmethod
@@ -117,8 +139,15 @@ class LoadableResourceABC(TimestampedModel):
         for resource in updatable_resources:
             # TODO: (Tech Debt) scpca_id will either be moved to a Resource base class
             # or assigned as the pk for derived models in the future
-            resource.update_from_dict(metadata_by_id[getattr(resource, "scpca_id")])
+            metadata_dict = metadata_by_id[getattr(resource, "scpca_id")]
+
+            resource.update_from_dict(metadata_dict)
             resource.update_loaded_state(LoadableResourceStates.SYNCED, save=False)
+
+            # NOTE: alternatively, we could pull loaded_hash from update_loaded_state and call an
+            # update_hashes method which takes a resource and a metadata dict and sets all 3 hashes
+            resource.metadata_hash = resource.get_current_metadata_hash(metadata_dict)
+            resource.combined_hash = resource.get_current_combined_hash(metadata_dict)
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
         cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
@@ -184,11 +213,14 @@ class LoadableResourceABC(TimestampedModel):
         cls.bulk_update_loaded_state(locked_libraries, LoadableResourceStates.LOCKED)
 
     @classmethod
-    def taint_modified_objects(cls) -> None:
+    def taint_modified_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         tainted_objs = [
             synced_obj
             for synced_obj in cls.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
-            if synced_obj.loaded_hash != synced_obj.current_loaded_hash
+            if synced_obj.combined_hash
+            != synced_obj.get_current_combined_hash(
+                metadata_dict=metadata_dicts_by_ids[getattr(synced_obj, "scpca_id")]
+            )
         ]
         cls.bulk_update_loaded_state(tainted_objs, LoadableResourceStates.TAINTED)
 
@@ -200,4 +232,4 @@ class LoadableResourceABC(TimestampedModel):
         cls.create_new_objects(metadata_dicts_by_id)
         cls.remove_deleted_objects(metadata_dicts_by_id)
         cls.handle_locked_objects()
-        cls.taint_modified_objects()
+        cls.taint_modified_objects(metadata_dicts_by_id)
