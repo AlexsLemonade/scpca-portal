@@ -47,6 +47,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     includes_merged_sce = models.BooleanField(default=False)
     includes_xenografts = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     organisms = ArrayField(models.TextField(), default=list)
@@ -77,6 +78,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
                     setattr(project, key, utils.boolean_from_string(data.get(key, False)))
                 else:
                     setattr(project, key, data.get(key))
+        project.metadata = data
 
         return project
 
@@ -89,6 +91,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
                 value = utils.boolean_from_string(data.get(key, False))
 
             setattr(self, key, value)
+        self.metadata = data
 
         return self
 

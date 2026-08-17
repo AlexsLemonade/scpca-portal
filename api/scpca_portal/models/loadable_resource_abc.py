@@ -24,8 +24,12 @@ class LoadableResourceABC(TimestampedModel):
     loaded_state = models.TextField(
         choices=LoadableResourceStates.choices, default=LoadableResourceStates.NEW
     )
-    loaded_hash = models.CharField(max_length=32, null=True)
     loaded_at = models.DateTimeField(null=True)
+
+    # Hashes
+    loaded_hash = models.CharField(max_length=32, null=True)
+    metadata_hash = models.CharField(max_length=32, null=True)
+    combined_hash = models.CharField(max_length=32, null=True)
 
     @abstractmethod
     def update_from_dict(self, data: Dict) -> Self:
