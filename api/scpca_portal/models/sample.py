@@ -108,26 +108,18 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_create(samples)
 
     @classmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
-        sample_ids = set()
-        related_project_ids = set()
+    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
+        return OriginalFile.get_all_input_samples_metadata_files()
 
-        for sample_id, related_project_id in resources.values_list("scpca_id", "project__scpca_id"):
-            sample_ids.add(sample_id)
-            related_project_ids.add(related_project_id)
-
-        samples_metadata_by_id = {}
-        for project_id in related_project_ids:
-            project_samples_metadata = metadata_parser.load_samples_metadata(project_id=project_id)
-            samples_metadata_by_id.update(
-                {
-                    md["scpca_sample_id"]: md
-                    for md in project_samples_metadata
-                    if md["scpca_sample_id"] in sample_ids
-                }
-            )
-
-        return samples_metadata_by_id
+    @classmethod
+    def get_metadata_dicts_by_id(
+        cls, *, resources: QuerySet[LoadableResourceABC] | None = None
+    ) -> Dict[str, Dict]:
+        kwargs = {}
+        if resources:
+            kwargs["sample_ids"] = set(resources.values_list("scpca_id", flat=True))
+        samples_metadata = metadata_parser.load_all_samples_metadata(**kwargs)
+        return {md["scpca_sample_id"]: md for md in samples_metadata}
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod
@@ -237,25 +229,28 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_update(updated_samples, updated_attrs)
 
     @classmethod
-    def create_new_objects(cls) -> None:
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         existing_sample_ids = set(cls.objects.values_list("scpca_id", flat=True))
-        new_sample_project_id_pairs = list(
+        new_original_file_sample_project_id_pairs = set(
             OriginalFile.objects.exclude(sample_ids=[])
             .annotate(sample_id=Func(F("sample_ids"), function="unnest"))
             .exclude(sample_id__in=existing_sample_ids)
             .values_list("sample_id", "project_id")
             .distinct()
         )
-        new_bulk_sample_project_id_pairs = list(
-            # a set here is necessary to weed out bulk samples with multilple libraries
-            set(
-                (sample_id, project_id)
-                for project_id, sample_id, _ in cls.get_bulk_object_id_tuples()
-                if sample_id not in existing_sample_ids
+        new_metadata_sample_project_id_pairs = set(
+            (sample_id, project_id)
+            for project_id, sample_id, _ in cls.get_metadata_id_tuples(
+                metadata_dicts_by_ids.values()
             )
+            if sample_id not in existing_sample_ids
+        )
+        new_sample_project_id_pairs = (
+            new_original_file_sample_project_id_pairs | new_metadata_sample_project_id_pairs
         )
 
-        new_sample_project_id_pairs += new_bulk_sample_project_id_pairs
+        if not new_sample_project_id_pairs:
+            return
 
         # Resolve Project via the FK's related_model
         # to avoid a circular import (Project already imports Sample)
@@ -264,10 +259,10 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             [project_id for _, project_id in new_sample_project_id_pairs], field_name="scpca_id"
         )
 
-        new_samples = []
-        for new_sample_id, project_id in new_sample_project_id_pairs:
-            new_samples.append(cls(scpca_id=new_sample_id, project=projects_by_id[project_id]))
-
+        new_samples = [
+            cls(scpca_id=new_sample_id, project=projects_by_id[project_id])
+            for new_sample_id, project_id in new_sample_project_id_pairs
+        ]
         cls.objects.bulk_create(new_samples)
 
     @classmethod

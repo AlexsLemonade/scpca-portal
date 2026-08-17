@@ -196,11 +196,6 @@ class LoadableResourceABC(TimestampedModel):
         cls.bulk_update_loaded_state(tainted_objs, LoadableResourceStates.TAINTED)
 
     @classmethod
-    @abstractmethod
-    def get_model_metadata(cls) -> List[Dict]:
-        pass
-
-    @classmethod
     def sync_model(cls) -> None:
         cls.download_model_metadata()
         metadata_dicts_by_id = cls.get_metadata_dicts_by_id()

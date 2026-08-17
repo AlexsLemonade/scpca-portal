@@ -180,11 +180,17 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         return bulk_rna_seq_sample_ids
 
     @classmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
-        project_ids = list(resources.values_list("scpca_id", flat=True))
-        projects_metadata = metadata_parser.load_projects_metadata(
-            filter_on_project_ids=project_ids
-        )
+    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
+        return OriginalFile.get_all_input_projects_metadata_files()
+
+    @classmethod
+    def get_metadata_dicts_by_id(
+        cls, *, resources: QuerySet[LoadableResourceABC] | None = None
+    ) -> Dict[str, Dict]:
+        kwargs = {}
+        if resources:
+            kwargs["project_ids"] = set(resources.values_list("scpca_id", flat=True))
+        projects_metadata = metadata_parser.load_all_projects_metadata(**kwargs)
         return {md["scpca_project_id"]: md for md in projects_metadata}
 
     # TODO: remove before loadable resource feature branch lands
@@ -201,18 +207,21 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         self.update_project_summaries_aggregate_properties()
 
     @classmethod
-    def create_new_objects(cls) -> None:
-        new_project_ids = (
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+        existing_project_ids = cls.objects.values_list("scpca_id", flat=True)
+        new_original_file_project_ids = set(
             OriginalFile.objects.exclude(project_id__isnull=True)
-            .exclude(project_id__in=cls.objects.values_list("scpca_id", flat=True))
+            .exclude(project_id__in=existing_project_ids)
             .values_list("project_id", flat=True)
             .distinct()
         )
+        new_metadata_ids = set(metadata_dicts_by_ids.keys()) - set(existing_project_ids)
+        new_project_ids = new_original_file_project_ids | new_metadata_ids
 
-        new_projects = []
-        for new_project_id in new_project_ids:
-            new_projects.append(cls(scpca_id=new_project_id))
+        if not new_project_ids:
+            return
 
+        new_projects = [cls(scpca_id=new_project_id) for new_project_id in new_project_ids]
         cls.objects.bulk_create(new_projects)
 
     @classmethod

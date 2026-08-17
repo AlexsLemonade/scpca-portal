@@ -113,31 +113,18 @@ class Library(LoadableResourceABC):
         sample.libraries.add(*libraries)
 
     @classmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
-        library_ids = set(library.scpca_id for library in resources)
-        related_projects = set(library.project for library in resources)
+    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
+        return OriginalFile.get_all_input_library_metadata_files_with_bulk()
 
-        libraries_metadata_by_id = {}
-        for project in related_projects:
-            project_libraries_metadata = metadata_parser.load_libraries_metadata(
-                project_id=project.scpca_id
-            )
-
-            if project.has_bulk_rna_seq:
-                project_bulk_libraries_metadata = metadata_parser.load_bulk_metadata(
-                    project_id=project.scpca_id
-                )
-                project_libraries_metadata += project_bulk_libraries_metadata
-
-            libraries_metadata_by_id.update(
-                {
-                    md["scpca_library_id"]: md
-                    for md in project_libraries_metadata
-                    if md["scpca_library_id"] in library_ids
-                }
-            )
-
-        return libraries_metadata_by_id
+    @classmethod
+    def get_metadata_dicts_by_id(
+        cls, *, resources: QuerySet[LoadableResourceABC] | None = None
+    ) -> Dict[str, Dict]:
+        kwargs = {}
+        if resources:
+            kwargs["library_ids"] = set(resources.values_list("scpca_id", flat=True))
+        libraries_metadata = metadata_parser.load_all_libraries_metadata_with_bulk(**kwargs)
+        return {md["scpca_library_id"]: md for md in libraries_metadata}
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod
@@ -183,20 +170,27 @@ class Library(LoadableResourceABC):
             Library.load_bulk_metadata(project)
 
     @classmethod
-    def create_new_objects(cls) -> None:
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         existing_library_ids = set(cls.objects.values_list("scpca_id", flat=True))
-        new_library_sample_project_id_tuples = list(
+        new_library_sample_project_id_tuples = set(
             OriginalFile.objects.exclude(library_id__isnull=True)
             .exclude(library_id__in=existing_library_ids)
             .values_list("library_id", "sample_ids", "project_id")
             .distinct()
         )
-        new_bulk_library_sample_project_id_tuples = [
-            (library_id, [sample_id], project_id)
-            for project_id, sample_id, library_id in cls.get_bulk_object_id_tuples()
+        new_metadata_library_sample_project_id_tuples = set(
+            (library_id, sample_id, project_id)
+            for project_id, sample_id, library_id in cls.get_metadata_id_tuples(
+                metadata_dicts_by_ids.values()
+            )
             if library_id not in existing_library_ids
-        ]
-        new_library_sample_project_id_tuples += new_bulk_library_sample_project_id_tuples
+        )
+        new_library_sample_project_id_tuples = (
+            new_library_sample_project_id_tuples | new_metadata_library_sample_project_id_tuples
+        )
+
+        if not new_library_sample_project_id_tuples:
+            return
 
         # Resolve Project via the FK's related_model
         # to avoid a circular import (Project already imports Library)
