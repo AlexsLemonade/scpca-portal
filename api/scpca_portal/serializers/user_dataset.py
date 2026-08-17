@@ -42,7 +42,6 @@ class UserDatasetSerializer(serializers.ModelSerializer):
             "project_titles",
             "state",
             "expires_at",
-            "is_expired",
             "computed_file",
         )
         read_only_fields = fields

@@ -29,7 +29,6 @@ class UserDatasetSingleCellExperiment:
         "estimated_size_in_bytes": None,
         "state": None,
         "expires_at": None,
-        "is_expired": False,
         "terminated_reason": None,
         "regenerated_from": None,
         "total_sample_count": None,

@@ -59,11 +59,9 @@ class DatasetABC(TimestampedModel, models.Model):
     includes_files_multiplexed = models.BooleanField(default=False)
     estimated_size_in_bytes = models.BigIntegerField(default=0)
 
-    # Non user-editable - set during processing
+    # Non user-editable: Set during processing, except 'EXPIRED' via cron job
     state = models.TextField(choices=DatasetStates, default=DatasetStates.CREATED)
-
     expires_at = models.DateTimeField(null=True)
-    is_expired = models.BooleanField(default=False)  # Set by cronjob
 
     computed_file = models.OneToOneField(
         ComputedFile,

@@ -20,7 +20,6 @@ class TestExpireUserDatasets(TestCase):
         datasets = [
             UserDatasetFactory(
                 expires_at=self.now - timedelta(days=8) + timedelta(days=7),
-                is_expired=False,
                 state=DatasetStates.SUCCEEDED,
                 computed_file=DatasetComputedFileFactory(),
             )
@@ -31,7 +30,7 @@ class TestExpireUserDatasets(TestCase):
         # Should mark the dataset as expired and delete computed files in the database
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
-            self.assertTrue(updated_dataset.is_expired)
+            self.assertEqual(updated_dataset.state, DatasetStates.EXPIRED)
             self.assertIsNone(updated_dataset.computed_file)
 
     def test_mark_no_expired_dataset(self):
@@ -39,7 +38,6 @@ class TestExpireUserDatasets(TestCase):
         datasets = [
             UserDatasetFactory(
                 expires_at=self.now + timedelta(days=7),
-                is_expired=False,
                 state=DatasetStates.SUCCEEDED,
                 computed_file=DatasetComputedFileFactory(),
             )
@@ -50,5 +48,7 @@ class TestExpireUserDatasets(TestCase):
         # Should not mark the dataset as expired or delete computed files in the database
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
-            self.assertFalse(updated_dataset.is_expired)
+            self.assertEqual(
+                updated_dataset.state, DatasetStates.SUCCEEDED
+            )  # Should remain unchanged
             self.assertIsNotNone(updated_dataset.computed_file)

@@ -6,7 +6,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
-from scpca_portal.enums import JobStates
+from scpca_portal.enums import DatasetStates, JobStates
 from scpca_portal.models import UserDataset
 from scpca_portal.test.factories import DatasetComputedFileFactory, JobFactory, UserDatasetFactory
 
@@ -36,7 +36,7 @@ class TestCleanUpExpiredUserDatasets(TestCase):
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
             self.assertEqual(updated_dataset.expires_at, dataset.expiration_delta)
-            self.assertTrue(updated_dataset.is_expired)
+            self.assertEqual(updated_dataset.state, DatasetStates.EXPIRED)
             # Should purge the computed file
             mock_delete_object.assert_called_with(
                 Bucket=dataset.computed_file.s3_bucket, Key=dataset.computed_file.s3_key
@@ -54,7 +54,7 @@ class TestCleanUpExpiredUserDatasets(TestCase):
         # Should only populate the timestamp and not mark as expired
         updated_dataset = UserDataset.objects.get(id=dataset.id)
         self.assertEqual(updated_dataset.expires_at, dataset.expiration_delta)
-        self.assertFalse(updated_dataset.is_expired)
+        self.assertEqual(updated_dataset.state, DatasetStates.SUCCEEDED)  # Should remain unchanged
         # Should not purge the computed file
         mock_delete_object.assert_not_called()
         self.assertIsNotNone(updated_dataset.computed_file)

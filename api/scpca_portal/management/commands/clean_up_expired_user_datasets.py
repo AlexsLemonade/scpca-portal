@@ -41,8 +41,8 @@ class Command(BaseCommand):
             # Clean up the legacy resources and mark as expired
             # 8-day expiration via S3 Lifecycle policy + 1 day
             if dataset.expiration_delta + timedelta(days=2) <= now:
-                dataset.is_expired = True
-                updated_fields.add("is_expired")
+                dataset.state = DatasetStates.EXPIRED
+                updated_fields.add("state")
                 if computed_file := dataset.computed_file:
                     computed_file.purge(delete_from_s3=True)
 
@@ -51,7 +51,9 @@ class Command(BaseCommand):
         if updated_fields:
             UserDataset.objects.bulk_update(updated_datasets, list(updated_fields))
 
-        if deleted_count := len([dataset for dataset in updated_datasets if dataset.is_expired]):
+        if deleted_count := len(
+            [dataset for dataset in updated_datasets if dataset.state == DatasetStates.EXPIRED]
+        ):
             logger.info(f"Cleaned up {deleted_count} dataset{pluralize(deleted_count)}.")
         else:
             logger.info("No datasets to clean up.")
