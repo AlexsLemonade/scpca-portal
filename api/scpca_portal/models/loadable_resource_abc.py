@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import metadata_parser, utils
+from scpca_portal import metadata_parser, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models.base import TimestampedModel
@@ -87,7 +87,18 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     @abstractmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[Self]) -> Dict[str, Dict]:
+    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
+        pass
+
+    @classmethod
+    def download_model_metadata(cls) -> None:
+        s3.download_files(cls.get_all_input_metadata_files())
+
+    @classmethod
+    @abstractmethod
+    def get_metadata_dicts_by_id(
+        cls, *, resources: QuerySet[Self] | None = None
+    ) -> Dict[str, Dict]:
         pass
 
     @classmethod
@@ -98,7 +109,7 @@ class LoadableResourceABC(TimestampedModel):
         if not updatable_resources.exists():
             return
 
-        metadata_by_id = cls.get_metadata_dicts_by_id(updatable_resources)
+        metadata_by_id = cls.get_metadata_dicts_by_id(resources=updatable_resources)
         for resource in updatable_resources:
             # TODO: (Tech Debt) scpca_id will either be moved to a Resource base class
             # or assigned as the pk for derived models in the future
@@ -115,9 +126,22 @@ class LoadableResourceABC(TimestampedModel):
             for bulk_md in metadata_parser.download_and_load_all_bulk_metadata()
         ]
 
+    @staticmethod
+    def get_metadata_id_tuples(
+        metadata_dicts: Iterable[Dict],
+    ) -> list[tuple[str | None, str | None, str | None]]:
+        return [
+            (
+                bulk_md.get("scpca_project_id"),
+                bulk_md.get("scpca_sample_id"),
+                bulk_md.get("scpca_library_id"),
+            )
+            for bulk_md in metadata_dicts
+        ]
+
     @classmethod
     @abstractmethod
-    def create_new_objects(cls) -> None:
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         pass
 
     @classmethod
@@ -172,8 +196,16 @@ class LoadableResourceABC(TimestampedModel):
         cls.bulk_update_loaded_state(tainted_objs, LoadableResourceStates.TAINTED)
 
     @classmethod
+    @abstractmethod
+    def get_model_metadata(cls) -> List[Dict]:
+        pass
+
+    @classmethod
     def sync_model(cls) -> None:
-        cls.create_new_objects()
+        cls.download_model_metadata()
+        metadata_dicts_by_id = cls.get_metadata_dicts_by_id()
+
+        cls.create_new_objects(metadata_dicts_by_id)
         cls.remove_deleted_objects()
         cls.handle_locked_objects()
         cls.taint_modified_objects()
