@@ -5,20 +5,13 @@ from unittest.mock import patch
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
-from scpca_portal.enums import DatasetStates, FailedJobActions, JobStates
+from scpca_portal.enums import DatasetStates, JobStates
 from scpca_portal.exceptions import DatasetMissingLibrariesError, S3TaggingError, S3UploadError
 from scpca_portal.job_processors import DatasetJobProcessor
 from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory, UserDatasetFactory
 
 
 class TestDatasetJobProcessor(TestCase):
-    def setUp(self):
-        self.exception_actions = {
-            ("create_new_computed_file", DatasetMissingLibrariesError): FailedJobActions.EMAIL,
-            ("upload_new_computed_file", S3UploadError): FailedJobActions.RETRY,
-            ("tag_new_computed_file", S3TaggingError): FailedJobActions.SLACK,
-        }
-
     def test_on_run_done_expires_at_for_user_dataset(self):
         succeeded_at = make_aware(datetime.now())
 
@@ -56,14 +49,15 @@ class TestDatasetJobProcessor(TestCase):
         step = "create_new_computed_file"
         exception = DatasetMissingLibrariesError()
 
-        processor.handle_failure(step, exception)
+        processor.handle_missing_libraries(step, exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
+        # Should send the error email notification
         mock_send_email.assert_called_once_with(job)
 
     @patch("scpca_portal.notifications.send_slack_notification")
-    def test_handle_slack_notification_exceptions(self, mock_send_slack):
+    def test_handle_slack_notification_exceptions(self, mock_mock_send_slack):
         job = JobFactory(
             state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(email="user@example.com")
         )
@@ -72,11 +66,12 @@ class TestDatasetJobProcessor(TestCase):
         step = "tag_new_computed_file"
         exception = S3TaggingError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
-        processor.handle_failure(step, exception)
+        processor.handle_tag_failure(step, exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
-        mock_send_slack.assert_called_once_with(job)
+        # Should send the slack notification for manual handling
+        mock_mock_send_slack.assert_called_once_with(job)
 
     def test_handle_retryable_exceptions(self):
         job = JobFactory(
@@ -87,7 +82,7 @@ class TestDatasetJobProcessor(TestCase):
         step = "upload_new_computed_file"
         exception = S3UploadError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
-        processor.handle_failure(step, exception)
+        processor.handle_upload_failure(step, exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
