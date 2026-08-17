@@ -1,4 +1,3 @@
-from collections import defaultdict
 from datetime import datetime
 from typing import List
 
@@ -179,18 +178,14 @@ class Job(TimestampedModel):
             return []
 
         retry_jobs = []
-        retry_datasets = defaultdict(list)
 
         for job in jobs:
             if retry_job := job.create_retry_job(save=False):
                 retry_jobs.append(retry_job)
-                retry_datasets[job.dataset.get_class()].append(job.dataset)
 
         if retry_jobs:
             cls.objects.bulk_create(retry_jobs)
-            if retry_datasets:
-                for dataset_cls, datasets in retry_datasets.items():
-                    dataset_cls.bulk_apply_job_state(datasets)
+            DatasetABC.bulk_apply_job_state(retry_jobs)
 
         return retry_jobs
 
@@ -241,7 +236,6 @@ class Job(TimestampedModel):
             return False
 
         synced_jobs = []
-        synced_datasets = defaultdict(list)
         failed_job_ids = []
 
         fetched_jobs = []
@@ -258,7 +252,6 @@ class Job(TimestampedModel):
                 new_state, reason = cls.get_job_state(aws_job)
                 if job.apply_state(new_state, reason):
                     synced_jobs.append(job)
-                    synced_datasets[job.dataset.get_class()].append(job.dataset)
 
         if not synced_jobs:
             logger.info("No jobs were updated during sync.")
@@ -266,9 +259,7 @@ class Job(TimestampedModel):
 
         logger.info(f"Synced {len(synced_jobs)} jobs with AWS.")
         cls.bulk_update_state(synced_jobs)
-        if synced_datasets:
-            for dataset_cls, datasets in synced_datasets.items():
-                dataset_cls.bulk_apply_job_state(datasets)
+        DatasetABC.bulk_apply_job_state(synced_jobs)
 
         if failed_job_ids:
             logger.info(f"{len(failed_job_ids)} jobs failed to sync.")
@@ -397,7 +388,6 @@ class Job(TimestampedModel):
         Returns all the submitted jobs.
         """
         submitted_jobs = []
-        submitted_datasets = defaultdict(list)
         pending_jobs = []
         failed_jobs = []
 
@@ -405,7 +395,6 @@ class Job(TimestampedModel):
             try:
                 job.submit(save=False)  # Jobs are saved in bulk outside of the loop
                 submitted_jobs.append(job)
-                submitted_datasets[job.dataset.get_class()].append(job.dataset)
             except (JobError, DatasetError):
                 if job.increment_attempt_or_fail():
                     pending_jobs.append(job)
@@ -416,9 +405,7 @@ class Job(TimestampedModel):
             updated_batch_attrs = ["batch_job_id", "batch_job_queue", "batch_job_definition"]
             cls.objects.bulk_update(submitted_jobs, updated_batch_attrs)
             cls.bulk_update_state(submitted_jobs)
-            if submitted_datasets:
-                for dataset_cls, datasets in submitted_datasets.items():
-                    dataset_cls.bulk_apply_job_state(datasets)
+            DatasetABC.bulk_apply_job_state(submitted_jobs)
 
         return submitted_jobs, pending_jobs, failed_jobs
 
@@ -468,7 +455,6 @@ class Job(TimestampedModel):
         Returns all the terminated jobs.
         """
         terminated_jobs = []
-        terminated_datasets = defaultdict(list)
         final_state_jobs = []
         failed_jobs = []
 
@@ -476,7 +462,6 @@ class Job(TimestampedModel):
             try:
                 job.terminate(reason=reason, save=False)
                 terminated_jobs.append(job)
-                terminated_datasets[job.dataset.get_class()].append(job.dataset)
             except JobInvalidTerminateStateError:
                 final_state_jobs.append(job)
             except JobError:
@@ -485,9 +470,7 @@ class Job(TimestampedModel):
         if terminated_jobs:
             logger.info(f"Terminated {len(terminated_jobs)} jobs on AWS.")
             cls.bulk_update_state(terminated_jobs)
-            if terminated_datasets:
-                for dataset_cls, datasets in terminated_datasets.items():
-                    dataset_cls.bulk_apply_job_state(datasets)
+            DatasetABC.bulk_apply_job_state(terminated_jobs)
 
         if final_state_jobs:
             logger.info(f"{len(final_state_jobs)} jobs were not in a terminable state.")

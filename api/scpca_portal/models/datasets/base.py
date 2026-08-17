@@ -1,5 +1,6 @@
 import sys
 import uuid
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 from typing import TYPE_CHECKING, Iterable, List, Set
@@ -8,8 +9,6 @@ from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import QuerySet
-
-from typing_extensions import Self
 
 from scpca_portal import lockfile, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
@@ -545,15 +544,22 @@ class DatasetABC(TimestampedModel, models.Model):
             self.save()
 
     @classmethod
-    def bulk_apply_job_state(cls, datasets: List[Self], *, save: bool = True) -> None:
+    def bulk_apply_job_state(cls, jobs: List["Job"], *, save: bool = True) -> None:
         """
-        Syncs each dataset with its latest job state.
+        Syncs dataset states with the latest state of the given jobs.
         Optionally saves the datasets.
         """
         STATE_UPDATE_ATTRS = ["state", "expires_at"]
 
-        for dataset in datasets:
-            dataset.apply_job_state(save=False)
+        synced_datasets = defaultdict(list)
 
-        if save:
-            cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
+        for job in jobs:
+            dataset_cls = job.dataset_content_type.model_class()
+            synced_datasets[dataset_cls].append(job.dataset)
+
+        for dataset_cls, datasets in synced_datasets.items():
+            for dataset in datasets:
+                dataset.apply_job_state(save=False)
+
+            if save:
+                dataset_cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
