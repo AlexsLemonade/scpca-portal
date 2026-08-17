@@ -8,7 +8,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import metadata_parser, s3, utils
+from scpca_portal import s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models.base import TimestampedModel
@@ -120,13 +120,6 @@ class LoadableResourceABC(TimestampedModel):
         cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
 
     @staticmethod
-    def get_bulk_object_id_tuples() -> list[tuple[str, str, str]]:
-        return [
-            (bulk_md["scpca_project_id"], bulk_md["scpca_sample_id"], bulk_md["scpca_library_id"])
-            for bulk_md in metadata_parser.download_and_load_all_bulk_metadata()
-        ]
-
-    @staticmethod
     def get_metadata_id_tuples(
         metadata_dicts: Iterable[Dict],
     ) -> list[tuple[str | None, str | None, str | None]]:
@@ -146,7 +139,7 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     @abstractmethod
-    def remove_deleted_objects(cls) -> None:
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         pass
 
     @staticmethod
@@ -201,6 +194,6 @@ class LoadableResourceABC(TimestampedModel):
         metadata_dicts_by_id = cls.get_metadata_dicts_by_id()
 
         cls.create_new_objects(metadata_dicts_by_id)
-        cls.remove_deleted_objects()
+        cls.remove_deleted_objects(metadata_dicts_by_id)
         cls.handle_locked_objects()
         cls.taint_modified_objects()

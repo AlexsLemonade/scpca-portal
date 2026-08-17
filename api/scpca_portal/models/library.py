@@ -221,15 +221,15 @@ class Library(LoadableResourceABC):
             libraries_by_id[library_id].samples.add(*library_samples)
 
     @classmethod
-    def remove_deleted_objects(cls) -> None:
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         # TODO: before merging feature into dev: need to clarify mechanism to alert user datasets
-        bulk_library_ids = {library_id for _, _, library_id in cls.get_bulk_object_id_tuples()}
-        original_file_library_ids = OriginalFile.objects.exclude(
-            library_id__isnull=True
-        ).values_list("library_id", flat=True)
-        persisted_library_ids = bulk_library_ids | set(original_file_library_ids)
+        existing_library_ids = set(
+            OriginalFile.objects.exclude(library_id__isnull=True).values_list(
+                "library_id", flat=True
+            )
+        ) | set(metadata_dicts_by_ids.keys())
 
-        cls.objects.exclude(scpca_id__in=persisted_library_ids).delete()
+        cls.objects.exclude(scpca_id__in=existing_library_ids).delete()
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:

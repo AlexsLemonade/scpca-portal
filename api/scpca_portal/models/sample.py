@@ -266,17 +266,15 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         cls.objects.bulk_create(new_samples)
 
     @classmethod
-    def remove_deleted_objects(cls) -> None:
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         # TODO: before merging into dev: do we need to clarify mechanism to alert user datasets?
-        bulk_sample_ids = {sample_id for _, sample_id, _ in cls.get_bulk_object_id_tuples()}
-        original_file_sample_ids = (
+        existing_sample_ids = set(
             OriginalFile.objects.exclude(sample_ids=[])
             .annotate(sample_id=Func(F("sample_ids"), function="unnest"))
             .values_list("sample_id", flat=True)
-        )
-        persisted_sample_ids = bulk_sample_ids | set(original_file_sample_ids)
+        ) | set(metadata_dicts_by_ids.keys())
 
-        cls.objects.exclude(scpca_id__in=persisted_sample_ids).delete()
+        cls.objects.exclude(scpca_id__in=existing_sample_ids).delete()
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:

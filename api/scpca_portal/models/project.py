@@ -225,14 +225,16 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         cls.objects.bulk_create(new_projects)
 
     @classmethod
-    def remove_deleted_objects(cls) -> None:
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         # TODO: What type of cleanup or notification is necessary
-        # to alert datasets who's underlying data has beeen mutated?
-        cls.objects.exclude(
-            scpca_id__in=OriginalFile.objects.exclude(project_id__isnull=True).values_list(
+        # to alert datasets who's underlying data has been mutated?
+        existing_project_ids = set(
+            OriginalFile.objects.exclude(project_id__isnull=True).values_list(
                 "project_id", flat=True
             )
-        ).delete()
+        ) | set(metadata_dicts_by_ids.keys())
+
+        cls.objects.exclude(scpca_id__in=existing_project_ids).delete()
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
