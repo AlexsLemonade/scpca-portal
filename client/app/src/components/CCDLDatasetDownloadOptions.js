@@ -11,6 +11,7 @@ import { HelpLink } from 'components/HelpLink'
 
 export const CCDLDatasetDownloadOptions = () => {
   const {
+    ccdlDataset,
     modality,
     setModality,
     format,
@@ -22,6 +23,8 @@ export const CCDLDatasetDownloadOptions = () => {
   } = useCCDLDatasetDownloadModalContext()
 
   const { responsive } = useResponsive()
+
+  const isDisabled = Boolean(ccdlDataset) // Disable the options for deep link
   const showMultiplexedOption = isMultiplexedAvailable
 
   return (
@@ -47,6 +50,7 @@ export const CCDLDatasetDownloadOptions = () => {
             fieldWidth="116px"
           >
             <Select
+              disabled={isDisabled}
               options={modalityOptions}
               valueKey="value"
               labelKey="label"
@@ -66,6 +70,7 @@ export const CCDLDatasetDownloadOptions = () => {
             fieldWidth="200px"
           >
             <Select
+              disabled={isDisabled}
               options={formatOptions}
               valueKey="value"
               labelKey="label"
