@@ -1,6 +1,7 @@
 import React, { createContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useAnalytics } from 'hooks/useAnalytics'
+import { useNotification } from 'hooks/useNotification'
 import { api } from 'api'
 import { getDateISO } from 'helpers/getDateISO'
 import { filterPartialObject } from 'helpers/filterPartialObject'
@@ -15,13 +16,16 @@ export const CCDLDatasetDownloadModalContext = createContext({})
 export const CCDLDatasetDownloadModalContextProvider = ({
   project,
   datasets,
+  ccdlName,
   children
 }) => {
   const { email, token, createToken, surveyListForm } = useScPCAPortal()
   const { trackDataset } = useAnalytics()
+  const { showNotification } = useNotification()
 
   const [showing, setShowing] = useState(false)
 
+  const [ccdlDataset, setCCDLDataset] = useState(null) // for deep link
   const [selectedDataset, setSelectedDataset] = useState(null)
 
   // set when `datasets` changes
@@ -39,6 +43,43 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
 
+  const getFormatLabel = (d) =>
+    d.ccdl_modality === 'SPATIAL'
+      ? getReadable('SPATIAL_SPACERANGER')
+      : getReadable(d.format)
+
+  // Set ccdlDataset matching ccdlName
+  useEffect(() => {
+    if (!ccdlName || !datasets || datasets.length === 0) return
+
+    const dataset = datasets.find((d) => d.ccdl_name === ccdlName)
+
+    if (!dataset) {
+      // Show a notification for the invalid ccdlName
+      showNotification(
+        `No CCDL Dataset match found for ${ccdlName}`,
+        'error',
+        ccdlName
+      )
+      return
+    }
+
+    setCCDLDataset(dataset)
+  }, [ccdlName])
+
+  // Open the modal on page load for ccdlDataset deep link
+  useEffect(() => {
+    if (!ccdlDataset) return
+
+    setSelectedDataset(ccdlDataset)
+    // Pre-select options (cannot be toggled while ccdlName is present)
+    setModality(ccdlDataset.ccdl_modality)
+    setFormat(getFormatLabel(ccdlDataset))
+    setIncludesMerged(ccdlDataset.includes_files_merged)
+    setExcludeMultiplexed(ccdlDataset.includes_files_multiplexed === false)
+    setShowing(true)
+  }, [ccdlDataset])
+
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
     if (!datasets || datasets.length === 0) {
@@ -55,8 +96,12 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions([])
       setFormatOptions([])
     } else {
-      const [defaultModality] = modalityOrder
-      setModality(defaultModality)
+      if (!ccdlDataset) {
+        // Prevent state override for deep link
+        const [defaultModality] = modalityOrder
+        setModality(defaultModality)
+      }
+
       setModalityOptions(
         sortOnKeyByOrder(
           getReadableOptions(datasets.map((d) => d.ccdl_modality)),
@@ -76,24 +121,26 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     // reset download state vars on datasets change
     setDownloadDataset(false)
     setDownloadableDataset(null)
-  }, [datasets])
+  }, [ccdlDataset, datasets])
 
   // on modality change, set format and merged available defaults
   useEffect(() => {
     if (modality) {
-      const [defaultFormat] = formatOrder
-      setFormat(defaultFormat)
+      if (ccdlDataset) {
+        // Prevent state override for deep link
+        setFormat(ccdlDataset.format)
+      } else {
+        const [defaultFormat] = formatOrder
+        setFormat(defaultFormat)
+      }
+
       setFormatOptions(
         sortOnKeyByOrder(
           uniqueArrayByKey(
             datasets
               .filter((d) => d.ccdl_modality === modality)
               .map((d) => ({
-                label:
-                  // We override this to present the spatial format
-                  d.ccdl_modality === 'SPATIAL'
-                    ? getReadable('SPATIAL_SPACERANGER')
-                    : getReadable(d.format),
+                label: getFormatLabel(d), // We override this to present the spatial format
                 value: d.format
               })),
             'value'
@@ -112,6 +159,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   // on format change, set exclude multiplexed defaults
   useEffect(() => {
+    if (ccdlDataset) return // Deep link takes precedence
+
     if (isMultiplexedAvailable)
       if (format === 'SINGLE_CELL_EXPERIMENT') {
         setExcludeMultiplexed(false)
@@ -124,6 +173,11 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     // handle case where modal is closed and reopened without refresh
     if (!showing) return
+
+    if (ccdlDataset) {
+      setSelectedDataset(ccdlDataset)
+      return
+    }
 
     if (datasets.length === 1) {
       setSelectedDataset(datasets[0])
@@ -165,7 +219,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       } else if (downloadRequest.status === 403) {
         await createToken()
       } else {
-        // NOTE: there isnt much we can do here to recover.
+        // NOTE: there isn't much we can do here to recover.
         console.error(
           'An error occurred while trying to get the download url for:',
           selectedDataset.id
@@ -214,6 +268,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         setDownloadDataset,
         downloadableDataset,
         project,
+        ccdlDataset,
         datasets,
         token
       }}

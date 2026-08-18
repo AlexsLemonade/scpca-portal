@@ -22,6 +22,7 @@ export const useCCDLDatasetDownloadModalContext = () => {
     setDownloadDataset,
     downloadableDataset,
     project,
+    ccdlDataset,
     datasets,
     token
   } = useContext(CCDLDatasetDownloadModalContext)
@@ -73,6 +74,7 @@ export const useCCDLDatasetDownloadModalContext = () => {
     modalityOptions,
     formatOptions,
     project,
+    ccdlDataset,
     datasets
   }
 }
