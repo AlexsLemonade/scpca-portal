@@ -49,22 +49,30 @@ class Command(BaseCommand):
     def sync_original_files(self, bucket: str, allow_bucket_wipe: bool, **kwargs) -> None:
         logger.info("Initiating listing of bucket objects...")
 
+        # TODO: remove these 2 lines before the feature branch is merged in,
+        # as the project locking workflow is replaced with the loadable resource state workflow
         locked_project_ids = lockfile.get_locked_project_ids()
         Project.lock_projects(locked_project_ids)
 
-        bucket_objects = s3.list_bucket_objects(bucket, excluded_key_substrings=locked_project_ids)
-
-        logger.info("Syncing database...")
+        bucket_objects = s3.list_bucket_objects(bucket)
         sync_timestamp = make_aware(datetime.now())
 
+        syncable_original_files, lockfiles = OriginalFile.get_syncable_files(
+            bucket_objects, bucket, sync_timestamp
+        )
+
+        logger.info("Syncing database...")
         logger.info("Updating modified existing OriginalFiles.")
-        updated_files = OriginalFile.bulk_update_from_dicts(bucket_objects, bucket, sync_timestamp)
+        updated_files = OriginalFile.bulk_update(syncable_original_files)
 
         logger.info("Inserting new OriginalFiles.")
-        created_files = OriginalFile.bulk_create_from_dicts(bucket_objects, bucket, sync_timestamp)
+        created_files = OriginalFile.bulk_create(syncable_original_files)
 
         logger.info("Purging OriginalFiles that were deleted from s3.")
-        deleted_files = OriginalFile.purge_deleted_files(bucket, sync_timestamp, allow_bucket_wipe)
+        lockfile_project_ids = [lockfile.project_id for lockfile in lockfiles]
+        deleted_files = OriginalFile.purge_deleted_files(
+            bucket, sync_timestamp, lockfile_project_ids, allow_bucket_wipe
+        )
 
         logger.info("Database syncing complete!")
 

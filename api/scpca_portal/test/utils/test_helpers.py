@@ -65,6 +65,20 @@ class TestGetToday(TestCase):
         self.assertEqual(utils.get_today_string(), "2022-10-08")
 
 
+class FlattenContents(TestCase):
+    def test_flat_list_remains_unchanged(self):
+        input_data = [1, 2, 3, 4]
+        self.assertEqual([1, 2, 3, 4], utils.flatten_contents(input_data))
+
+    def test_nested_list_flattening(self):
+        input_data = [1, [2, [3, [4, [5]]]]]
+        self.assertEqual([1, 2, 3, 4, 5], utils.flatten_contents(input_data))
+
+    def test_string_and_bytes_protection(self):
+        input_data = ["hello", ["world", b"bytes_data"]]
+        self.assertEqual(["hello", "world", b"bytes_data"], utils.flatten_contents(input_data))
+
+
 class TestFilterDictListByKeys(TestCase):
     def test_included_keys_exist(self):
         list_of_dicts = [{"a": 1, "b": 2, "c": 3}, {"a": 4, "b": 5, "c": 6}]
@@ -110,6 +124,41 @@ class TestFilterDictListByKeys(TestCase):
         )
 
         self.assertEqual(actual_result, expected_result)
+
+
+class TestFilterDictsByValueSubstrings(TestCase):
+    def test_filter_dicts_by_value_substrings(self):
+        list_of_dicts = [
+            {"name": "apple pie", "type": "dessert"},
+            {"name": "banana bread", "type": "dessert"},
+            {"name": "chicken soup", "type": "meal"},
+        ]
+        key = "name"
+        substrings = ["apple", "bread"]
+
+        expected_result = [
+            {"name": "apple pie", "type": "dessert"},
+            {"name": "banana bread", "type": "dessert"},
+        ]
+        actual_result = utils.filter_dicts_by_value_substrings(list_of_dicts, key, substrings)
+
+        self.assertEqual(expected_result, actual_result)
+
+
+class TestExcludeDictsByValueSubstrings(TestCase):
+    def test_exclude_dicts_by_value_substrings(self):
+        list_of_dicts = [
+            {"name": "apple pie", "type": "dessert"},
+            {"name": "banana bread", "type": "dessert"},
+            {"name": "chicken soup", "type": "meal"},
+        ]
+        key = "name"
+        substrings = ["apple", "bread"]
+
+        expected_result = [{"name": "chicken soup", "type": "meal"}]
+        actual_result = utils.exclude_dicts_by_value_substrings(list_of_dicts, key, substrings)
+
+        self.assertEqual(expected_result, actual_result)
 
 
 class TestGetKeysFromDicts(TestCase):

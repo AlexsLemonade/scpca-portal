@@ -59,6 +59,7 @@ class OriginalFile(TimestampedModel):
     is_merged = models.BooleanField(default=False)
     is_project_file = models.BooleanField(default=False)
     is_downloadable = models.BooleanField(default=True)
+    is_lockfile = models.BooleanField(default=True)
 
     # queryset managers
     objects = models.Manager()
@@ -95,6 +96,7 @@ class OriginalFile(TimestampedModel):
             is_supplementary=(FileFormats.SUPPLEMENTARY in formats),
             is_merged=s3_key_info.is_merged,
             is_project_file=s3_key_info.is_project_file,
+            is_lockfile=s3_key_info.is_lockfile,
             is_downloadable=OriginalFile._is_downloadable(s3_key_info),
         )
 
@@ -114,73 +116,121 @@ class OriginalFile(TimestampedModel):
             # the bulk metadata file is downloadable, while all others are not
             return Modalities.BULK_RNA_SEQ in s3_key_info.modalities
 
+        if s3_key_info.is_lockfile:
+            return False
+
         return True
 
     @classmethod
-    def bulk_create_from_dicts(
-        cls, file_objects: List[Dict], bucket: str, sync_timestamp: datetime
-    ) -> List[Self]:
-        original_files = []
-        for file_object in file_objects:
-            if not OriginalFile.objects.filter(
-                s3_bucket=bucket, s3_key=file_object["s3_key"]
-            ).exists():
-                original_files.append(
-                    OriginalFile.get_from_dict(file_object, bucket, sync_timestamp)
-                )
+    def get_syncable_files(
+        cls, bucket_objects: List[Dict], bucket: str, sync_timestamp: datetime
+    ) -> Tuple[List[Self], List[Self]]:
+        original_files_by_project_id = defaultdict(list)
+        lockfiles = []
+        syncable_original_files = []
 
-        return OriginalFile.objects.bulk_create(original_files)
+        for bucket_object in bucket_objects:
+            original_file = cls.get_from_dict(bucket_object, bucket, sync_timestamp)
+
+            project_key = original_file.project_id
+            if not project_key:
+                # any file without a project id will be a portal wide config/metadata file
+                # which will never be locked and should always be added to the syncable list
+                syncable_original_files.append(original_file)
+                continue
+
+            original_files_by_project_id[project_key].append(original_file)
+
+            if original_file.is_lockfile:
+                lockfiles.append(original_file)
+
+        for lockfile in lockfiles:
+            del original_files_by_project_id[lockfile.project_id]
+
+        syncable_original_files.extend(
+            utils.flatten_contents([original_files_by_project_id.values(), lockfiles])
+        )
+
+        return syncable_original_files, lockfiles
 
     @classmethod
-    def bulk_update_from_dicts(
-        cls, file_objects: List[Dict], bucket: str, sync_timestamp: datetime
-    ) -> List[Self]:
+    def bulk_create(cls, original_files: List[Self]) -> List[Self]:
+        """Create and return original files that don't already exist in the db."""
+        new_original_files = []
+        for original_file in original_files:
+            if not OriginalFile.objects.filter(
+                s3_bucket=original_file.s3_bucket, s3_key=original_file.s3_key
+            ).exists():
+                new_original_files.append(original_file)
+
+        return cls.objects.bulk_create(new_original_files)
+
+    @classmethod
+    def bulk_update(cls, original_files: List[Self]) -> List[Self]:
+        """
+        Update existing original files' bucket sync timestamps, and hash-related fields
+        for any whose hash has changed. Returns only the subset of files that were modified.
+        """
         # all existing files must have their timestamps updated, at the minimum
         existing_original_files = []
         # existing files that have been modified should be collected and returned separately
         modified_original_files = []
         fields = set()
 
-        for file_object in file_objects:
+        for original_file in original_files:
             if original_instance := OriginalFile.objects.filter(
-                s3_bucket=bucket, s3_key=file_object["s3_key"]
+                s3_bucket=original_file.s3_bucket, s3_key=original_file.s3_key
             ).first():
-                if original_instance.hash != file_object["hash"]:
-                    original_instance.hash = file_object["hash"]
-                    original_instance.hash_change_at = sync_timestamp
-                    original_instance.size_in_bytes = file_object["size_in_bytes"]
+                if original_instance.hash != original_file.hash:
+                    original_instance.hash = original_file.hash
+                    original_instance.hash_change_at = original_file.hash_change_at
+                    original_instance.size_in_bytes = original_file.size_in_bytes
                     fields.update({"hash", "hash_change_at", "size_in_bytes"})
 
                     modified_original_files.append(original_instance)
 
                 # all existing objects with files still on s3 must have their timestamps updated
-                original_instance.bucket_sync_at = sync_timestamp
+                original_instance.bucket_sync_at = original_file.bucket_sync_at
                 fields.add("bucket_sync_at")
 
                 existing_original_files.append(original_instance)
 
         # check that file_objects are not all new files (bulk_update will fail with an empty list)
         if existing_original_files:
-            OriginalFile.objects.bulk_update(existing_original_files, fields)
+            cls.objects.bulk_update(existing_original_files, fields)
 
         return modified_original_files
 
-    @staticmethod
+    @classmethod
     def purge_deleted_files(
-        bucket: str, sync_timestamp: datetime, allow_bucket_wipe: bool = False
+        cls,
+        bucket: str,
+        sync_timestamp: datetime,
+        lockfile_project_ids: List[str],
+        allow_bucket_wipe: bool = False,
     ) -> List[Self]:
         """Purge all files that no longer exist on s3."""
-        # if the last_bucket_sync timestamp wasn't updated,
-        # then the file has been deleted from s3, which must be reflected in the db.
-        deletable_files = OriginalFile.objects.filter(s3_bucket=bucket).exclude(
-            bucket_sync_at=sync_timestamp
-        )
-        deletable_file_list = list(deletable_files)
+        all_bucket_files = cls.objects.filter(s3_bucket=bucket)
 
-        all_bucket_files = OriginalFile.objects.filter(s3_bucket=bucket)
+        # if the last_bucket_sync timestamp wasn't updated,
+        # and a file is not a part of a locked project,
+        # then the file has been deleted from s3, which must be reflected in the db.
+        deletable_files = (
+            all_bucket_files.filter(s3_bucket=bucket)
+            .exclude(project_id__in=lockfile_project_ids)
+            .exclude(bucket_sync_at=sync_timestamp)
+        )
+
         # if allow_bucket_wipe flag is not passed, do not allow all bucket files to be wiped
-        if set(all_bucket_files) == set(deletable_files) and not allow_bucket_wipe:
-            return []
+        if not allow_bucket_wipe:
+            if all_bucket_files.exists() and deletable_files.count() == all_bucket_files.count():
+                logger.warn(
+                    "All original files meet the constraints for purging. "
+                    "The --allow-bucket-wipe flag must be passed to enable this."
+                )
+                return []
+
+        deletable_file_list = list(deletable_files)
 
         deletable_files.delete()
         return deletable_file_list

@@ -5,9 +5,10 @@ import inspect
 import math
 import shutil
 from collections import namedtuple
+from collections.abc import Iterable
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, Iterable, List, Set, Tuple
+from typing import Any, Callable, Dict, Generator, List, Set, Tuple
 
 from django.conf import settings
 
@@ -139,6 +140,20 @@ def get_today_string(format: str = "%Y-%m-%d") -> str:
     return datetime.today().strftime(format)
 
 
+def flatten_contents(container: Iterable) -> List:
+    """Returns a flattened list from passed container of items of arbitrary depths"""
+
+    def _generator(container: Iterable):
+        for item in container:
+            # Flatten sub-containers, but protect strings and bytes from being split
+            if isinstance(item, Iterable) and not isinstance(item, (str, bytes)):
+                yield from _generator(item)
+            else:
+                yield item
+
+    return list(_generator(container))
+
+
 def filter_dict_by_keys(dictionary: Dict[str, Any], included_keys: Set[str]) -> Dict[str, Any]:
     """Returns a filtered version of the input dict according to set of included keys."""
     return {k: v for k, v in dictionary.items() if k in included_keys}
@@ -158,6 +173,26 @@ def filter_dict_list_by_keys(
             raise ValueError("Included keys must be a subset of each dictionary's key set")
 
     return [filter_dict_by_keys(dictionary, included_keys) for dictionary in list_of_dicts]
+
+
+def filter_dicts_by_value_substrings(
+    list_of_dicts: List[Dict], key: str, substrings: List[str]
+) -> List[Dict]:
+    """
+    Returns a new list of dicts which filters on all dicts in the passed list of dicts
+    with at least one substring in the value accessed by the passed key.
+    """
+    return [d for d in list_of_dicts if any(sub in d[key] for sub in substrings)]
+
+
+def exclude_dicts_by_value_substrings(
+    list_of_dicts: List[Dict], key: str, substrings: List[str]
+) -> List[Dict]:
+    """
+    Returns a new list of dicts which excludes all dicts in the passed list of dicts
+    with at least one substring in the value accessed by the passed key.
+    """
+    return [d for d in list_of_dicts if not any(sub in d[key] for sub in substrings)]
 
 
 def get_keys_from_dicts(dicts: List[Dict]) -> Set:
