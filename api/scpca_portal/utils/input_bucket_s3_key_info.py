@@ -20,6 +20,9 @@ class InputBucketS3KeyInfo:
 
     @property
     def project_id(self) -> str | None:
+        if self.project_id_part:
+            # the split is necessary to account for lockfiles
+            return self.project_id_part.split(".")[0]
         return self.project_id_part
 
     @property
@@ -42,6 +45,10 @@ class InputBucketS3KeyInfo:
     @property
     def is_merged(self) -> bool:
         return "merged" in self.s3_key_path.parts
+
+    @property
+    def is_lockfile(self) -> bool:
+        return self.s3_key_path.suffix == f".{common.LOCKFILE_FILE_SUFFIX}"
 
     @property
     def modalities(self) -> List[Modalities]:
