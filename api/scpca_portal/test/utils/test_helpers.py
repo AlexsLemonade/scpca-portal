@@ -68,15 +68,15 @@ class TestGetToday(TestCase):
 class FlattenContents(TestCase):
     def test_flat_list_remains_unchanged(self):
         input_data = [1, 2, 3, 4]
-        self.assertEqual(utils.flatten_contents(input_data), [1, 2, 3, 4])
+        self.assertEqual([1, 2, 3, 4], utils.flatten_contents(input_data))
 
     def test_nested_list_flattening(self):
         input_data = [1, [2, [3, [4, [5]]]]]
-        self.assertEqual(utils.flatten_contents(input_data), [1, 2, 3, 4, 5])
+        self.assertEqual([1, 2, 3, 4, 5], utils.flatten_contents(input_data))
 
     def test_string_and_bytes_protection(self):
         input_data = ["hello", ["world", b"bytes_data"]]
-        self.assertEqual(utils.flatten_contents(input_data), ["hello", "world", b"bytes_data"])
+        self.assertEqual(["hello", "world", b"bytes_data"], utils.flatten_contents(input_data))
 
 
 class TestFilterDictListByKeys(TestCase):
@@ -142,7 +142,7 @@ class TestFilterDictsByValueSubstrings(TestCase):
         ]
         actual_result = utils.filter_dicts_by_value_substrings(list_of_dicts, key, substrings)
 
-        self.assertEqual(actual_result, expected_result)
+        self.assertEqual(expected_result, actual_result)
 
 
 class TestExcludeDictsByValueSubstrings(TestCase):
@@ -158,7 +158,7 @@ class TestExcludeDictsByValueSubstrings(TestCase):
         expected_result = [{"name": "chicken soup", "type": "meal"}]
         actual_result = utils.exclude_dicts_by_value_substrings(list_of_dicts, key, substrings)
 
-        self.assertEqual(actual_result, expected_result)
+        self.assertEqual(expected_result, actual_result)
 
 
 class TestGetKeysFromDicts(TestCase):
