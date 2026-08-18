@@ -84,6 +84,7 @@ class TestSyncOriginalFiles(TestCase):
 
         self.empty_objects_list = []
 
+    # TODO: remove batch before feature branch is merged in
     @patch("scpca_portal.lockfile.get_locked_project_ids", return_value=[])
     def test_sync_original_files(self, _):
         # TEST ORIGINAL FILE CREATION
@@ -159,6 +160,7 @@ class TestSyncOriginalFiles(TestCase):
         }
 
         # TEST LOCKING - locked project's files are excluded, but its lockfile still syncs
+        # TODO: remove batch before feature branch is merged in
         with patch(
             "scpca_portal.lockfile.get_locked_project_ids", return_value=[locked_project_id]
         ):
@@ -174,6 +176,7 @@ class TestSyncOriginalFiles(TestCase):
         )
 
         # TEST UNLOCKING - lockfile removed, project's files now sync normally
+        # TODO: remove batch before feature branch is merged in
         with patch("scpca_portal.lockfile.get_locked_project_ids", return_value=[]):
             with patch("scpca_portal.s3.list_bucket_objects", return_value=[locked_project_file]):
                 self.sync_original_files()
