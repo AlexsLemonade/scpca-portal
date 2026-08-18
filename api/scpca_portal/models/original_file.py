@@ -127,11 +127,18 @@ class OriginalFile(TimestampedModel):
     ) -> Tuple[List[Self], List[Self]]:
         original_files_by_project_id = defaultdict(list)
         lockfiles = []
+        syncable_original_files = []
 
         for bucket_object in bucket_objects:
             original_file = cls.get_from_dict(bucket_object, bucket, sync_timestamp)
 
-            project_key = original_file.project_id if original_file.project_id else "portal-wide"
+            project_key = original_file.project_id
+            if not project_key:
+                # any file without a project id will be a portal wide config/metadata file
+                # which will never be locked and should always be added to the syncable list
+                syncable_original_files.append(original_file)
+                continue
+
             original_files_by_project_id[project_key].append(original_file)
 
             if original_file.is_lockfile:
@@ -140,45 +147,50 @@ class OriginalFile(TimestampedModel):
         for lockfile in lockfiles:
             del original_files_by_project_id[lockfile.project_id]
 
-        syncable_original_files = utils.flatten_contents(
-            [original_files_by_project_id.values(), lockfiles]
+        syncable_original_files.extend(
+            utils.flatten_contents([original_files_by_project_id.values(), lockfiles])
         )
 
         return syncable_original_files, lockfiles
 
     @classmethod
-    def bulk_create(cls, syncable_original_files: List[Self]) -> List[Self]:
+    def bulk_create(cls, original_files: List[Self]) -> List[Self]:
+        """Create and return original files that don't already exist in the db."""
         new_original_files = []
-        for syncable_original_file in syncable_original_files:
+        for original_file in original_files:
             if not OriginalFile.objects.filter(
-                s3_bucket=syncable_original_file.s3_bucket, s3_key=syncable_original_file.s3_key
+                s3_bucket=original_file.s3_bucket, s3_key=original_file.s3_key
             ).exists():
-                new_original_files.append(syncable_original_file)
+                new_original_files.append(original_file)
 
         return cls.objects.bulk_create(new_original_files)
 
     @classmethod
-    def bulk_update(cls, syncable_original_files: List[Self]) -> List[Self]:
+    def bulk_update(cls, original_files: List[Self]) -> List[Self]:
+        """
+        Update existing original files' bucket sync timestamps, and hash-related fields
+        for any whose hash has changed. Returns only the subset of files that were modified.
+        """
         # all existing files must have their timestamps updated, at the minimum
         existing_original_files = []
         # existing files that have been modified should be collected and returned separately
         modified_original_files = []
         fields = set()
 
-        for syncable_original_file in syncable_original_files:
+        for original_file in original_files:
             if original_instance := OriginalFile.objects.filter(
-                s3_bucket=syncable_original_file.s3_bucket, s3_key=syncable_original_file.s3_key
+                s3_bucket=original_file.s3_bucket, s3_key=original_file.s3_key
             ).first():
-                if original_instance.hash != syncable_original_file.hash:
-                    original_instance.hash = syncable_original_file.hash
-                    original_instance.hash_change_at = syncable_original_file.hash_change_at
-                    original_instance.size_in_bytes = syncable_original_file.size_in_bytes
+                if original_instance.hash != original_file.hash:
+                    original_instance.hash = original_file.hash
+                    original_instance.hash_change_at = original_file.hash_change_at
+                    original_instance.size_in_bytes = original_file.size_in_bytes
                     fields.update({"hash", "hash_change_at", "size_in_bytes"})
 
                     modified_original_files.append(original_instance)
 
                 # all existing objects with files still on s3 must have their timestamps updated
-                original_instance.bucket_sync_at = syncable_original_file.bucket_sync_at
+                original_instance.bucket_sync_at = original_file.bucket_sync_at
                 fields.add("bucket_sync_at")
 
                 existing_original_files.append(original_instance)
@@ -212,7 +224,7 @@ class OriginalFile(TimestampedModel):
         # if allow_bucket_wipe flag is not passed, do not allow all bucket files to be wiped
         if not allow_bucket_wipe:
             if all_bucket_files.exists() and deletable_files.count() == all_bucket_files.count():
-                logger.info(
+                logger.warn(
                     "All original files meet the constraints for purging. "
                     "The --allow-bucket-wipe flag must be passed to enable this."
                 )
