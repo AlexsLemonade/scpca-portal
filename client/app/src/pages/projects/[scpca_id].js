@@ -22,7 +22,7 @@ import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAcces
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 
-const Project = ({ project, ccdlDatasets }) => {
+const Project = ({ project, ccdlDatasets, ccdlName }) => {
   const { myDataset, getMyDatasetProjectDataSamples } = useMyDataset()
   const { responsive } = useResponsive()
 
@@ -60,6 +60,7 @@ const Project = ({ project, ccdlDatasets }) => {
         <CCDLDatasetDownloadModalContextProvider
           project={project}
           datasets={ccdlDataDatasets}
+          ccdlName={ccdlName}
         >
           <ProjectHeader project={project} />
         </CCDLDatasetDownloadModalContextProvider>
@@ -218,14 +219,16 @@ const Project = ({ project, ccdlDatasets }) => {
   )
 }
 
-export const getServerSideProps = async ({ query: projectQuery }) => {
+export const getServerSideProps = async ({ query }) => {
+  const { ccdl_name: ccdlName = null, scpca_id: projectId } = query
+
   const ccdlDatasetQuery = {
-    ccdl_project_id: projectQuery.scpca_id,
+    ccdl_project_id: projectId,
     limit: 100
   }
 
   const [projectRequest, ccdlDatasetRequest] = await Promise.all([
-    api.projects.get(projectQuery.scpca_id),
+    api.projects.get(projectId),
     api.ccdlDatasets.list(ccdlDatasetQuery)
   ])
 
@@ -233,7 +236,7 @@ export const getServerSideProps = async ({ query: projectQuery }) => {
     const project = projectRequest.response
     const { results: ccdlDatasets } = ccdlDatasetRequest.response
     return {
-      props: { project, ccdlDatasets }
+      props: { project, ccdlDatasets, ccdlName }
     }
   }
 
@@ -241,7 +244,13 @@ export const getServerSideProps = async ({ query: projectQuery }) => {
     return { notFound: true }
   }
 
-  return { props: { project: null, ccdlDatasets: null } }
+  return {
+    props: {
+      project: null,
+      ccdlDatasets: null,
+      ccdlName
+    }
+  }
 }
 
 export default Project
