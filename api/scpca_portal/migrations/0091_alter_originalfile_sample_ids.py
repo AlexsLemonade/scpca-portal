@@ -7,7 +7,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ("scpca_portal", "0089_library_loaded_at_library_loaded_hash_and_more"),
+        ("scpca_portal", "0090_originalfile_is_lockfile"),
     ]
 
     operations = [
