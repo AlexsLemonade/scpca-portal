@@ -14,7 +14,8 @@ logger = get_and_configure_logger(__name__)
 
 class Command(BaseCommand):
     help = """
-    Mark already-expired datasets as expired, and clean up the corresponding computed files.
+    - Backfill expires_at timestamp if missing
+    - Mark already-expired datasets as EXPIRED and clean up the corresponding computed files.
     NOTE: This is a housekeeping command, used specifically for datasets generated
     before tagging S3 objects.
     """
@@ -30,30 +31,33 @@ class Command(BaseCommand):
             return
 
         now = make_aware(datetime.now())
-        updated_fields = set()
-        updated_datasets = []
+        buffer = timedelta(days=1)  # expires_at + 1 day
+
+        backfilled_timestamps = []
+        marked_expired = []
 
         for dataset in datasets:
-            # Populate the timestamp
+            expires_at = dataset.expiration_delta
+
+            # Backfill missing timestamps
             if dataset.expires_at is None:
-                dataset.expires_at = dataset.expiration_delta
-                updated_fields.add("expires_at")
-            # Clean up the legacy resources and mark as expired
-            # 8-day expiration via S3 Lifecycle policy + 1 day
-            if dataset.expiration_delta + timedelta(days=2) <= now:
+                dataset.expires_at = expires_at
+                backfilled_timestamps.append(dataset)
+
+            # Mark expired dataset
+            if expires_at + buffer <= now:
                 dataset.state = DatasetStates.EXPIRED
-                updated_fields.add("state")
+                marked_expired.append(dataset)
+                # Clean up the corresponding computed file
                 if computed_file := dataset.computed_file:
                     computed_file.purge(delete_from_s3=True)
 
-            updated_datasets.append(dataset)
+        if backfilled_timestamps:
+            UserDataset.objects.bulk_update(backfilled_timestamps, ["expires_at"])
 
-        if updated_fields:
-            UserDataset.objects.bulk_update(updated_datasets, list(updated_fields))
-
-        if deleted_count := len(
-            [dataset for dataset in updated_datasets if dataset.state == DatasetStates.EXPIRED]
-        ):
+        if marked_expired:
+            UserDataset.objects.bulk_update(marked_expired, ["state"])
+            deleted_count = len(marked_expired)
             logger.info(f"Cleaned up {deleted_count} dataset{pluralize(deleted_count)}.")
         else:
             logger.info("No datasets to clean up.")
