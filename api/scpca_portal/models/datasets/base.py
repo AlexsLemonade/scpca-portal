@@ -530,10 +530,14 @@ class DatasetABC(TimestampedModel, models.Model):
             return None
 
         match job.state:
+            # Both PENDING and PROCESSING (post-batch) map to
+            # Dataset's PROCESSING for the Portal UI
             case JobStates.PENDING | JobStates.PROCESSING:
                 self.state = DatasetStates.PROCESSING
             case JobStates.SUCCEEDED:
                 self.state = DatasetStates.SUCCEEDED
+            # Both FAILED and TERMINATED map to Dataset's FAILED
+            # indicating the job failed
             case JobStates.FAILED | JobStates.TERMINATED:
                 self.state = DatasetStates.FAILED
 
@@ -548,6 +552,8 @@ class DatasetABC(TimestampedModel, models.Model):
         """
         Syncs dataset states with the latest state of the given jobs.
         Optionally saves the datasets.
+        NOTE: Since the given jobs may include both CCDL and user dataset types,
+        they are grouped by class to perform bulk update per table.
         """
         STATE_UPDATE_ATTRS = ["state", "expires_at"]
 
