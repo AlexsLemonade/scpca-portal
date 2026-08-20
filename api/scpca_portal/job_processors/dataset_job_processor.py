@@ -88,7 +88,7 @@ class DatasetJobProcessor(JobProcessorABC):
 
     def handle_tag_failure(self, step: str, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
-        logger.info("Send Slack notification for manual tagging.")
+        logger.info("Sending Slack notification for manual tagging.")
         notifications.send_slack_notification(self.job)
 
     def upload_new_computed_file(self) -> None:
