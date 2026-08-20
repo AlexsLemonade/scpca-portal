@@ -59,9 +59,31 @@ class TestReadmeFileContents(TestCase):
         )
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT(self):
+        # Dataset containing the project with no multiplexed samples
         expected_file_path = (
             README_ROOT / f"{CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT}.md"
         )
+        expected_values = test_data.CCDLDatasetSingleCellSingleCellExperimentMergedSCPCP999990
+
+        dataset, _ = CCDLDataset.get_or_find(
+            expected_values.CCDL_NAME, project_id=expected_values.PROJECT_ID
+        )
+        dataset.save()
+
+        result_content = get_file_contents_dataset(dataset)
+
+        self.assertReadmeContents(
+            expected_file_path,
+            result_content,
+        )
+
+    def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED(self):
+        # This test uses a one-off, non-CCDLDatasetNames README filename to test
+        # a dataset with multiplexed samples
+        #
+        # NOTE: Dataset containing the project with multiplexed samples maps to
+        # CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT in production
+        expected_file_path = README_ROOT / "SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MULTIPLEXED.md"
         expected_values = test_data.CCDLDatasetSingleCellSingleCellExperiment
 
         dataset, _ = CCDLDataset.get_or_find(expected_values.CCDL_NAME)
@@ -75,6 +97,7 @@ class TestReadmeFileContents(TestCase):
         )
 
     def test_readme_file_SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED(self):
+        # Dataset containing the project excluding multiplexed samples
         expected_file_path = (
             README_ROOT / f"{CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED}.md"
         )
