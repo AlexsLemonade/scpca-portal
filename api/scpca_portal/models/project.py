@@ -65,6 +65,9 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     external_accessions = models.ManyToManyField(ExternalAccession)
     publications = models.ManyToManyField(Publication)
 
+    SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_project_id"
+    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY = "project_id"
+
     def __str__(self) -> str:
         return f"Project {self.scpca_id}"
 
@@ -190,14 +193,13 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         return OriginalFile.objects.filter(is_metadata=True, project_id=None, s3_bucket=bucket)
 
     @classmethod
-    def get_metadata_dicts_by_id(
-        cls, *, resources: QuerySet[LoadableResourceABC] | None = None
-    ) -> Dict[str, Dict]:
-        kwargs = {}
-        if resources:
-            kwargs["project_ids"] = set(resources.values_list("scpca_id", flat=True))
-        projects_metadata = metadata_parser.load_all_projects_metadata(**kwargs)
-        return {md["scpca_project_id"]: md for md in projects_metadata}
+    def load_all_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] | None = None
+    ) -> List[Dict]:
+        projects_metadata_file = metadata_files.first()
+        return metadata_parser.load_all_projects_metadata(
+            projects_metadata_file, filter_on_ids=filter_on_ids
+        )
 
     # TODO: remove before loadable resource feature branch lands
     def load_metadata(self) -> None:

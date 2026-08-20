@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Self
+from typing import TYPE_CHECKING, Dict, List, Self, Set
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -29,6 +29,9 @@ class Library(LoadableResourceABC):
     workflow_version = models.TextField()
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="libraries")
+
+    SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_library_id"
+    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY = "library_id"
 
     def __str__(self) -> str:
         return f"Library {self.scpca_id}"
@@ -131,14 +134,17 @@ class Library(LoadableResourceABC):
         return all_input_library_metadata_files | all_input_project_bulk_metadata_files
 
     @classmethod
-    def get_metadata_dicts_by_id(
-        cls, *, resources: QuerySet[LoadableResourceABC] | None = None
-    ) -> Dict[str, Dict]:
-        kwargs = {}
-        if resources:
-            kwargs["library_ids"] = set(resources.values_list("scpca_id", flat=True))
-        libraries_metadata = metadata_parser.load_all_libraries_metadata_with_bulk(**kwargs)
-        return {md["scpca_library_id"]: md for md in libraries_metadata}
+    def load_all_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] | None = None
+    ) -> List[Dict]:
+        libraries_metadata_files = metadata_files.filter(library_id__isnull=False)
+        bulk_libraries_metadata_files = metadata_files.filter(is_bulk=True)
+
+        return metadata_parser.load_all_libraries_metadata(
+            libraries_metadata_files, filter_on_ids=filter_on_ids
+        ) + metadata_parser.load_all_bulk_libraries_metadata(
+            bulk_libraries_metadata_files, filter_on_ids=filter_on_ids
+        )
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod

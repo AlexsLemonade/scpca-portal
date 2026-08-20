@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, List, Self
+from typing import TYPE_CHECKING, Dict, List, Self, Set
 
 from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
@@ -49,6 +49,9 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="samples")
     libraries = models.ManyToManyField(Library, related_name="samples")
+
+    SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_sample_id"
+    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY = "sample_id"
 
     def __str__(self) -> str:
         return f"Sample {self.scpca_id} of {self.project}"
@@ -124,14 +127,12 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         )
 
     @classmethod
-    def get_metadata_dicts_by_id(
-        cls, *, resources: QuerySet[LoadableResourceABC] | None = None
-    ) -> Dict[str, Dict]:
-        kwargs = {}
-        if resources:
-            kwargs["sample_ids"] = set(resources.values_list("scpca_id", flat=True))
-        samples_metadata = metadata_parser.load_all_samples_metadata(**kwargs)
-        return {md["scpca_sample_id"]: md for md in samples_metadata}
+    def load_all_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] | None = None
+    ) -> List[Dict]:
+        return metadata_parser.load_all_samples_metadata(
+            metadata_files, filter_on_ids=filter_on_ids
+        )
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod
@@ -287,6 +288,10 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         ) | set(metadata_dicts_by_ids.keys())
 
         cls.objects.exclude(scpca_id__in=existing_sample_ids).delete()
+
+    @classmethod
+    def get_original_file_filter_on_kwargs(cls, filter_on_ids: List) -> Dict:
+        return {f"{cls.SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY}__overlap": filter_on_ids}
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:

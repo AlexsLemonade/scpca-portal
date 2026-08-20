@@ -1,6 +1,6 @@
 from abc import abstractmethod
 from datetime import datetime, timedelta
-from typing import Any, Dict, Iterable, List
+from typing import Any, Dict, Iterable, List, Set
 
 from django.db import models
 from django.db.models import QuerySet
@@ -30,6 +30,9 @@ class LoadableResourceABC(TimestampedModel):
     loaded_hash = models.CharField(max_length=32, null=True)
     metadata_hash = models.CharField(max_length=32, null=True)
     combined_hash = models.CharField(max_length=32, null=True)
+
+    SCPCA_RESOURCE_METADATA_ID_KEY: str
+    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY: str
 
     @abstractmethod
     def update_from_dict(self, data: Dict) -> Self:
@@ -121,11 +124,42 @@ class LoadableResourceABC(TimestampedModel):
         s3.download_files(cls.get_all_input_metadata_files())
 
     @classmethod
+    def get_original_file_filter_on_kwargs(cls, filter_on_ids: Set) -> Dict:
+        return {f"{cls.SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY}__in": filter_on_ids}
+
+    @staticmethod
     @abstractmethod
-    def get_metadata_dicts_by_id(
-        cls, *, resources: QuerySet[Self] | None = None
-    ) -> Dict[str, Dict]:
+    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
         pass
+
+    @classmethod
+    @abstractmethod
+    def load_all_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: List[str]
+    ) -> List[Dict]:
+        pass
+
+    @classmethod
+    def get_metadata_dicts_by_id(
+        cls, *, resources: QuerySet[Self] | None = None, skip_existing_file_download: bool = False
+    ) -> Dict[str, Dict]:
+        kwargs = {}
+        all_resource_metadata_files = cls.get_all_input_metadata_files()
+
+        if resources:
+            kwargs["filter_on_ids"] = set(resources.values_list("scpca_id", flat=True))
+            all_resource_metadata_files.filter(
+                **cls.get_original_file_filter_on_kwargs(kwargs["filter_on_ids"])
+            )
+
+        downloadable_files = OriginalFile.objects.filter(id__in=all_resource_metadata_files)
+        if skip_existing_file_download:
+            existing_file_ids = [df.id for df in downloadable_files if df.local_file_path.exists()]
+            downloadable_files = downloadable_files.exclude(id__in=existing_file_ids)
+        s3.download_files(downloadable_files)
+
+        all_resource_metadata = cls.load_all_metadata(all_resource_metadata_files, **kwargs)
+        return {md[cls.SCPCA_RESOURCE_METADATA_ID_KEY]: md for md in all_resource_metadata}
 
     @classmethod
     def sync_metadata(cls) -> None:
@@ -173,11 +207,6 @@ class LoadableResourceABC(TimestampedModel):
     @classmethod
     @abstractmethod
     def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
         pass
 
     @classmethod
