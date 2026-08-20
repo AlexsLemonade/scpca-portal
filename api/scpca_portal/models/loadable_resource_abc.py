@@ -201,12 +201,12 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     @abstractmethod
-    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         pass
 
     @classmethod
     @abstractmethod
-    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, dict]:
         pass
 
     @classmethod

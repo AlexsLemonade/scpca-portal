@@ -215,7 +215,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         self.update_project_summaries_aggregate_properties()
 
     @classmethod
-    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         existing_project_ids = cls.objects.values_list("scpca_id", flat=True)
         new_original_file_project_ids = set(
             OriginalFile.objects.exclude(project_id__isnull=True)
@@ -227,22 +227,20 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         new_project_ids = new_original_file_project_ids | new_metadata_ids
 
         if not new_project_ids:
-            return
+            return []
 
         new_projects = [cls(scpca_id=new_project_id) for new_project_id in new_project_ids]
-        cls.objects.bulk_create(new_projects)
+        return cls.objects.bulk_create(new_projects)
 
     @classmethod
-    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
-        # TODO: What type of cleanup or notification is necessary
-        # to alert datasets who's underlying data has been mutated?
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, dict]:
         existing_project_ids = set(
             OriginalFile.objects.exclude(project_id__isnull=True).values_list(
                 "project_id", flat=True
             )
         ) | set(metadata_dicts_by_ids.keys())
 
-        cls.objects.exclude(scpca_id__in=existing_project_ids).delete()
+        return cls.objects.exclude(scpca_id__in=existing_project_ids).delete()
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:

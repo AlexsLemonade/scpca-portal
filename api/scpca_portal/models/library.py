@@ -190,7 +190,7 @@ class Library(LoadableResourceABC):
             Library.load_bulk_metadata(project)
 
     @classmethod
-    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         existing_library_ids = set(cls.objects.values_list("scpca_id", flat=True))
         new_library_sample_project_id_tuples = set(
             OriginalFile.objects.exclude(library_id__isnull=True)
@@ -210,7 +210,7 @@ class Library(LoadableResourceABC):
         )
 
         if not new_library_sample_project_id_tuples:
-            return
+            return []
 
         # Resolve Project via the FK's related_model
         # to avoid a circular import (Project already imports Library)
@@ -240,16 +240,17 @@ class Library(LoadableResourceABC):
             library_samples = [samples_by_id[sample_id] for sample_id in sample_ids]
             libraries_by_id[library_id].samples.add(*library_samples)
 
+        return new_libraries
+
     @classmethod
-    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
-        # TODO: before merging feature into dev: need to clarify mechanism to alert user datasets
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, dict]:
         existing_library_ids = set(
             OriginalFile.objects.exclude(library_id__isnull=True).values_list(
                 "library_id", flat=True
             )
         ) | set(metadata_dicts_by_ids.keys())
 
-        cls.objects.exclude(scpca_id__in=existing_library_ids).delete()
+        return cls.objects.exclude(scpca_id__in=existing_library_ids).delete()
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:

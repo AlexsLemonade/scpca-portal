@@ -242,7 +242,7 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_update(updated_samples, updated_attrs)
 
     @classmethod
-    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         existing_sample_ids = set(cls.objects.values_list("scpca_id", flat=True))
         new_original_file_sample_project_id_pairs = set(
             OriginalFile.objects.exclude(sample_ids=[])
@@ -263,7 +263,7 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         )
 
         if not new_sample_project_id_pairs:
-            return
+            return []
 
         # Resolve Project via the FK's related_model
         # to avoid a circular import (Project already imports Sample)
@@ -276,10 +276,10 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             cls(scpca_id=new_sample_id, project=projects_by_id[project_id])
             for new_sample_id, project_id in new_sample_project_id_pairs
         ]
-        cls.objects.bulk_create(new_samples)
+        return cls.objects.bulk_create(new_samples)
 
     @classmethod
-    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, dict]:
         # TODO: before merging into dev: do we need to clarify mechanism to alert user datasets?
         existing_sample_ids = set(
             OriginalFile.objects.exclude(sample_ids=[])
@@ -287,10 +287,10 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             .values_list("sample_id", flat=True)
         ) | set(metadata_dicts_by_ids.keys())
 
-        cls.objects.exclude(scpca_id__in=existing_sample_ids).delete()
+        return cls.objects.exclude(scpca_id__in=existing_sample_ids).delete()
 
     @classmethod
-    def get_original_file_filter_on_kwargs(cls, filter_on_ids: List) -> Dict:
+    def get_original_file_filter_on_kwargs(cls, filter_on_ids: Set) -> Dict:
         return {f"{cls.SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY}__overlap": filter_on_ids}
 
     @staticmethod
