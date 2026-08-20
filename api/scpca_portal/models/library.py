@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Dict, List, Self
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
@@ -113,8 +114,21 @@ class Library(LoadableResourceABC):
         sample.libraries.add(*libraries)
 
     @classmethod
-    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
-        return OriginalFile.get_all_input_library_metadata_files_with_bulk()
+    def get_all_input_metadata_files(
+        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    ) -> QuerySet[OriginalFile]:
+        all_input_library_metadata_files = OriginalFile.objects.filter(
+            is_metadata=True,
+            project_id__isnull=False,
+            library_id__isnull=False,
+            s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
+            s3_bucket=bucket,
+        )
+        all_input_project_bulk_metadata_files = OriginalFile.objects.filter(
+            is_metadata=True, is_bulk=True, project_id__isnull=False, s3_bucket=bucket
+        )
+
+        return all_input_library_metadata_files | all_input_project_bulk_metadata_files
 
     @classmethod
     def get_metadata_dicts_by_id(

@@ -184,8 +184,10 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         return bulk_rna_seq_sample_ids
 
     @classmethod
-    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
-        return OriginalFile.get_all_input_projects_metadata_files()
+    def get_all_input_metadata_files(
+        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    ) -> QuerySet[OriginalFile]:
+        return OriginalFile.objects.filter(is_metadata=True, project_id=None, s3_bucket=bucket)
 
     @classmethod
     def get_metadata_dicts_by_id(

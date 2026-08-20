@@ -1,5 +1,6 @@
 from typing import TYPE_CHECKING, Dict, List, Self
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import F, Func, QuerySet
@@ -108,8 +109,19 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_create(samples)
 
     @classmethod
-    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
-        return OriginalFile.get_all_input_samples_metadata_files()
+    def get_all_input_metadata_files(
+        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    ) -> QuerySet[OriginalFile]:
+        return OriginalFile.objects.filter(
+            is_metadata=True,
+            # this comes to exclude bulk metadata files,
+            # though bulk samples exist in the samples metadata files
+            is_bulk=False,
+            project_id__isnull=False,
+            sample_ids=[],
+            library_id__isnull=True,
+            s3_bucket=bucket,
+        )
 
     @classmethod
     def get_metadata_dicts_by_id(

@@ -293,18 +293,14 @@ class OriginalFile(TimestampedModel):
 
         return bucket_paths
 
+    # TODO: remove before feature branch is merged in
     @classmethod
     def get_input_projects_metadata_file(
         cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
     ) -> Self | None:
         return cls.objects.filter(is_metadata=True, project_id=None, s3_bucket=bucket).first()
 
-    @classmethod
-    def get_all_input_projects_metadata_files(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
-    ) -> QuerySet[Self]:
-        return cls.objects.filter(is_metadata=True, project_id=None, s3_bucket=bucket)
-
+    # TODO: remove before feature branch is merged in
     @classmethod
     def get_input_samples_metadata_file(
         cls, project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
@@ -320,21 +316,7 @@ class OriginalFile(TimestampedModel):
             s3_bucket=bucket,
         ).first()
 
-    @classmethod
-    def get_all_input_samples_metadata_files(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
-    ) -> QuerySet[Self]:
-        return cls.objects.filter(
-            is_metadata=True,
-            # this comes to exclude bulk metadata files,
-            # though bulk samples exist in the samples metadata files
-            is_bulk=False,
-            project_id__isnull=False,
-            sample_ids=[],
-            library_id__isnull=True,
-            s3_bucket=bucket,
-        )
-
+    # TODO: remove before feature branch is merged in
     @classmethod
     def get_input_library_metadata_files(
         cls, project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
@@ -347,18 +329,7 @@ class OriginalFile(TimestampedModel):
             s3_bucket=bucket,
         )
 
-    @classmethod
-    def get_all_input_library_metadata_files(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
-    ) -> QuerySet[Self]:
-        return cls.objects.filter(
-            is_metadata=True,
-            project_id__isnull=False,
-            library_id__isnull=False,
-            s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
-            s3_bucket=bucket,
-        )
-
+    # TODO: remove before feature branch is merged in
     @classmethod
     def get_input_project_bulk_metadata_file(
         cls, project_id, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
@@ -366,19 +337,3 @@ class OriginalFile(TimestampedModel):
         return cls.objects.filter(
             is_metadata=True, is_bulk=True, project_id=project_id, s3_bucket=bucket
         ).first()
-
-    @classmethod
-    def get_all_input_project_bulk_metadata_files(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
-    ) -> QuerySet[Self]:
-        return cls.objects.filter(
-            is_metadata=True, is_bulk=True, project_id__isnull=False, s3_bucket=bucket
-        )
-
-    @classmethod
-    def get_all_input_library_metadata_files_with_bulk(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
-    ) -> QuerySet[Self]:
-        return cls.get_all_input_library_metadata_files(
-            bucket=bucket
-        ) | cls.get_all_input_project_bulk_metadata_files(bucket=bucket)
