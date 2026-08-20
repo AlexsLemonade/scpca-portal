@@ -14,8 +14,7 @@ logger = get_and_configure_logger(__name__)
 
 class Command(BaseCommand):
     help = """
-    - Backfill expires_at timestamp if missing
-    - Mark already-expired datasets as EXPIRED and clean up the corresponding computed files.
+    Mark already-expired datasets as EXPIRED and clean up the corresponding computed files.
     NOTE: This is a housekeeping command, used specifically for datasets generated
     before tagging S3 objects.
     """
@@ -33,31 +32,19 @@ class Command(BaseCommand):
         now = make_aware(datetime.now())
         buffer = timedelta(days=1)  # expires_at + 1 day
 
-        backfilled_timestamps = []
-        marked_expired = []
+        updated_datasets = []
 
         for dataset in datasets:
-            expires_at = dataset.expiration_delta
-
-            # Backfill missing timestamps
-            if dataset.expires_at is None:
-                dataset.expires_at = expires_at
-                backfilled_timestamps.append(dataset)
-
-            # Mark expired dataset
-            if expires_at + buffer <= now:
+            if dataset.expiration_delta + buffer <= now:
                 dataset.state = DatasetStates.EXPIRED
-                marked_expired.append(dataset)
+                updated_datasets.append(dataset)
                 # Clean up the corresponding computed file
                 if computed_file := dataset.computed_file:
                     computed_file.purge(delete_from_s3=True)
 
-        if backfilled_timestamps:
-            UserDataset.objects.bulk_update(backfilled_timestamps, ["expires_at"])
-
-        if marked_expired:
-            UserDataset.objects.bulk_update(marked_expired, ["state"])
-            deleted_count = len(marked_expired)
-            logger.info(f"Cleaned up {deleted_count} dataset{pluralize(deleted_count)}.")
+        if updated_datasets:
+            UserDataset.objects.bulk_update(updated_datasets, ["state"])
+            updated_count = len(updated_datasets)
+            logger.info(f"Cleaned up {updated_count} dataset{pluralize(updated_count)}.")
         else:
             logger.info("No datasets to clean up.")
