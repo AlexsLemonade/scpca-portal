@@ -202,6 +202,15 @@ class LoadableResourceABC(TimestampedModel):
     @classmethod
     @abstractmethod
     def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
+        """
+        New objects are bulk created and returned, with fk and many to many relations established.
+
+        New objects are determined by subtracting all existing resource ids
+        from the list of resource ids in the related metadata files.
+        An Original Files check is not enough in this scenario,
+        as there are resources that need to be synced and whose metadata exists
+        but who do not yet have Original Files associated with them.
+        """
         pass
 
     @classmethod

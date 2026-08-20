@@ -192,51 +192,44 @@ class Library(LoadableResourceABC):
     @classmethod
     def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         existing_library_ids = set(cls.objects.values_list("scpca_id", flat=True))
-        new_library_sample_project_id_tuples = set(
-            OriginalFile.objects.exclude(library_id__isnull=True)
-            .exclude(library_id__in=existing_library_ids)
-            .values_list("library_id", "sample_ids", "project_id")
-            .distinct()
-        )
-        new_metadata_library_sample_project_id_tuples = set(
+        new_project_sample_library_id_tuples = set(
             (library_id, sample_id, project_id)
             for project_id, sample_id, library_id in cls.get_metadata_id_tuples(
                 metadata_dicts_by_ids.values()
             )
             if library_id not in existing_library_ids
         )
-        new_library_sample_project_id_tuples = (
-            new_library_sample_project_id_tuples | new_metadata_library_sample_project_id_tuples
-        )
 
-        if not new_library_sample_project_id_tuples:
+        if not new_project_sample_library_id_tuples:
             return []
 
         # Resolve Project via the FK's related_model
         # to avoid a circular import (Project already imports Library)
         Project = cls._meta.get_field("project").related_model
         projects_by_id = Project.objects.in_bulk(
-            [project_id for _, _, project_id in new_library_sample_project_id_tuples],
+            [project_id for project_id, _, _ in new_project_sample_library_id_tuples],
             field_name="scpca_id",
         )
-
-        new_libraries = cls.objects.bulk_create(
-            cls(scpca_id=new_library_id, project=projects_by_id[project_id])
-            for new_library_id, sample_ids, project_id in new_library_sample_project_id_tuples
-        )
-        libraries_by_id = {library.scpca_id: library for library in new_libraries}
 
         # Resolve Sample via the many-to-many's related_model
         # to avoid a circular import (Sample already imports Library)
         Sample = cls._meta.get_field("samples").related_model
         associated_sample_ids = {
             sample_id
-            for _, sample_ids, _ in new_library_sample_project_id_tuples
+            for _, sample_ids, _ in new_project_sample_library_id_tuples
             for sample_id in sample_ids
         }
         samples_by_id = Sample.objects.in_bulk(associated_sample_ids, field_name="scpca_id")
 
-        for library_id, sample_ids, _ in new_library_sample_project_id_tuples:
+        # Create new libraries
+        new_libraries = cls.objects.bulk_create(
+            cls(scpca_id=new_library_id, project=projects_by_id[project_id])
+            for project_id, sample_ids, new_library_id in new_project_sample_library_id_tuples
+        )
+        libraries_by_id = {library.scpca_id: library for library in new_libraries}
+
+        # Estalish many-to-many relationships with related samples
+        for _, sample_ids, library_id in new_project_sample_library_id_tuples:
             library_samples = [samples_by_id[sample_id] for sample_id in sample_ids]
             libraries_by_id[library_id].samples.add(*library_samples)
 

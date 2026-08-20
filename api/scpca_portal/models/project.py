@@ -217,14 +217,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     @classmethod
     def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         existing_project_ids = cls.objects.values_list("scpca_id", flat=True)
-        new_original_file_project_ids = set(
-            OriginalFile.objects.exclude(project_id__isnull=True)
-            .exclude(project_id__in=existing_project_ids)
-            .values_list("project_id", flat=True)
-            .distinct()
-        )
-        new_metadata_ids = set(metadata_dicts_by_ids.keys()) - set(existing_project_ids)
-        new_project_ids = new_original_file_project_ids | new_metadata_ids
+        new_project_ids = set(metadata_dicts_by_ids.keys()) - set(existing_project_ids)
 
         if not new_project_ids:
             return []
