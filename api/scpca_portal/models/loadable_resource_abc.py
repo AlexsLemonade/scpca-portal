@@ -219,48 +219,46 @@ class LoadableResourceABC(TimestampedModel):
         pass
 
     @classmethod
-    def handle_locked_objects(cls) -> None:
+    def taint_and_lock_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
         """
-        This method handles two independent actions:
+        This method handles three independent actions:
         1. Locking resources who's projects are associated with a lockfile in the OF table
-        2. Unlocking projects that were previously in a locked state
-        but who's project's lockfile has since been removed.
-
-        Unlocked existing projects are moved to a SYCNED state, while
-        unlocked new projects are moved to a NEW state.
+        2. Reverting the state of unlocked unloaded resources back to NEW
+        3. Determining whether unlocked loaded resources have been tainted since being locked.
+            If so setting their state to TAINTED, and if not resetting their state to SYNCED.
         """
         lockfile_project_ids = list(
             OriginalFile.objects.filter(is_lockfile=True).values_list("project_id", flat=True)
         )
 
-        unlocked_libraries = cls.objects.filter(loaded_state=LoadableResourceStates.LOCKED).exclude(
+        locked_resources = cls.objects.filter(
             **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
         )
-        # existing unlocked libraries should be set to SYNCED
-        cls.bulk_update_loaded_state(
-            unlocked_libraries.filter(loaded_at__isnull=False), LoadableResourceStates.SYNCED
-        )
-        # new unlocked libraries should be set to NEW
-        cls.bulk_update_loaded_state(
-            unlocked_libraries.filter(loaded_at__isnull=True), LoadableResourceStates.NEW
-        )
+        cls.bulk_update_loaded_state(locked_resources, LoadableResourceStates.LOCKED)
 
-        locked_libraries = cls.objects.filter(
+        unlocked_resources = cls.objects.filter(loaded_state=LoadableResourceStates.LOCKED).exclude(
             **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
         )
-        cls.bulk_update_loaded_state(locked_libraries, LoadableResourceStates.LOCKED)
 
-    @classmethod
-    def taint_modified_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
-        tainted_objs = [
-            synced_obj
-            for synced_obj in cls.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
-            if synced_obj.combined_hash
-            != synced_obj.get_current_combined_hash(
-                metadata_dict=metadata_dicts_by_ids[getattr(synced_obj, "scpca_id")]
+        # new unlocked objects should be reset to NEW
+        unlocked_new_objects = unlocked_resources.filter(loaded_at__isnull=True)
+        cls.bulk_update_loaded_state(unlocked_new_objects, LoadableResourceStates.NEW)
+
+        # existing unlocked objects should set to TAINTED if modified or reset to SYNCED
+        unlocked_loaded_resources = unlocked_resources.filter(loaded_at__isnull=False)
+        tainted_objects = []
+        synced_objects = []
+        for loaded_resource in unlocked_loaded_resources:
+            loaded_resource_current_combined_hash = loaded_resource.get_current_combined_hash(
+                metadata_dict=metadata_dicts_by_ids[getattr(loaded_resource, "scpca_id")]
             )
-        ]
-        cls.bulk_update_loaded_state(tainted_objs, LoadableResourceStates.TAINTED)
+            if loaded_resource.combined_hash != loaded_resource_current_combined_hash:
+                tainted_objects.append(loaded_resource)
+            else:
+                synced_objects.append(loaded_resource)
+
+        cls.bulk_update_loaded_state(tainted_objects, LoadableResourceStates.TAINTED)
+        cls.bulk_update_loaded_state(synced_objects, LoadableResourceStates.SYNCED)
 
     @classmethod
     def sync_model(cls) -> None:
@@ -269,5 +267,4 @@ class LoadableResourceABC(TimestampedModel):
 
         cls.create_new_objects(metadata_dicts_by_id)
         cls.remove_deleted_objects(metadata_dicts_by_id)
-        cls.handle_locked_objects()
-        cls.taint_modified_objects(metadata_dicts_by_id)
+        cls.taint_and_lock_objects(metadata_dicts_by_id)
