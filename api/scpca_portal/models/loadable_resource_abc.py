@@ -120,10 +120,6 @@ class LoadableResourceABC(TimestampedModel):
         pass
 
     @classmethod
-    def download_model_metadata(cls) -> None:
-        s3.download_files(cls.get_all_input_metadata_files())
-
-    @classmethod
     def get_original_file_filter_on_kwargs(cls, filter_on_ids: Set) -> Dict:
         return {f"{cls.SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY}__in": filter_on_ids}
 
@@ -262,7 +258,6 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     def sync_model(cls) -> None:
-        cls.download_model_metadata()
         metadata_dicts_by_id = cls.get_metadata_dicts_by_id()
 
         cls.create_new_objects(metadata_dicts_by_id)
