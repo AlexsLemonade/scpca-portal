@@ -1,7 +1,6 @@
 import React, { createContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useAnalytics } from 'hooks/useAnalytics'
-import { useNotification } from 'hooks/useNotification'
 import { api } from 'api'
 import { getDateISO } from 'helpers/getDateISO'
 import { filterPartialObject } from 'helpers/filterPartialObject'
@@ -21,12 +20,14 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 }) => {
   const { email, token, createToken, surveyListForm } = useScPCAPortal()
   const { trackDataset } = useAnalytics()
-  const { showNotification } = useNotification()
 
   const [showing, setShowing] = useState(false)
 
-  const [ccdlDataset, setCCDLDataset] = useState(null) // for deep link
   const [selectedDataset, setSelectedDataset] = useState(null)
+
+  // CCDI links for CCDL Dataset Names
+  const [ccdlDataset, setCCDLDataset] = useState(null)
+  const [isInvalidCCDLName, setIsInvalidCCDLName] = useState(false) // Invalid name or unavailable download options
 
   // set when `datasets` changes
   const [modality, setModality] = useState(null)
@@ -52,33 +53,33 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     if (!ccdlName || !datasets || datasets.length === 0) return
 
-    const dataset = datasets.find((d) => d.ccdl_name === ccdlName)
+    let dataset = datasets.find((d) => d.ccdl_name === ccdlName)
 
     if (!dataset) {
-      // Show a notification for the invalid ccdlName
-      showNotification(
-        `No CCDL Dataset match found for ${ccdlName}`,
-        'error',
-        ccdlName
+      // Display a message in the modal for the invalid ccdlName
+      setIsInvalidCCDLName(true)
+      // Select a default CCDL dataset for the modal
+      dataset = datasets.find(
+        (d) => d.ccdl_name === 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT'
       )
-      return
     }
 
     setCCDLDataset(dataset)
   }, [ccdlName])
 
-  // Open the modal on page load for ccdlDataset deep link
+  // Open the modal on page load for CCDI link
   useEffect(() => {
     if (!ccdlDataset) return
 
-    setSelectedDataset(ccdlDataset)
     // Pre-select options (cannot be toggled while ccdlName is present)
     setModality(ccdlDataset.ccdl_modality)
     setFormat(getFormatLabel(ccdlDataset))
     setIncludesMerged(ccdlDataset.includes_files_merged)
     setExcludeMultiplexed(ccdlDataset.includes_files_multiplexed === false)
+
+    setSelectedDataset(ccdlDataset)
     setShowing(true)
-  }, [ccdlDataset])
+  }, [ccdlName, ccdlDataset])
 
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
@@ -262,6 +263,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         selectedDataset,
         isMergedObjectsAvailable,
         isMultiplexedAvailable,
+        isInvalidCCDLName,
         modalityOptions,
         formatOptions,
         downloadDataset,

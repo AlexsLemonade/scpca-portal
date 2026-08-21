@@ -8,23 +8,22 @@ import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetChe
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
+import { InfoText } from 'components/InfoText'
 
 export const CCDLDatasetDownloadOptions = () => {
   const {
-    ccdlDataset,
     modality,
     setModality,
     format,
     setFormat,
     selectedDataset,
     isMultiplexedAvailable,
+    isInvalidCCDLName,
     modalityOptions,
     formatOptions
   } = useCCDLDatasetDownloadModalContext()
 
   const { responsive } = useResponsive()
-
-  const isDisabled = Boolean(ccdlDataset) // Disable the options for deep link
   const showMultiplexedOption = isMultiplexedAvailable
 
   return (
@@ -32,6 +31,11 @@ export const CCDLDatasetDownloadOptions = () => {
       <Heading level="3" size="small">
         Download Options
       </Heading>
+      <Box margin={{ top: 'medium', bottom: '0' }}>
+        {isInvalidCCDLName && (
+          <InfoText label="Unable to prepopulate download options. Please select the correct dataset options" />
+        )}
+      </Box>
       <Box
         border={{ side: 'bottom', color: 'border-black', size: 'small' }}
         margin={{ bottom: 'large' }}
@@ -50,7 +54,6 @@ export const CCDLDatasetDownloadOptions = () => {
             fieldWidth="116px"
           >
             <Select
-              disabled={isDisabled}
               options={modalityOptions}
               valueKey="value"
               labelKey="label"
@@ -70,7 +73,6 @@ export const CCDLDatasetDownloadOptions = () => {
             fieldWidth="200px"
           >
             <Select
-              disabled={isDisabled}
               options={formatOptions}
               valueKey="value"
               labelKey="label"
