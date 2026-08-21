@@ -84,21 +84,21 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
     def update_from_dict(self, data: Dict) -> Self:
         """Prepares ready for saving sample object."""
-        self.age = (data["age"],)
-        self.age_timing = (data["age_timing"],)
-        self.diagnosis = (data["diagnosis"],)
-        self.disease_timing = (data["disease_timing"],)
-        self.is_cell_line = (utils.boolean_from_string(data.get("is_cell_line", False)),)
-        self.is_xenograft = (utils.boolean_from_string(data.get("is_xenograft", False)),)
-        self.metadata = (data,)
-        self.multiplexed_with = (data.get("multiplexed_with", []),)
-        self.sample_cell_count_estimate = ((data.get("sample_cell_count_estimate", None)),)
-        self.seq_units = (data.get("seq_units", []),)
-        self.sex = (data["sex"],)
-        self.subdiagnosis = (data["subdiagnosis"],)
-        self.technologies = (data.get("technologies", []),)
-        self.tissue_location = (data["tissue_location"],)
-        self.treatment = (data.get("treatment", ""),)
+        self.age = data["age"]
+        self.age_timing = data["age_timing"]
+        self.diagnosis = data["diagnosis"]
+        self.disease_timing = data["disease_timing"]
+        self.is_cell_line = utils.boolean_from_string(data.get("is_cell_line", False))
+        self.is_xenograft = utils.boolean_from_string(data.get("is_xenograft", False))
+        self.metadata = data
+        self.multiplexed_with = data.get("multiplexed_with", [])
+        self.sample_cell_count_estimate = data.get("sample_cell_count_estimate", None)
+        self.seq_units = data.get("seq_units", [])
+        self.sex = data["sex"]
+        self.subdiagnosis = data["subdiagnosis"]
+        self.technologies = data.get("technologies", [])
+        self.tissue_location = data["tissue_location"]
+        self.treatment = data.get("treatment", "")
 
         return self
 
