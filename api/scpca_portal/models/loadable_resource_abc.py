@@ -246,19 +246,19 @@ class LoadableResourceABC(TimestampedModel):
 
         # existing unlocked objects should set to TAINTED if modified or reset to SYNCED
         unlocked_loaded_resources = unlocked_resources.filter(loaded_at__isnull=False)
-        tainted_objects = []
-        synced_objects = []
+        tainted_resources = []
+        synced_resources = []
         for loaded_resource in unlocked_loaded_resources:
             loaded_resource_current_combined_hash = loaded_resource.get_current_combined_hash(
                 metadata_dict=metadata_dicts_by_ids[getattr(loaded_resource, "scpca_id")]
             )
             if loaded_resource.combined_hash != loaded_resource_current_combined_hash:
-                tainted_objects.append(loaded_resource)
+                tainted_resources.append(loaded_resource)
             else:
-                synced_objects.append(loaded_resource)
+                synced_resources.append(loaded_resource)
 
-        cls.bulk_update_loaded_state(tainted_objects, LoadableResourceStates.TAINTED)
-        cls.bulk_update_loaded_state(synced_objects, LoadableResourceStates.SYNCED)
+        cls.bulk_update_loaded_state(tainted_resources, LoadableResourceStates.TAINTED)
+        cls.bulk_update_loaded_state(synced_resources, LoadableResourceStates.SYNCED)
 
     @classmethod
     def sync_model(cls) -> None:
