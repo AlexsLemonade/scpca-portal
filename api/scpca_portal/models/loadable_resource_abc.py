@@ -137,10 +137,16 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     def get_metadata_dicts_by_id(
-        cls, *, resources: QuerySet[Self] | None = None, skip_existing_file_download: bool = False
+        cls,
+        *,
+        resources: QuerySet[Self] | None = None,
+        skip_existing_file_download: bool = False,
+        bucket: str | None = None,
     ) -> Dict[str, Dict]:
         kwargs = {}
         all_resource_metadata_files = cls.get_all_input_metadata_files()
+        if bucket:
+            all_resource_metadata_files = all_resource_metadata_files.filter(s3_bucket=bucket)
 
         if resources:
             kwargs["filter_on_ids"] = set(resources.values_list("scpca_id", flat=True))
@@ -257,8 +263,12 @@ class LoadableResourceABC(TimestampedModel):
         cls.bulk_update_loaded_state(synced_resources, LoadableResourceStates.SYNCED)
 
     @classmethod
-    def sync_model(cls) -> None:
-        metadata_dicts_by_id = cls.get_metadata_dicts_by_id()
+    def sync_model(
+        cls, *, bucket: str | None = None, skip_existing_file_download: bool = False
+    ) -> None:
+        metadata_dicts_by_id = cls.get_metadata_dicts_by_id(
+            bucket=bucket, skip_existing_file_download=skip_existing_file_download
+        )
 
         cls.create_new_objects(metadata_dicts_by_id)
         cls.remove_deleted_objects(metadata_dicts_by_id)
