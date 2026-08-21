@@ -241,8 +241,8 @@ class LoadableResourceABC(TimestampedModel):
         )
 
         # new unlocked objects should be reset to NEW
-        unlocked_new_objects = unlocked_resources.filter(loaded_at__isnull=True)
-        cls.bulk_update_loaded_state(unlocked_new_objects, LoadableResourceStates.NEW)
+        unlocked_new_resources = unlocked_resources.filter(loaded_at__isnull=True)
+        cls.bulk_update_loaded_state(unlocked_new_resources, LoadableResourceStates.NEW)
 
         # existing unlocked objects should set to TAINTED if modified or reset to SYNCED
         unlocked_loaded_resources = unlocked_resources.filter(loaded_at__isnull=False)
