@@ -6,8 +6,8 @@ from django.test import SimpleTestCase
 from rest_framework import status
 
 ENDPOINTS = (
-    "/federation/ccdi/namespace",
-    "/federation/ccdi/namespace/alsf/scpca",
+    "/federation/ccdi/v1/namespace",
+    "/federation/ccdi/v1/namespace/alsf/scpca",
 )
 
 

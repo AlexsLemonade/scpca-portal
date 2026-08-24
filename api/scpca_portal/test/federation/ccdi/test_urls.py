@@ -33,7 +33,7 @@ class CCDIToggleTests(SimpleTestCase):
     def test_routes_present_when_enabled(self):
         # Test settings inherit ENABLE_FEATURE_PREVIEW = True from Common.
         # A registered route returns a non-404 status; 404 would mean it's unmounted.
-        response = self.client.get("/federation/ccdi/info")
+        response = self.client.get("/federation/ccdi/v1/info")
         self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_routes_absent_when_disabled(self):
@@ -43,7 +43,7 @@ class CCDIToggleTests(SimpleTestCase):
                 # only takes effect after the module is re-imported.
                 clear_url_caches()
                 reload(scpca_portal.urls)
-                response = self.client.get("/federation/ccdi/info")
+                response = self.client.get("/federation/ccdi/v1/info")
                 self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
         finally:
             # Settings are restored when the `with` block exits; rebuild the real

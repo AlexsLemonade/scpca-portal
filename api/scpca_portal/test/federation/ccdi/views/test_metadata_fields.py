@@ -6,9 +6,9 @@ from django.test import SimpleTestCase
 from rest_framework import status
 
 ENDPOINTS = (
-    "/federation/ccdi/metadata/fields/subject",
-    "/federation/ccdi/metadata/fields/sample",
-    "/federation/ccdi/metadata/fields/file",
+    "/federation/ccdi/v1/metadata/fields/subject",
+    "/federation/ccdi/v1/metadata/fields/sample",
+    "/federation/ccdi/v1/metadata/fields/file",
 )
 
 
