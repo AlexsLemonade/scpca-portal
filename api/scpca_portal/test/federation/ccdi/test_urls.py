@@ -32,7 +32,7 @@ ALL_ENDPOINTS = (
 class CCDIToggleTests(SimpleTestCase):
     def test_routes_present_when_enabled(self):
         # Test settings inherit ENABLE_FEATURE_PREVIEW = True from Common.
-        # A routed-but-unimplemented endpoint returns 501; 404 would mean unmounted.
+        # A registered route returns a non-404 status; 404 would mean it's unmounted.
         response = self.client.get("/federation/ccdi/info")
         self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
