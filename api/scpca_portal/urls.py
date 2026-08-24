@@ -61,3 +61,9 @@ urlpatterns = [
     # http://www.django-rest-framework.org/api-guide/routers/#defaultrouter
     re_path(r"^$", RedirectView.as_view(url=reverse_lazy("api-root"), permanent=False)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+# CCDI federation node, on its own URL scope.
+if settings.ENABLE_FEATURE_PREVIEW:
+    urlpatterns += [
+        path("federation/ccdi/", include("scpca_portal.federation.ccdi.urls")),
+    ]
