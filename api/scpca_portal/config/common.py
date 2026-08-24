@@ -280,6 +280,8 @@ If you have a question or comment, please [file an issue on GitHub](https://gith
             #     "description": """Create, update, view, and get download_urls for pre-generated and managed datasets.""",
             # },
         ],
+        # This schema documents the ScPCA Portal API only; exclude federation routes.
+        "PREPROCESSING_HOOKS": ["scpca_portal.spectacular_hooks.exclude_non_portal_paths"],
         # TODO: Once computed file is removed revisit
         "POSTPROCESSING_HOOKS": [],
         # "ENUM_NAME_OVERRIDES": {
