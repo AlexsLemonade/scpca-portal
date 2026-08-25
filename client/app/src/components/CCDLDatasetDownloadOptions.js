@@ -8,7 +8,6 @@ import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetChe
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
-import { InfoText } from 'components/InfoText'
 
 export const CCDLDatasetDownloadOptions = () => {
   const {
@@ -18,7 +17,6 @@ export const CCDLDatasetDownloadOptions = () => {
     setFormat,
     selectedDataset,
     isMultiplexedAvailable,
-    isInvalidCCDLName,
     modalityOptions,
     formatOptions
   } = useCCDLDatasetDownloadModalContext()
@@ -31,11 +29,6 @@ export const CCDLDatasetDownloadOptions = () => {
       <Heading level="3" size="small">
         Download Options
       </Heading>
-      <Box margin={{ top: 'medium', bottom: '0' }}>
-        {isInvalidCCDLName && (
-          <InfoText label="Unable to prepopulate download options. Please select the correct dataset options" />
-        )}
-      </Box>
       <Box
         border={{ side: 'bottom', color: 'border-black', size: 'small' }}
         margin={{ bottom: 'large' }}

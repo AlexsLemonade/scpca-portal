@@ -1,11 +1,12 @@
 import React from 'react'
-import { Anchor } from 'grommet'
+import { Anchor, Box } from 'grommet'
 import { Button } from 'components/Button'
+import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
 import { CCDLDatasetDownloadOptions } from 'components/CCDLDatasetDownloadOptions'
 import { CCDLDatasetDownloadStarted } from 'components/CCDLDatasetDownloadStarted'
 import { CCDLDatasetDownloadToken } from 'components/CCDLDatasetDownloadToken'
 import { Modal, ModalLoader, ModalBody } from 'components/Modal'
-import { useCCDLDatasetDownloadModalContext } from 'hooks/useCCDLDatasetDownloadModalContext'
+import { WarningProjectOptionsUnavailable } from 'components/WarningProjectOptionsUnavailable'
 
 const CCDLDatasetDownloadModalBody = () => {
   const { isDownloadReady, isTokenReady, isOptionsReady } =
@@ -23,7 +24,7 @@ export const CCDLDatasetDownloadModal = ({
   disabled = false,
   secondary = false
 }) => {
-  const { showing, setShowing, modalTitle, datasets } =
+  const { showing, setShowing, modalTitle, datasets, isInvalidCCDLName } =
     useCCDLDatasetDownloadModalContext()
 
   const isDisabled =
@@ -54,6 +55,14 @@ export const CCDLDatasetDownloadModal = ({
       )}
       <Modal title={modalTitle} showing={showing} setShowing={setShowing}>
         <ModalBody>
+          {isInvalidCCDLName && (
+            <WarningProjectOptionsUnavailable
+              text="Unable to prepopulate download options. Please select the correct dataset options."
+              iconColor="error"
+              iconMargin="none"
+              iconName="WarningNoFill"
+            />
+          )}
           <CCDLDatasetDownloadModalBody />
         </ModalBody>
       </Modal>
