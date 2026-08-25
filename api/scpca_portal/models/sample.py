@@ -86,18 +86,18 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         """Prepares ready for saving sample object."""
         self.age = data["age"]
         self.age_timing = data["age_timing"]
-        self.diagnosis = data["diagnosis"]
-        self.disease_timing = data["disease_timing"]
+        self.diagnosis = data.get("diagnosis")
+        self.disease_timing = data.get("disease_timing")
         self.is_cell_line = utils.boolean_from_string(data.get("is_cell_line", False))
         self.is_xenograft = utils.boolean_from_string(data.get("is_xenograft", False))
         self.metadata = data
         self.multiplexed_with = data.get("multiplexed_with", [])
         self.sample_cell_count_estimate = data.get("sample_cell_count_estimate", None)
         self.seq_units = data.get("seq_units", [])
-        self.sex = data["sex"]
-        self.subdiagnosis = data["subdiagnosis"]
+        self.sex = data.get("sex")
+        self.subdiagnosis = data.get("subdiagnosis")
         self.technologies = data.get("technologies", [])
-        self.tissue_location = data["tissue_location"]
+        self.tissue_location = data.get("tissue_location")
         self.treatment = data.get("treatment", "")
 
         return self
