@@ -73,7 +73,7 @@ class TestSample(TestCase):
 
             # verify synced sample was not touched
             synced_sample.refresh_from_db()
-            self.assertEqual(new_sample.loaded_at, original_loaded_at_timestamp)
+            self.assertEqual(synced_sample.loaded_at, original_loaded_at_timestamp)
 
     def test_sync_metadata_no_updatable_resource(self):
         SampleFactory(loaded_state=LoadableResourceStates.SYNCED)
