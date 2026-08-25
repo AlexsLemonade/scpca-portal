@@ -9,6 +9,7 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { sortOnKeyByOrder } from 'helpers/sortOnKeyByOrder'
 import { formatOrder, modalityOrder } from 'config/ccdlDatasets'
+import { allowedCCDLNames } from 'config/ccdiDatasets'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -53,7 +54,9 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     if (!ccdlName || !datasets || datasets.length === 0) return
 
-    let dataset = datasets.find((d) => d.ccdl_name === ccdlName)
+    let dataset = datasets.find(
+      (d) => allowedCCDLNames.includes(d.ccdl_name) && d.ccdl_name === ccdlName
+    )
 
     if (!dataset) {
       // Display a message in the modal for the invalid ccdlName
@@ -71,11 +74,13 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     if (!ccdlDataset) return
 
-    // Pre-select options (cannot be toggled while ccdlName is present)
     setModality(ccdlDataset.ccdl_modality)
-    setFormat(getFormatLabel(ccdlDataset))
+    setFormat(getReadable(ccdlDataset.format))
     setIncludesMerged(ccdlDataset.includes_files_merged)
-    setExcludeMultiplexed(ccdlDataset.includes_files_multiplexed === false)
+    // Always excludes multiplexed samples
+    if (isMultiplexedAvailable) {
+      setExcludeMultiplexed(true)
+    }
 
     setSelectedDataset(ccdlDataset)
     setShowing(true)
