@@ -22,7 +22,7 @@ import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAcces
 import { ProjectSamplesTable } from 'components/ProjectSamplesTable'
 import { ProjectSamplesSummaryTable } from 'components/ProjectSamplesSummaryTable'
 
-const Project = ({ project, ccdlDatasets, ccdlName }) => {
+const Project = ({ project, ccdlDatasets }) => {
   const { myDataset, getMyDatasetProjectDataSamples } = useMyDataset()
   const { responsive } = useResponsive()
 
@@ -60,7 +60,6 @@ const Project = ({ project, ccdlDatasets, ccdlName }) => {
         <CCDLDatasetDownloadModalContextProvider
           project={project}
           datasets={ccdlDataDatasets}
-          ccdlName={ccdlName}
         >
           <ProjectHeader project={project} />
         </CCDLDatasetDownloadModalContextProvider>
@@ -220,7 +219,7 @@ const Project = ({ project, ccdlDatasets, ccdlName }) => {
 }
 
 export const getServerSideProps = async ({ query }) => {
-  const { ccdl_name: ccdlName = null, scpca_id: projectId } = query
+  const { scpca_id: projectId } = query
 
   const ccdlDatasetQuery = {
     ccdl_project_id: projectId,
@@ -236,7 +235,7 @@ export const getServerSideProps = async ({ query }) => {
     const project = projectRequest.response
     const { results: ccdlDatasets } = ccdlDatasetRequest.response
     return {
-      props: { project, ccdlDatasets, ccdlName }
+      props: { project, ccdlDatasets }
     }
   }
 
@@ -247,8 +246,7 @@ export const getServerSideProps = async ({ query }) => {
   return {
     props: {
       project: null,
-      ccdlDatasets: null,
-      ccdlName
+      ccdlDatasets: null
     }
   }
 }
