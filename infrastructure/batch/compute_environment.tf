@@ -90,14 +90,14 @@ resource "aws_launch_template" "scpca_portal_ec2" {
   }
 }
 
-# aws ami which is ecs optimized for amazon linux
+# aws ami which is ecs optimized for amazon linux 2023
 data "aws_ami" "ecs_optimized_amazon_linux" {
   most_recent = true
   owners = ["591542846629"] # ECS team account
 
   filter {
     name   = "name"
-    values = ["amzn2-ami-ecs-hvm-*-x86_64-ebs"]
+    values = ["al2023-ami-ecs-hvm-*-x86_64"]
   }
 
 }

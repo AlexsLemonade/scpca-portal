@@ -95,6 +95,10 @@ class TestGetFile(TestCase):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)
 
+        # CHECK COMPUTED FILE AND DATASET RELATIONSHIP
+        self.assertIsNotNone(dataset.computed_file)
+        self.assertEqual(dataset.computed_file, computed_file)
+
     def test_original_file_zip_namelist(self):
         self.maxDiff = None
 
@@ -104,7 +108,7 @@ class TestGetFile(TestCase):
         )
         dataset.save()
 
-        ComputedFile.get_dataset_file(dataset)
+        computed_file = ComputedFile.get_dataset_file(dataset)
 
         with ZipFile(dataset.computed_file_local_path) as project_zip:
             # Check if file list is as expected
@@ -112,3 +116,7 @@ class TestGetFile(TestCase):
                 sorted(project_zip.namelist()),
                 sorted(test_data.UserDatasetSingleCellExperiment.COMPUTED_FILE_LIST),
             )
+
+        # CHECK COMPUTED FILE AND DATASET RELATIONSHIP
+        self.assertIsNotNone(dataset.computed_file)
+        self.assertEqual(dataset.computed_file, computed_file)
