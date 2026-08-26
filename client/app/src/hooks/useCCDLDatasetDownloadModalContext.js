@@ -16,14 +16,13 @@ export const useCCDLDatasetDownloadModalContext = () => {
     selectedDataset,
     isMergedObjectsAvailable,
     isMultiplexedAvailable,
-    isValidDeepLink,
+    isDeepLinkError,
     modalityOptions,
     formatOptions,
     downloadDataset,
     setDownloadDataset,
     downloadableDataset,
     project,
-    deepLinkDataset,
     datasets,
     token
   } = useContext(CCDLDatasetDownloadModalContext)
@@ -72,11 +71,10 @@ export const useCCDLDatasetDownloadModalContext = () => {
     selectedDataset,
     isMergedObjectsAvailable,
     isMultiplexedAvailable,
-    isValidDeepLink,
+    isDeepLinkError,
     modalityOptions,
     formatOptions,
     project,
-    deepLinkDataset,
     datasets
   }
 }

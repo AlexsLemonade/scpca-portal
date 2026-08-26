@@ -1,4 +1,5 @@
-import React, { createContext, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/router'
+import React, { createContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { api } from 'api'
@@ -9,28 +10,21 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { sortOnKeyByOrder } from 'helpers/sortOnKeyByOrder'
 import { formatOrder, modalityOrder } from 'config/ccdlDatasets'
-import { allowedCCDLNames } from 'config/federation/ccdiDatasets'
+import { ccdlNames } from 'config/ccdlDatasets'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
 export const CCDLDatasetDownloadModalContextProvider = ({
   project,
   datasets,
-  ccdlName,
   children
 }) => {
   const { email, token, createToken, surveyListForm } = useScPCAPortal()
   const { trackDataset } = useAnalytics()
 
-  const initializeDeepLink = useRef(null)
-
   const [showing, setShowing] = useState(false)
 
   const [selectedDataset, setSelectedDataset] = useState(null)
-
-  // CCDI deep links for valid CCDLNames
-  const [deepLinkDataset, setDeepLinkDataset] = useState(null)
-  const [isValidDeepLink, setIsValidDeepLink] = useState(false) // Display a warning for invalid deep link selection
 
   // set when `datasets` changes
   const [modality, setModality] = useState(null)
@@ -47,45 +41,52 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
 
+  // CCDI deep links for valid CCDLNames
+  const [isDeepLinkError, setIsDeepLinkError] = useState(false) // For a warning message
+  const { query, pathname, replace } = useRouter()
+  const { ccdl_name: existingName, ...remainingQuery } = query
+  // Remove deep link error and ccdlName query from URL
+  const removeDeepLink = () => {
+    replace(
+      {
+        pathname,
+        query: remainingQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+    setIsDeepLinkError(false)
+  }
+  // Event handler to call removeDeepLink on option changes
+  const handleRemoveDeepLinkErrorOnOptionChange = (setter) => (val) => {
+    if (isDeepLinkError) removeDeepLink()
+    setter(val)
+  }
+
   const getFormatLabel = (d) =>
     d.ccdl_modality === 'SPATIAL'
       ? getReadable('SPATIAL_SPACERANGER')
       : getReadable(d.format)
 
-  // Set deepLinkDataset matching ccdlName
+  // Set a dataset for deep link matching ccdlName
   useEffect(() => {
-    if (!ccdlName || !datasets || datasets.length === 0) return
+    if (!existingName || !datasets || datasets.length === 0) return
 
-    // If CCDLName Dataset containing multiplexed samples, exclude them by default
-    const selectedCCDLName = isMultiplexedAvailable
-      ? 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED'
-      : ccdlName
+    const dataset = datasets.find((d) => d.ccdl_name === existingName)
+    const isValid = ccdlNames.includes(existingName) && dataset
 
-    const dataset =
-      datasets.find(
-        (d) =>
-          allowedCCDLNames.includes(ccdlName) &&
-          d.ccdl_name === selectedCCDLName
-      ) ?? datasets[0]
+    if (isValid) {
+      setModality(dataset.ccdl_modality)
+      setFormat(dataset.format)
+      setIncludesMerged(dataset.includes_files_merged)
+      setExcludeMultiplexed(dataset.includes_files_multiplexed === false)
+    } else {
+      setSelectedDataset(datasets[0])
+      setIsDeepLinkError(true)
+    }
 
-    setIsValidDeepLink(dataset.ccdl_name === selectedCCDLName)
-    setDeepLinkDataset(dataset)
-  }, [ccdlName, isMultiplexedAvailable])
-
-  // Open the modal on page load for deep link
-  useEffect(() => {
-    if (!deepLinkDataset) return
-    // State changes via deep link initialization
-    initializeDeepLink.current = true
-
-    setModality(deepLinkDataset.ccdl_modality)
-    setFormat(deepLinkDataset.format)
-    setIncludesMerged(deepLinkDataset.includes_files_merged)
-    setExcludeMultiplexed(true) // Multiplexed samples are excluded by default
-
-    setSelectedDataset(deepLinkDataset)
     setShowing(true)
-  }, [deepLinkDataset])
+  }, [existingName, datasets])
 
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
@@ -103,8 +104,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions([])
       setFormatOptions([])
     } else {
-      const [defaultModality] = modalityOrder
-      setModality(defaultModality)
+      if (!modality) {
+        const [defaultModality] = modalityOrder
+        setModality(defaultModality)
+      }
 
       setModalityOptions(
         sortOnKeyByOrder(
@@ -129,10 +132,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   // on modality change, set format and merged available defaults
   useEffect(() => {
     if (modality) {
-      if (!initializeDeepLink.current) {
-        const [defaultFormat] = formatOrder
-        setFormat(defaultFormat)
-      }
+      const [defaultFormat] = formatOrder
+      setFormat(defaultFormat)
 
       setFormatOptions(
         sortOnKeyByOrder(
@@ -159,11 +160,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   // on format change, set exclude multiplexed defaults
   useEffect(() => {
-    if (initializeDeepLink.current) {
-      initializeDeepLink.current = false
-      return
-    }
-
     if (isMultiplexedAvailable)
       if (format === 'SINGLE_CELL_EXPERIMENT') {
         setExcludeMultiplexed(false)
@@ -250,24 +246,26 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         showing,
         setShowing,
         modality,
-        setModality,
+        setModality: handleRemoveDeepLinkErrorOnOptionChange(setModality),
         format,
-        setFormat,
+        setFormat: handleRemoveDeepLinkErrorOnOptionChange(setFormat),
         includesMerged,
-        setIncludesMerged,
+        setIncludesMerged:
+          handleRemoveDeepLinkErrorOnOptionChange(setIncludesMerged),
         excludeMultiplexed,
-        setExcludeMultiplexed,
+        setExcludeMultiplexed: handleRemoveDeepLinkErrorOnOptionChange(
+          setExcludeMultiplexed
+        ),
         selectedDataset,
         isMergedObjectsAvailable,
         isMultiplexedAvailable,
-        isValidDeepLink,
+        isDeepLinkError,
         modalityOptions,
         formatOptions,
         downloadDataset,
         setDownloadDataset,
         downloadableDataset,
         project,
-        deepLinkDataset,
         datasets,
         token
       }}

@@ -12,14 +12,13 @@ import { WarningProjectOptionsUnavailable } from 'components/WarningProjectOptio
 
 export const CCDLDatasetDownloadOptions = () => {
   const {
-    deepLinkDataset,
     modality,
     setModality,
     format,
     setFormat,
     selectedDataset,
     isMultiplexedAvailable,
-    isValidDeepLink,
+    isDeepLinkError,
     modalityOptions,
     formatOptions
   } = useCCDLDatasetDownloadModalContext()
@@ -29,9 +28,7 @@ export const CCDLDatasetDownloadOptions = () => {
 
   return (
     <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
-      {deepLinkDataset && !isValidDeepLink && (
-        <WarningProjectOptionsUnavailable />
-      )}
+      {isDeepLinkError && <WarningProjectOptionsUnavailable />}
       <Heading level="3" size="small">
         Download Options
       </Heading>
