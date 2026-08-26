@@ -1,5 +1,6 @@
 // A list of allowed CCDL names for CCDI deep links
-// Dataset containing multiplexed and Spatial samples are excluded
+// Aligns with api/scpca_portal/enums/ccdl_dataset_names.py
+// TODO: Multiplexed and spatial samples are excluded for now (revisit later)
 export const allowedCCDLNames = [
   'SINGLE_CELL_SINGLE_CELL_EXPERIMENT',
   'SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED',

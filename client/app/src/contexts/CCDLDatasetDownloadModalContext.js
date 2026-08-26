@@ -1,4 +1,4 @@
-import React, { createContext, useEffect, useState } from 'react'
+import React, { createContext, useEffect, useRef, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useAnalytics } from 'hooks/useAnalytics'
 import { api } from 'api'
@@ -9,7 +9,7 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { sortOnKeyByOrder } from 'helpers/sortOnKeyByOrder'
 import { formatOrder, modalityOrder } from 'config/ccdlDatasets'
-import { allowedCCDLNames } from 'config/ccdiDatasets'
+import { allowedCCDLNames } from 'config/federation/ccdiDatasets'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -22,13 +22,15 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const { email, token, createToken, surveyListForm } = useScPCAPortal()
   const { trackDataset } = useAnalytics()
 
+  const initializeDeepLink = useRef(null)
+
   const [showing, setShowing] = useState(false)
 
   const [selectedDataset, setSelectedDataset] = useState(null)
 
-  // CCDI links for CCDL Dataset Names
-  const [ccdlDataset, setCCDLDataset] = useState(null)
-  const [isInvalidCCDLName, setIsInvalidCCDLName] = useState(false) // Invalid name or unavailable download options
+  // CCDI deep links for valid CCDLNames
+  const [deepLinkDataset, setDeepLinkDataset] = useState(null)
+  const [isValidDeepLink, setIsValidDeepLink] = useState(false) // Display a warning for invalid deep link selection
 
   // set when `datasets` changes
   const [modality, setModality] = useState(null)
@@ -50,41 +52,40 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       ? getReadable('SPATIAL_SPACERANGER')
       : getReadable(d.format)
 
-  // Set ccdlDataset matching ccdlName
+  // Set deepLinkDataset matching ccdlName
   useEffect(() => {
     if (!ccdlName || !datasets || datasets.length === 0) return
 
-    let dataset = datasets.find(
-      (d) => allowedCCDLNames.includes(d.ccdl_name) && d.ccdl_name === ccdlName
-    )
+    // If CCDLName Dataset containing multiplexed samples, exclude them by default
+    const selectedCCDLName = isMultiplexedAvailable
+      ? 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED'
+      : ccdlName
 
-    if (!dataset) {
-      // Display a message in the modal for the invalid ccdlName
-      setIsInvalidCCDLName(true)
-      // Select a default CCDL dataset for the modal
-      dataset = datasets.find(
-        (d) => d.ccdl_name === 'SINGLE_CELL_SINGLE_CELL_EXPERIMENT'
-      )
-    }
+    const dataset =
+      datasets.find(
+        (d) =>
+          allowedCCDLNames.includes(ccdlName) &&
+          d.ccdl_name === selectedCCDLName
+      ) ?? datasets[0]
 
-    setCCDLDataset(dataset)
-  }, [ccdlName])
+    setIsValidDeepLink(dataset.ccdl_name === selectedCCDLName)
+    setDeepLinkDataset(dataset)
+  }, [ccdlName, isMultiplexedAvailable])
 
-  // Open the modal on page load for CCDI link
+  // Open the modal on page load for deep link
   useEffect(() => {
-    if (!ccdlDataset) return
+    if (!deepLinkDataset) return
+    // State changes via deep link initialization
+    initializeDeepLink.current = true
 
-    setModality(ccdlDataset.ccdl_modality)
-    setFormat(getReadable(ccdlDataset.format))
-    setIncludesMerged(ccdlDataset.includes_files_merged)
-    // Always excludes multiplexed samples
-    if (isMultiplexedAvailable) {
-      setExcludeMultiplexed(true)
-    }
+    setModality(deepLinkDataset.ccdl_modality)
+    setFormat(deepLinkDataset.format)
+    setIncludesMerged(deepLinkDataset.includes_files_merged)
+    setExcludeMultiplexed(true) // Multiplexed samples are excluded by default
 
-    setSelectedDataset(ccdlDataset)
+    setSelectedDataset(deepLinkDataset)
     setShowing(true)
-  }, [ccdlName, ccdlDataset])
+  }, [deepLinkDataset])
 
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
@@ -102,11 +103,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions([])
       setFormatOptions([])
     } else {
-      if (!ccdlDataset) {
-        // Prevent state override for deep link
-        const [defaultModality] = modalityOrder
-        setModality(defaultModality)
-      }
+      const [defaultModality] = modalityOrder
+      setModality(defaultModality)
 
       setModalityOptions(
         sortOnKeyByOrder(
@@ -123,19 +121,15 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         datasets.some((dataset) => dataset.includes_files_multiplexed)
       )
     }
-
     // reset download state vars on datasets change
     setDownloadDataset(false)
     setDownloadableDataset(null)
-  }, [ccdlDataset, datasets])
+  }, [datasets])
 
   // on modality change, set format and merged available defaults
   useEffect(() => {
     if (modality) {
-      if (ccdlDataset) {
-        // Prevent state override for deep link
-        setFormat(ccdlDataset.format)
-      } else {
+      if (!initializeDeepLink.current) {
         const [defaultFormat] = formatOrder
         setFormat(defaultFormat)
       }
@@ -165,7 +159,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   // on format change, set exclude multiplexed defaults
   useEffect(() => {
-    if (ccdlDataset) return // Deep link takes precedence
+    if (initializeDeepLink.current) {
+      initializeDeepLink.current = false
+      return
+    }
 
     if (isMultiplexedAvailable)
       if (format === 'SINGLE_CELL_EXPERIMENT') {
@@ -179,11 +176,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   useEffect(() => {
     // handle case where modal is closed and reopened without refresh
     if (!showing) return
-
-    if (ccdlDataset) {
-      setSelectedDataset(ccdlDataset)
-      return
-    }
 
     if (datasets.length === 1) {
       setSelectedDataset(datasets[0])
@@ -268,14 +260,14 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         selectedDataset,
         isMergedObjectsAvailable,
         isMultiplexedAvailable,
-        isInvalidCCDLName,
+        isValidDeepLink,
         modalityOptions,
         formatOptions,
         downloadDataset,
         setDownloadDataset,
         downloadableDataset,
         project,
-        ccdlDataset,
+        deepLinkDataset,
         datasets,
         token
       }}
