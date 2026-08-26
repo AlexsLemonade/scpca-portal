@@ -12,6 +12,7 @@ from typing_extensions import Self
 from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import Modalities
+from scpca_portal.models.aggregatable_resource_abc import AggregatableResourceABC
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.contact import Contact
 from scpca_portal.models.external_accession import ExternalAccession
@@ -25,7 +26,7 @@ from scpca_portal.models.sample import Sample
 logger = get_and_configure_logger(__name__)
 
 
-class Project(CommonDataAttributes, LoadableResourceABC):
+class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC):
     class Meta:
         db_table = "projects"
         get_latest_by = "updated_at"
@@ -215,6 +216,37 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         self.update_project_summaries_aggregate_properties()
 
     @classmethod
+    def sync_aggregations(cls, synced_resource_ids: List[str]) -> None:
+        # ProjectSummary aggregations need to preceed Project aggregations because
+        # Project aggregations remove themselves from an aggregating state by resetting the hash
+        aggregating_projects = cls.get_aggregating_resources(synced_resource_ids)
+        project_summaries = []
+        for project in aggregating_projects:
+            project_summaries.extend(project.new_update_project_summaries_aggregate_properties())
+
+        fields_to_update = [
+            f.name for f in ProjectSummary._meta.concrete_fields if not f.primary_key
+        ]
+        ProjectSummary.objects.bulk_update(project_summaries, fields=fields_to_update)
+
+        super().sync_aggregations(synced_resource_ids)
+
+    def update_aggregations(self) -> None:
+        self.new_update_project_modality_properties()
+        self.new_update_project_aggregate_properties()
+        self.new_update_project_sample_aggregate_counts()
+
+    @property
+    def current_aggregation_hash(self) -> str:
+        samples_metadata_hashes = self.samples.sort_by("scpca_id").values_list(
+            "metadata_hash", flat=True
+        )
+        libraries_metadata_hashes = self.libraries.sort_by("scpca_id").values_list(
+            "metadata_hash", flat=True
+        )
+        return utils.hash_values(samples_metadata_hashes + libraries_metadata_hashes)
+
+    @classmethod
     def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         existing_project_ids = cls.objects.values_list("scpca_id", flat=True)
         new_project_ids = set(metadata_dicts_by_ids.keys()) - set(existing_project_ids)
@@ -247,6 +279,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
 
         self.delete()
 
+    # TODO: remove before loadable resource feature branch lands
     def purge_computed_files(self, delete_from_s3: bool = False) -> None:
         """Purges all computed files associated with the project instance."""
         # Delete project's sample computed files
@@ -257,6 +290,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         for computed_file in self.project_computed_files.all():
             computed_file.purge(delete_from_s3)
 
+    # TODO: remove before loadable resource feature branch lands
     def update_project_modality_properties(self) -> None:
         """
         Updates project modality properties,
@@ -285,6 +319,23 @@ class Project(CommonDataAttributes, LoadableResourceABC):
             )
         )
 
+    def new_update_project_modality_properties(self) -> None:
+        """
+        Updates project modality properties,
+        which are derived from the existence of a certain attribute within a collection of Samples.
+        """
+
+        # Set modality flags based on a real data availability.
+        self.has_bulk_rna_seq = self.samples.filter(has_bulk_rna_seq=True).exists()
+        self.has_cite_seq_data = self.samples.filter(has_cite_seq_data=True).exists()
+        self.has_multiplexed_data = self.samples.filter(has_multiplexed_data=True).exists()
+        self.has_single_cell_data = self.samples.filter(has_single_cell_data=True).exists()
+        self.has_spatial_data = self.samples.filter(has_spatial_data=True).exists()
+        self.includes_anndata = self.samples.filter(includes_anndata=True).exists()
+        self.includes_cell_lines = self.samples.filter(is_cell_line=True).exists()
+        self.includes_xenografts = self.samples.filter(is_xenograft=True).exists()
+
+    # TODO: remove before loadable resource feature branch lands
     def update_project_aggregate_properties(self) -> None:
         """
         The Project model cache aggregated sample metadata.
@@ -345,6 +396,65 @@ class Project(CommonDataAttributes, LoadableResourceABC):
 
         self.save()
 
+    def new_update_project_aggregate_properties(self) -> None:
+        """
+        The Project model cache aggregated sample metadata.
+        We need to update these after any project's sample gets added/deleted.
+        """
+        samples = self.samples.all()
+
+        # Additional Metadata Keys
+        additional_metadata_keys = {
+            key
+            for sample in samples
+            for key in sample.additional_metadata.keys()
+            # Include keys except multiplexed_with
+            if not (self.has_multiplexed_data and key == "multiplexed_with")
+        }
+        self.additional_metadata_keys = sorted(additional_metadata_keys, key=str.lower)
+
+        # Diagnoses Counts
+        self.diagnoses_counts = dict(Counter(samples.values_list("diagnosis", flat=True)))
+
+        # Disease Timings excluding "NA"
+        self.disease_timings = list(
+            set(samples.values_list("disease_timing", flat=True)) - {common.NA}
+        )
+
+        # Modalities
+        self.modalities = utils.get_sorted_modalities(
+            {modality for sample in samples for modality in sample.modalities}
+        )
+
+        # Organisms
+        organisms = {
+            sample.additional_metadata["organism"]
+            for sample in samples
+            if "organism" in sample.additional_metadata
+        }
+        self.organisms = sorted(organisms)
+
+        bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
+            modality=Modalities.BULK_RNA_SEQ
+        )
+
+        # Sequencing Units
+        seq_units = {
+            seq_unit
+            for library in bulk_libraries
+            if (seq_unit := library.metadata.get("seq_unit", "").strip())
+        }
+        self.seq_units = sorted(seq_units)
+
+        # Technologies
+        technologies = {
+            technology
+            for library in bulk_libraries
+            if (technology := library.metadata.get("technology", "").strip())
+        }
+        self.technologies = sorted(technologies)
+
+    # TODO: remove before loadable resource feature branch lands
     def update_project_sample_aggregate_counts(self) -> None:
         """
         The Project model cache aggregated sample counts.
@@ -364,6 +474,24 @@ class Project(CommonDataAttributes, LoadableResourceABC):
 
         self.save()
 
+    def new_update_project_sample_aggregate_counts(self) -> None:
+        """
+        The Project model cache aggregated sample counts.
+        We need to update these after any project's sample gets added/deleted.
+        """
+        counts = self.samples.aggregate(
+            sample_count=Count("scpca_id"),
+            multiplexed_sample_count=Count("scpca_id", filter=Q(has_multiplexed_data=True)),
+            unavailable_samples_count=Count(
+                "scpca_id", filter=Q(has_single_cell_data=False, has_spatial_data=False)
+            ),
+        )
+        self.downloadable_sample_count = self.get_downloadable_sample_count()
+        self.sample_count = counts["sample_count"]
+        self.multiplexed_sample_count = counts["multiplexed_sample_count"]
+        self.unavailable_samples_count = counts["unavailable_samples_count"]
+
+    # TODO: remove before loadable resource feature branch lands
     def update_project_summaries_aggregate_properties(self) -> None:
         """
         The ProjectSummary model cache aggregated sample metadata.
@@ -385,3 +513,27 @@ class Project(CommonDataAttributes, LoadableResourceABC):
             project_summary.sample_count = count
 
             project_summary.save(update_fields=("sample_count",))
+
+    def new_update_project_summaries_aggregate_properties(self) -> List[ProjectSummary]:
+        """
+        The ProjectSummary model cache aggregated sample metadata.
+        We need to update these after any project's sample gets added/deleted.
+        """
+        summaries_counts = Counter()
+
+        for sample in self.samples.all():
+            # We currently exclude bulk data in the project summary and aggregate values
+            for library in sample.libraries.exclude(modality=Modalities.BULK_RNA_SEQ):
+                seq_unit = library.metadata.get("seq_unit", "").strip()
+                technology = library.metadata.get("technology", "").strip()
+                summaries_counts.update({(sample.diagnosis, seq_unit, technology): 1})
+
+        project_summaries = []
+        for (diagnosis, seq_unit, technology), count in summaries_counts.items():
+            project_summary, _ = ProjectSummary.objects.get_or_create(
+                diagnosis=diagnosis, project=self, seq_unit=seq_unit, technology=technology
+            )
+            project_summary.sample_count = count
+            project_summaries.append(project_summary)
+
+        return project_summaries
