@@ -1,8 +1,9 @@
-from typing import TYPE_CHECKING, Dict, List, Self
+from typing import TYPE_CHECKING, Dict, List, Self, Set
 
+from django.conf import settings
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-from django.db.models import QuerySet
+from django.db.models import F, Func, QuerySet
 
 from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
@@ -49,6 +50,8 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="samples")
     libraries = models.ManyToManyField(Library, related_name="samples")
 
+    SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_sample_id"
+
     def __str__(self) -> str:
         return f"Sample {self.scpca_id} of {self.project}"
 
@@ -80,21 +83,21 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
     def update_from_dict(self, data: Dict) -> Self:
         """Prepares ready for saving sample object."""
-        self.age = (data["age"],)
-        self.age_timing = (data["age_timing"],)
-        self.diagnosis = (data["diagnosis"],)
-        self.disease_timing = (data["disease_timing"],)
-        self.is_cell_line = (utils.boolean_from_string(data.get("is_cell_line", False)),)
-        self.is_xenograft = (utils.boolean_from_string(data.get("is_xenograft", False)),)
-        self.metadata = (data,)
-        self.multiplexed_with = (data.get("multiplexed_with", []),)
-        self.sample_cell_count_estimate = ((data.get("sample_cell_count_estimate", None)),)
-        self.seq_units = (data.get("seq_units", []),)
-        self.sex = (data["sex"],)
-        self.subdiagnosis = (data["subdiagnosis"],)
-        self.technologies = (data.get("technologies", []),)
-        self.tissue_location = (data["tissue_location"],)
-        self.treatment = (data.get("treatment", ""),)
+        self.age = data["age"]
+        self.age_timing = data["age_timing"]
+        self.diagnosis = data["diagnosis"]
+        self.disease_timing = data["disease_timing"]
+        self.is_cell_line = utils.boolean_from_string(data.get("is_cell_line", False))
+        self.is_xenograft = utils.boolean_from_string(data.get("is_xenograft", False))
+        self.metadata = data
+        self.multiplexed_with = data.get("multiplexed_with", [])
+        self.sample_cell_count_estimate = data.get("sample_cell_count_estimate", None)
+        self.seq_units = data.get("seq_units", [])
+        self.sex = data["sex"]
+        self.subdiagnosis = data["subdiagnosis"]
+        self.technologies = data.get("technologies", [])
+        self.tissue_location = data["tissue_location"]
+        self.treatment = data.get("treatment", "")
 
         return self
 
@@ -108,26 +111,37 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_create(samples)
 
     @classmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
-        sample_ids = set()
-        related_project_ids = set()
+    def get_input_metadata_files(
+        cls,
+        *,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        resources: QuerySet[Self] | None = None,
+        **kwargs,
+    ) -> QuerySet[OriginalFile]:
+        input_metadata_files = OriginalFile.objects.filter(
+            is_metadata=True,
+            # this comes to exclude bulk metadata files,
+            # though bulk samples exist in the samples metadata files
+            is_bulk=False,
+            project_id__isnull=False,
+            sample_ids=[],
+            library_id__isnull=True,
+            s3_bucket=bucket,
+        )
+        if resources:
+            project_ids = resources.values_list("project__scpca_id", flat=True).distinct()
+            return input_metadata_files.filter(project_id__in=project_ids)
 
-        for sample_id, related_project_id in resources.values_list("scpca_id", "project__scpca_id"):
-            sample_ids.add(sample_id)
-            related_project_ids.add(related_project_id)
+        return input_metadata_files
 
-        samples_metadata_by_id = {}
-        for project_id in related_project_ids:
-            project_samples_metadata = metadata_parser.load_samples_metadata(project_id=project_id)
-            samples_metadata_by_id.update(
-                {
-                    md["scpca_sample_id"]: md
-                    for md in project_samples_metadata
-                    if md["scpca_sample_id"] in sample_ids
-                }
-            )
-
-        return samples_metadata_by_id
+    # TODO: rename to "load_metadata" before loadable feature branch merged in
+    @classmethod
+    def new_load_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] = set()
+    ) -> List[Dict]:
+        return metadata_parser.load_all_samples_metadata(
+            metadata_files, filter_on_ids=filter_on_ids
+        )
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod
@@ -235,6 +249,48 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             updated_samples.append(sample)
 
         Sample.objects.bulk_update(updated_samples, updated_attrs)
+
+    @classmethod
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
+        existing_sample_ids = set(cls.objects.values_list("scpca_id", flat=True))
+        new_project_sample_id_pairs = set(
+            (project_id, sample_id)
+            for project_id, sample_id, _ in cls.get_metadata_id_tuples(
+                metadata_dicts_by_ids.values()
+            )
+            if sample_id not in existing_sample_ids
+        )
+
+        if not new_project_sample_id_pairs:
+            return []
+
+        # Resolve Project via the FK's related_model
+        # to avoid a circular import (Project already imports Sample)
+        Project = cls._meta.get_field("project").related_model
+        projects_by_id = Project.objects.in_bulk(
+            [project_id for project_id, _ in new_project_sample_id_pairs], field_name="scpca_id"
+        )
+
+        new_samples = [
+            cls(scpca_id=new_sample_id, project=projects_by_id[project_id])
+            for project_id, new_sample_id in new_project_sample_id_pairs
+        ]
+        return cls.objects.bulk_create(new_samples)
+
+    @classmethod
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, dict]:
+        # TODO: before merging into dev: do we need to clarify mechanism to alert user datasets?
+        existing_sample_ids = set(
+            OriginalFile.objects.exclude(sample_ids=[])
+            .annotate(sample_id=Func(F("sample_ids"), function="unnest"))
+            .values_list("sample_id", flat=True)
+        ) | set(metadata_dicts_by_ids.keys())
+
+        return cls.objects.exclude(scpca_id__in=existing_sample_ids).delete()
+
+    @staticmethod
+    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
+        return {"project__scpca_id__in": lockfile_project_ids}
 
     @property
     def additional_metadata(self) -> dict[str, str]:

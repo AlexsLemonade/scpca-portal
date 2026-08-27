@@ -41,8 +41,14 @@ class ConcreteLoadableResource(LoadableResourceABC):
         return self
 
     @classmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
+    def get_metadata_dicts_by_id(
+        cls, *, resources: QuerySet[LoadableResourceABC] | None = None
+    ) -> Dict[str, Dict]:
         return {}
+
+    @classmethod
+    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
+        return OriginalFile.objects.none()
 
 
 class TestLoadableResourceABC(TestCase):
@@ -159,7 +165,7 @@ class TestLoadableResourceABC(TestCase):
 
             # verify inputs (only NEW and TAINTED resources are passed through for metadata lookup)
             mock_get_metadata.assert_called_once()
-            (resources_arg,) = mock_get_metadata.call_args.args
+            resources_arg = mock_get_metadata.call_args.kwargs["resources"]
             self.assertListEqual(
                 sorted([resource.scpca_id for resource in resources_arg]),
                 ["SCPCX000001", "SCPCX000002"],
