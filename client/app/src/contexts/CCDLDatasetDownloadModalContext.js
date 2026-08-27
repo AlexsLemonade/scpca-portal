@@ -44,7 +44,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   // CCDI deep links for valid CCDLNames
   const [isDeepLinkError, setIsDeepLinkError] = useState(false) // For a warning message
   const { query, pathname, replace } = useRouter()
-  const { ccdl_name: existingName, ...remainingQuery } = query
+  const { ccdl_name: ccdlName, ...remainingQuery } = query
   // Remove deep link error and ccdlName query from URL
   const removeDeepLink = () => {
     replace(
@@ -57,8 +57,8 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     )
     setIsDeepLinkError(false)
   }
-  // Event handler to call removeDeepLink on option changes
-  const handleRemoveDeepLinkErrorOnOptionChange = (setter) => (val) => {
+  // Wrapper event handler for download option changes
+  const onDownloadOptionChange = (setter) => (val) => {
     if (isDeepLinkError) removeDeepLink()
     setter(val)
   }
@@ -70,10 +70,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
   // Set a dataset for deep link matching ccdlName
   useEffect(() => {
-    if (!existingName || !datasets || datasets.length === 0) return
+    if (!ccdlName || !datasets || datasets.length === 0) return
 
-    const dataset = datasets.find((d) => d.ccdl_name === existingName)
-    const isValid = ccdlNames.includes(existingName) && dataset
+    const dataset = datasets.find((d) => d.ccdl_name === ccdlName)
+    const isValid = ccdlNames.includes(ccdlName) && dataset
 
     if (isValid) {
       setModality(dataset.ccdl_modality)
@@ -86,7 +86,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     }
 
     setShowing(true)
-  }, [existingName, datasets])
+  }, [ccdlName, datasets])
 
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
@@ -246,16 +246,13 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         showing,
         setShowing,
         modality,
-        setModality: handleRemoveDeepLinkErrorOnOptionChange(setModality),
+        setModality: onDownloadOptionChange(setModality),
         format,
-        setFormat: handleRemoveDeepLinkErrorOnOptionChange(setFormat),
+        setFormat: onDownloadOptionChange(setFormat),
         includesMerged,
-        setIncludesMerged:
-          handleRemoveDeepLinkErrorOnOptionChange(setIncludesMerged),
+        setIncludesMerged: onDownloadOptionChange(setIncludesMerged),
         excludeMultiplexed,
-        setExcludeMultiplexed: handleRemoveDeepLinkErrorOnOptionChange(
-          setExcludeMultiplexed
-        ),
+        setExcludeMultiplexed: onDownloadOptionChange(setExcludeMultiplexed),
         selectedDataset,
         isMergedObjectsAvailable,
         isMultiplexedAvailable,
