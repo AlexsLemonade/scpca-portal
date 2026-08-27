@@ -25,6 +25,7 @@ class DatasetJobProcessor(JobProcessorABC):
         "send_notification",
     ]
 
+    # Handlers to call when steps fail
     exception_handlers = {
         ("create_new_computed_file", DatasetLockedProjectError): "handle_locked_project",
         ("create_new_computed_file", DatasetMissingLibrariesError): "handle_missing_libraries",
@@ -46,7 +47,7 @@ class DatasetJobProcessor(JobProcessorABC):
     def on_uncaught_exception(self, step: str, e: Exception) -> None:
         logger.info("Encountered uncaught exception.")
         logger.exception(e)
-        self.job.save()
+
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
@@ -69,28 +70,26 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.save()
 
     def handle_locked_project(self, step: str, e: Exception) -> None:
-        self.job.apply_state(JobStates.FAILED, reason="Dataset contains locked project.")
+        self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
         self.job.create_retry_job()
 
     def handle_missing_libraries(self, step: str, e: Exception) -> None:
-        self.job.apply_state(JobStates.FAILED, reason="Dataset contains missing libraries.")
+        self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
 
     def handle_upload_failure(self, step: str, e: Exception) -> None:
-        self.job.apply_state(JobStates.FAILED, reason="Failed to upload the computed file to S3.")
+        self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
         self.job.create_retry_job()
 
     def handle_tag_failure(self, step: str, e: Exception) -> None:
-        # Notify about S3 tagging failure via Slack to enable manual tagging
-        self.job.apply_state(JobStates.FAILED, reason="Failed to tag the computed file on S3.")
-        self.job.save()
-        logger.info("Send Slack notification for manual tagging alert.")
-        notifications.send_computed_file_tagging_error_email(self.job)
+        self.job.apply_state(JobStates.FAILED, reason=f"{e}")
+        logger.info("Sending Slack notification for manual tagging.")
+        notifications.send_slack_notification(self.job)
 
     def upload_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key

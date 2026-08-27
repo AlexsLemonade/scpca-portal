@@ -75,10 +75,11 @@ def send_dataset_job_error_email(job: Job) -> None:
     return send_email(job.dataset.email, subject, body_text, body_html)
 
 
-def send_computed_file_tagging_error_email(job: Job) -> None:
-    subject = f"Failed to tag the computed file on S3 for {job.dataset.id}"
+def send_slack_notification(job: Job) -> None:
+    subject = f"Failed S3 operation for {job.dataset.id}"
     body_text = (
-        f"Tagging failure on the computed file {job.dataset.computed_file.s3_key} "
+        f"Failed reason: {job.failed_reason}"
+        f"{job.dataset.computed_file.s3_key} "
         f"on bucket {job.dataset.computed_file.s3_bucket} for the dataset {job.dataset.id}"
     )
 

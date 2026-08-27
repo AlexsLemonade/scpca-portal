@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 
+from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models import Job
 
@@ -21,6 +22,12 @@ class Command(BaseCommand):
             logger.info("No jobs were submitted to AWS Batch")
 
         if pending_jobs:
-            logger.info(f"{len(pending_jobs)} jobs were not submitted but are still pending.")
+            logger.info(
+                f"{len(pending_jobs)} jobs were not submitted and"
+                f"will be retried on the next cron run"
+            )
         if failed_jobs:
-            logger.info(f"{len(failed_jobs)} jobs failed to submit.")
+            logger.info(
+                f"{len(failed_jobs)} jobs failed due to max submission attempts"
+                f"({common.MAX_JOB_ATTEMPTS}) exceeded"
+            )
