@@ -228,10 +228,10 @@ if WAIT_FOR_DOWNLOAD:
         sleep(60 * 2)
         dataset = request_api("datasets", id=dataset["id"], token=API_TOKEN)
 
-        if dataset["is_succeeded"] == True:
+        if dataset["state"] == "SUCCEEDED":
             break
 
-        if dataset["is_failed"] == True:
+        if dataset["state"] == "FAILED":
             print("Dataset processing failed. Exiting...")
             sys.exit(0)
 

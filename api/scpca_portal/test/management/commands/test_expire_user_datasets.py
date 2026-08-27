@@ -5,6 +5,7 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
+from scpca_portal.enums import DatasetStates
 from scpca_portal.models import UserDataset
 from scpca_portal.test.factories import DatasetComputedFileFactory, UserDatasetFactory
 
@@ -19,9 +20,7 @@ class TestExpireUserDatasets(TestCase):
         datasets = [
             UserDatasetFactory(
                 expires_at=self.now - timedelta(days=8) + timedelta(days=7),
-                is_expired=False,
-                is_succeeded=True,
-                succeeded_at=self.now - timedelta(days=8),
+                state=DatasetStates.SUCCEEDED,
                 computed_file=DatasetComputedFileFactory(),
             )
             for _ in range(3)
@@ -31,7 +30,7 @@ class TestExpireUserDatasets(TestCase):
         # Should mark the dataset as expired and delete computed files in the database
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
-            self.assertTrue(updated_dataset.is_expired)
+            self.assertEqual(updated_dataset.state, DatasetStates.EXPIRED)
             self.assertIsNone(updated_dataset.computed_file)
 
     def test_mark_no_expired_dataset(self):
@@ -39,9 +38,7 @@ class TestExpireUserDatasets(TestCase):
         datasets = [
             UserDatasetFactory(
                 expires_at=self.now + timedelta(days=7),
-                is_expired=False,
-                is_succeeded=True,
-                succeeded_at=self.now,
+                state=DatasetStates.SUCCEEDED,
                 computed_file=DatasetComputedFileFactory(),
             )
             for _ in range(3)
@@ -51,5 +48,7 @@ class TestExpireUserDatasets(TestCase):
         # Should not mark the dataset as expired or delete computed files in the database
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
-            self.assertFalse(updated_dataset.is_expired)
+            self.assertEqual(
+                updated_dataset.state, DatasetStates.SUCCEEDED
+            )  # Should remain unchanged
             self.assertIsNotNone(updated_dataset.computed_file)

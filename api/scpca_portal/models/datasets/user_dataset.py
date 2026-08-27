@@ -9,7 +9,7 @@ from django.utils.timezone import make_aware
 
 from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import DatasetFormats, Modalities
+from scpca_portal.enums import DatasetFormats, DatasetStates, Modalities
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.datasets.base import DatasetABC
 from scpca_portal.models.project import Project
@@ -75,7 +75,10 @@ class UserDataset(DatasetABC):
 
     @property
     def expiration_delta(self) -> datetime | None:
-        return self.succeeded_at + timedelta(days=7)
+        job = self.latest_job
+        if job is None:
+            return None
+        return self.latest_job.succeeded_at + timedelta(days=7)
 
     @property
     def s3_upload_tags(self) -> dict[str, str] | None:
@@ -327,16 +330,17 @@ class UserDataset(DatasetABC):
     @classmethod
     def mark_expired_datasets(cls) -> int:
         """
-        Marks datasets as expired to enable the regeneration option on the Portal:
-        - Set the is_expired field to True for datasets that exceeded the 7-day expiration.
+        Marks datasets as EXPIRED to enable the regeneration option on the Portal:
+        - Datasets whose expires_at exceeded the 7-day expiration
         - Delete the corresponding computed files in the database
-        NOTE: The deletion of computed files on S3 is managed by S3 Lifecycle Policy Rules.
+        NOTE: Deletion of computed files on S3 is managed by S3 Lifecycle Policy Rules.
         Returns the count of the datasets that have been marked as expired.
         """
         expired_datasets = cls.objects.filter(
-            is_succeeded=True, is_expired=False, expires_at__lt=make_aware(datetime.now())
+            state=DatasetStates.SUCCEEDED,
+            expires_at__lt=make_aware(datetime.now()),
         )
 
         ComputedFile.objects.filter(userdataset__in=expired_datasets).delete()
 
-        return expired_datasets.update(is_expired=True)
+        return expired_datasets.update(state=DatasetStates.EXPIRED)

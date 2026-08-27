@@ -1,12 +1,10 @@
-from datetime import datetime
 from functools import partial
 from unittest.mock import patch
 
 from django.core.management import call_command
 from django.test import TestCase
-from django.utils.timezone import make_aware
 
-from scpca_portal.enums import JobStates
+from scpca_portal.enums import DatasetStates, JobStates
 from scpca_portal.models import Job
 from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory
 
@@ -15,41 +13,18 @@ class TestSyncBatchJobs(TestCase):
     def setUp(self):
         self.sync_batch_jobs = partial(call_command, "sync_batch_jobs")
 
-    def assertDatasetState(
-        self,
-        dataset,
-        is_pending=False,
-        is_processing=False,
-        is_succeeded=False,
-        is_failed=False,
-        failed_reason=None,
-        is_terminated=False,
-        terminated_reason=None,
-    ):
+    def assertDatasetState(self, dataset, job_state):
         """
         Helper for asserting the dataset state.
         """
-        self.assertEqual(dataset.is_pending, is_pending)
-        if is_pending:
-            self.assertIsInstance(dataset.pending_at, datetime)
+        if job_state in [JobStates.PENDING, JobStates.PROCESSING]:
+            self.assertEqual(dataset.state, DatasetStates.PROCESSING)
 
-        self.assertEqual(dataset.is_processing, is_processing)
-        if is_processing:
-            self.assertIsInstance(dataset.processing_at, datetime)
+        if job_state == JobStates.SUCCEEDED:
+            self.assertEqual(dataset.state, DatasetStates.SUCCEEDED)
 
-        self.assertEqual(dataset.is_succeeded, is_succeeded)
-        if is_succeeded:
-            self.assertIsInstance(dataset.succeeded_at, datetime)
-
-        self.assertEqual(dataset.is_failed, is_failed)
-        if is_failed:
-            self.assertIsInstance(dataset.failed_at, datetime)
-        self.assertEqual(dataset.failed_reason, failed_reason)
-
-        self.assertEqual(dataset.is_terminated, is_terminated)
-        if is_terminated:
-            self.assertIsInstance(dataset.terminated_at, datetime)
-        self.assertEqual(dataset.terminated_reason, terminated_reason)
+        if job_state in [JobStates.FAILED, JobStates.TERMINATED]:
+            self.assertEqual(dataset.state, DatasetStates.FAILED)
 
     @patch("scpca_portal.batch.get_jobs")
     def test_sync_batch_jobs(self, mock_batch_get_jobs):
@@ -58,9 +33,7 @@ class TestSyncBatchJobs(TestCase):
             JobFactory(
                 state=JobStates.PROCESSING,
                 batch_job_id=batch_job_id,
-                dataset=CCDLDatasetFactory(
-                    is_processing=True, processing_at=make_aware(datetime.now())
-                ),
+                dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
             )
             for batch_job_id in [
                 "MOCK_JOB_ID_0",
@@ -97,20 +70,18 @@ class TestSyncBatchJobs(TestCase):
 
         # PROCESSING job should remain unchanged
         processing_job = Job.objects.filter(state=JobStates.PROCESSING).first()
-        self.assertDatasetState(processing_job.dataset, is_processing=True)
+        self.assertDatasetState(processing_job.dataset, JobStates.PROCESSING)
 
         # SUCCEEDED job state and dataset should be updated
         succeeded_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_5").first()
         self.assertEqual(succeeded_job.state, JobStates.SUCCEEDED)
-        self.assertDatasetState(succeeded_job.dataset, is_succeeded=True)
+        self.assertDatasetState(succeeded_job.dataset, JobStates.SUCCEEDED)
 
         # FAILED job state and dataset should be updated with failed reason
         failed_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_6").first()
         self.assertEqual(failed_job.state, JobStates.FAILED)
-        self.assertDatasetState(failed_job.dataset, is_failed=True, failed_reason="Job FAILED")
+        self.assertDatasetState(failed_job.dataset, JobStates.FAILED)
 
         # TERMINATED job state and dataset should be updated
         terminated_job = Job.objects.filter(batch_job_id="MOCK_JOB_ID_7").first()
-        self.assertDatasetState(
-            terminated_job.dataset, is_terminated=True, terminated_reason="Job TERMINATED"
-        )
+        self.assertDatasetState(terminated_job.dataset, JobStates.TERMINATED)

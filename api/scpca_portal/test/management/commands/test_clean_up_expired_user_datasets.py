@@ -6,8 +6,9 @@ from django.core.management import call_command
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
+from scpca_portal.enums import DatasetStates, JobStates
 from scpca_portal.models import UserDataset
-from scpca_portal.test.factories import DatasetComputedFileFactory, UserDatasetFactory
+from scpca_portal.test.factories import DatasetComputedFileFactory, JobFactory, UserDatasetFactory
 
 
 class TestCleanUpExpiredUserDatasets(TestCase):
@@ -20,21 +21,22 @@ class TestCleanUpExpiredUserDatasets(TestCase):
     @patch("scpca_portal.s3.aws_s3.delete_object")
     def test_clean_up_expired_datasets(self, mock_delete_object):
         datasets = [
-            UserDatasetFactory(
-                computed_file=DatasetComputedFileFactory(),
-                expires_at=None,
-                is_succeeded=True,
-                succeeded_at=self.now - timedelta(days=8),
-            )
-            for _ in range(3)
+            UserDatasetFactory(computed_file=DatasetComputedFileFactory()) for _ in range(3)
         ]
+        # Populate the corresponding jobs
+        for dataset in datasets:
+            JobFactory(
+                dataset=dataset,
+                state=JobStates.SUCCEEDED,
+                succeeded_at=self.now - timedelta(days=9),
+            )
 
         self.clean_up_expired_user_datasets()
         # Should set the timestamp and mark all datasets as expired
         for dataset in datasets:
             updated_dataset = UserDataset.objects.get(id=dataset.id)
             self.assertEqual(updated_dataset.expires_at, dataset.expiration_delta)
-            self.assertTrue(updated_dataset.is_expired)
+            self.assertEqual(updated_dataset.state, DatasetStates.EXPIRED)
             # Should purge the computed file
             mock_delete_object.assert_called_with(
                 Bucket=dataset.computed_file.s3_bucket, Key=dataset.computed_file.s3_key
@@ -44,18 +46,15 @@ class TestCleanUpExpiredUserDatasets(TestCase):
 
     @patch("scpca_portal.s3.aws_s3.delete_object")
     def test_no_clean_up_expired_datasets(self, mock_delete_object):
-        dataset = UserDatasetFactory(
-            computed_file=DatasetComputedFileFactory(),
-            expires_at=None,
-            is_succeeded=True,
-            succeeded_at=self.now + timedelta(days=1),
-        )
+        dataset = UserDatasetFactory(computed_file=DatasetComputedFileFactory())
+        # Populate the corresponding job
+        JobFactory(dataset=dataset, state=JobStates.SUCCEEDED, succeeded_at=self.now)
 
         self.clean_up_expired_user_datasets()
-        # Should only set the timestamp and not mark as expired
+        # Should only populate the timestamp and not mark as expired
         updated_dataset = UserDataset.objects.get(id=dataset.id)
         self.assertEqual(updated_dataset.expires_at, dataset.expiration_delta)
-        self.assertFalse(updated_dataset.is_expired)
+        self.assertEqual(updated_dataset.state, DatasetStates.SUCCEEDED)  # Should remain unchanged
         # Should not purge the computed file
         mock_delete_object.assert_not_called()
         self.assertIsNotNone(updated_dataset.computed_file)
