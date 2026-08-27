@@ -31,7 +31,11 @@ class LoadableResourceABC(TimestampedModel):
     metadata_hash = models.CharField(max_length=32, null=True)
     combined_hash = models.CharField(max_length=32, null=True)
 
+    # Corresponding to the key of the resource in input metadata files
     SCPCA_RESOURCE_METADATA_ID_KEY: str
+    # Corresponding to the key of the resource on the original file model
+    # TODO: This should be removed after foreign key relations are established between
+    # the various loadable resources and the original file model at a future point
     SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY: str
 
     @abstractmethod
