@@ -1,8 +1,10 @@
 import csv
 import json
-from typing import Dict, List
+from typing import Dict, List, Set
 
+from django.apps import apps
 from django.conf import settings
+from django.db.models import QuerySet
 
 from scpca_portal import common, utils
 from scpca_portal.models.original_file import OriginalFile
@@ -56,6 +58,7 @@ def get_projects_metadata_ids(*, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
         return [row["scpca_project_id"] for row in projects_metadata]
 
 
+# TODO: remove before feature branch is merged in
 def load_projects_metadata(
     filter_on_project_ids: List[str], *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> List[Dict]:
@@ -78,6 +81,31 @@ def load_projects_metadata(
     return projects_metadata
 
 
+def load_all_projects_metadata(
+    projects_metadata_file: OriginalFile,
+    *,
+    filter_on_ids: Set[str] | None = None,
+    bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
+    """
+    Opens, loads and parses list of project metadata dicts.
+    Transforms keys in data dicts to match associated model attributes.
+    If optional project ids are passed, projects are filtered on the passed ids.
+    """
+    projects_metadata_dicts = []
+    with open(projects_metadata_file.local_file_path) as raw_file:
+        for project_metadata_dict in csv.DictReader(raw_file):
+            utils.transform_keys(project_metadata_dict, PROJECT_METADATA_KEYS)
+            utils.transform_values(project_metadata_dict, PROJECT_METADATA_VALUES_TRANSFORMS)
+
+            if filter_on_ids and project_metadata_dict["scpca_project_id"] not in filter_on_ids:
+                continue
+            projects_metadata_dicts.append(project_metadata_dict)
+
+    return projects_metadata_dicts
+
+
+# TODO: remove before feature branch is merged in
 def load_samples_metadata(
     project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> List[Dict]:
@@ -90,6 +118,40 @@ def load_samples_metadata(
         return list(csv.DictReader(raw_file))
 
 
+def load_all_samples_metadata(
+    samples_metadata_files: QuerySet[OriginalFile],
+    *,
+    filter_on_ids: Set[str] | None = None,
+    bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
+    """
+    Opens, loads and parses list of samples metadata.
+    Transforms keys in data dicts to match associated model attributes.
+    """
+    if filter_on_ids:
+        Sample = apps.get_model("scpca_portal", "Sample")
+        samples_metadata_files = samples_metadata_files.filter(
+            project_id__in=Sample.objects.filter(scpca_id__in=filter_on_ids)
+            .values_list("project__scpca_id", flat=True)
+            .distinct()
+        )
+
+    samples_metadata_dicts = []
+    for samples_metadata_file in samples_metadata_files:
+        with open(samples_metadata_file.local_file_path) as raw_file:
+            samples_metadata_dicts.extend(csv.DictReader(raw_file))
+
+    if filter_on_ids:
+        return [
+            sm_dict
+            for sm_dict in samples_metadata_dicts
+            if sm_dict["scpca_sample_id"] in filter_on_ids
+        ]
+
+    return samples_metadata_dicts
+
+
+# TODO: remove before feature branch is merged in
 def load_libraries_metadata(
     project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> List[Dict]:
@@ -111,6 +173,32 @@ def load_libraries_metadata(
     return libraries_metadata
 
 
+def load_all_libraries_metadata(
+    libraries_metadata_files: QuerySet[OriginalFile],
+    *,
+    filter_on_ids: Set[str] | None = None,
+    bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
+    """
+    Opens, loads and parses list of samples metadata.
+    Transforms keys in data dicts to match associated model attributes.
+    """
+    if filter_on_ids:
+        libraries_metadata_files = libraries_metadata_files.filter(library_id__in=filter_on_ids)
+
+    libraries_metadata_dicts = []
+    for libraries_metadata_file in libraries_metadata_files:
+        with open(libraries_metadata_file.local_file_path) as raw_file:
+            library_metadata_dict = utils.transform_keys(json.load(raw_file), LIBRARY_METADATA_KEYS)
+            if filter_on_ids and library_metadata_dict["scpca_library_id"] not in filter_on_ids:
+                continue
+
+            libraries_metadata_dicts.append(library_metadata_dict)
+
+    return libraries_metadata_dicts
+
+
+# TODO: remove before feature branch is merged in
 def load_bulk_metadata(
     project_id: str, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
 ) -> List[Dict]:
@@ -128,3 +216,33 @@ def load_bulk_metadata(
         utils.transform_keys(bulk_metadata_dict, BULK_METADATA_KEYS)
 
     return bulk_metadata_dicts
+
+
+def load_all_bulk_libraries_metadata(
+    bulk_libraries_metadata_files: QuerySet[OriginalFile],
+    *,
+    filter_on_ids: Set[str] | None = None,
+    bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+) -> List[Dict]:
+    """
+    Opens, loads and parses bulk metadata located at inputted metadata_file_path.
+    Transforms keys in data dicts to match associated model attributes.
+    """
+    if filter_on_ids:
+        Library = apps.get_model("scpca_portal", "Library")
+        bulk_libraries_metadata_files = bulk_libraries_metadata_files.filter(
+            project_id__in=Library.objects.filter(scpca_id__in=filter_on_ids)
+            .values_list("project__scpca_id", flat=True)
+            .distinct()
+        )
+
+    bulk_libraries_metadata_dicts = []
+    for bulk_libraries_metadata_file in bulk_libraries_metadata_files:
+        with open(bulk_libraries_metadata_file.local_file_path) as raw_file:
+            for bulk_metadata_dict in csv.DictReader(raw_file, delimiter=common.TAB):
+                utils.transform_keys(bulk_metadata_dict, BULK_METADATA_KEYS)
+                if filter_on_ids and bulk_metadata_dict["scpca_library_id"] not in filter_on_ids:
+                    continue
+                bulk_libraries_metadata_dicts.append(bulk_metadata_dict)
+
+    return bulk_libraries_metadata_dicts

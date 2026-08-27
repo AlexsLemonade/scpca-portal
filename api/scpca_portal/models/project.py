@@ -48,6 +48,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     includes_xenografts = models.BooleanField(default=False)
     # TODO: remove attr when feature branch is merged in
     is_locked = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict)
     modalities = ArrayField(models.TextField(), default=list)
     multiplexed_sample_count = models.IntegerField(default=0)
     organisms = ArrayField(models.TextField(), default=list)
@@ -64,6 +65,8 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     external_accessions = models.ManyToManyField(ExternalAccession)
     publications = models.ManyToManyField(Publication)
 
+    SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_project_id"
+
     def __str__(self) -> str:
         return f"Project {self.scpca_id}"
 
@@ -78,6 +81,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
                     setattr(project, key, utils.boolean_from_string(data.get(key, False)))
                 else:
                     setattr(project, key, data.get(key))
+        project.metadata = data
 
         return project
 
@@ -90,6 +94,7 @@ class Project(CommonDataAttributes, LoadableResourceABC):
                 value = utils.boolean_from_string(data.get(key, False))
 
             setattr(self, key, value)
+        self.metadata = data
 
         return self
 
@@ -181,12 +186,20 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         return bulk_rna_seq_sample_ids
 
     @classmethod
-    def get_metadata_dicts_by_id(cls, resources: QuerySet[LoadableResourceABC]) -> Dict[str, Dict]:
-        project_ids = list(resources.values_list("scpca_id", flat=True))
-        projects_metadata = metadata_parser.load_projects_metadata(
-            filter_on_project_ids=project_ids
+    def get_input_metadata_files(
+        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME, **kwargs
+    ) -> QuerySet[OriginalFile]:
+        return OriginalFile.objects.filter(is_metadata=True, project_id=None, s3_bucket=bucket)
+
+    # TODO: rename to "load_metadata" before loadable feature branch merged in
+    @classmethod
+    def new_load_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] = set()
+    ) -> List[Dict]:
+        projects_metadata_file = metadata_files.first()
+        return metadata_parser.load_all_projects_metadata(
+            projects_metadata_file, filter_on_ids=filter_on_ids
         )
-        return {md["scpca_project_id"]: md for md in projects_metadata}
 
     # TODO: remove before loadable resource feature branch lands
     def load_metadata(self) -> None:
@@ -200,6 +213,31 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         self.update_project_aggregate_properties()
         self.update_project_sample_aggregate_counts()
         self.update_project_summaries_aggregate_properties()
+
+    @classmethod
+    def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
+        existing_project_ids = cls.objects.values_list("scpca_id", flat=True)
+        new_project_ids = set(metadata_dicts_by_ids.keys()) - set(existing_project_ids)
+
+        if not new_project_ids:
+            return []
+
+        new_projects = [cls(scpca_id=new_project_id) for new_project_id in new_project_ids]
+        return cls.objects.bulk_create(new_projects)
+
+    @classmethod
+    def remove_deleted_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, dict]:
+        existing_project_ids = set(
+            OriginalFile.objects.exclude(project_id__isnull=True).values_list(
+                "project_id", flat=True
+            )
+        ) | set(metadata_dicts_by_ids.keys())
+
+        return cls.objects.exclude(scpca_id__in=existing_project_ids).delete()
+
+    @staticmethod
+    def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
+        return {"project__scpca_id__in": lockfile_project_ids}
 
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""
