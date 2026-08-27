@@ -31,7 +31,6 @@ class Library(LoadableResourceABC):
     project = models.ForeignKey("Project", on_delete=models.CASCADE, related_name="libraries")
 
     SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_library_id"
-    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY = "library_id"
 
     def __str__(self) -> str:
         return f"Library {self.scpca_id}"
@@ -117,25 +116,41 @@ class Library(LoadableResourceABC):
         sample.libraries.add(*libraries)
 
     @classmethod
-    def get_all_input_metadata_files(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    def get_input_metadata_files(
+        cls,
+        *,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        resources: QuerySet[Self] | None = None,
+        **kwargs,
     ) -> QuerySet[OriginalFile]:
-        all_input_library_metadata_files = OriginalFile.objects.filter(
+        input_library_metadata_files = OriginalFile.objects.filter(
             is_metadata=True,
             project_id__isnull=False,
             library_id__isnull=False,
             s3_key__endswith="_metadata.json",  # Exclude other .csv, .json files
             s3_bucket=bucket,
         )
-        all_input_project_bulk_metadata_files = OriginalFile.objects.filter(
+        input_project_bulk_metadata_files = OriginalFile.objects.filter(
             is_metadata=True, is_bulk=True, project_id__isnull=False, s3_bucket=bucket
         )
 
-        return all_input_library_metadata_files | all_input_project_bulk_metadata_files
+        if resources:
+            library_ids = resources.values_list("scpca_id", flat=True)
+            input_library_metadata_files = input_library_metadata_files.filter(
+                library_id__in=library_ids
+            )
 
+            project_ids = resources.values_list("project__scpca_id", flat=True)
+            input_project_bulk_metadata_files = input_project_bulk_metadata_files.filter(
+                project_id__in=project_ids
+            )
+
+        return input_library_metadata_files | input_project_bulk_metadata_files
+
+    # TODO: rename to "load_metadata" before loadable feature branch merged in
     @classmethod
-    def load_all_metadata(
-        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] | None = None
+    def new_load_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] = set()
     ) -> List[Dict]:
         libraries_metadata_files = metadata_files.filter(library_id__isnull=False)
         bulk_libraries_metadata_files = metadata_files.filter(is_bulk=True)

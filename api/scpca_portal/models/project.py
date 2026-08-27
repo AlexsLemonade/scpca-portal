@@ -66,7 +66,6 @@ class Project(CommonDataAttributes, LoadableResourceABC):
     publications = models.ManyToManyField(Publication)
 
     SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_project_id"
-    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY = "project_id"
 
     def __str__(self) -> str:
         return f"Project {self.scpca_id}"
@@ -187,14 +186,15 @@ class Project(CommonDataAttributes, LoadableResourceABC):
         return bulk_rna_seq_sample_ids
 
     @classmethod
-    def get_all_input_metadata_files(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    def get_input_metadata_files(
+        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME, **kwargs
     ) -> QuerySet[OriginalFile]:
         return OriginalFile.objects.filter(is_metadata=True, project_id=None, s3_bucket=bucket)
 
+    # TODO: rename to "load_metadata" before loadable feature branch merged in
     @classmethod
-    def load_all_metadata(
-        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] | None = None
+    def new_load_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] = set()
     ) -> List[Dict]:
         projects_metadata_file = metadata_files.first()
         return metadata_parser.load_all_projects_metadata(
