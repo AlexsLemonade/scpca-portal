@@ -51,7 +51,6 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
     libraries = models.ManyToManyField(Library, related_name="samples")
 
     SCPCA_RESOURCE_METADATA_ID_KEY = "scpca_sample_id"
-    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY = "sample_id"
 
     def __str__(self) -> str:
         return f"Sample {self.scpca_id} of {self.project}"
@@ -112,10 +111,14 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.objects.bulk_create(samples)
 
     @classmethod
-    def get_all_input_metadata_files(
-        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME
+    def get_input_metadata_files(
+        cls,
+        *,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        resources: QuerySet[Self] | None = None,
+        **kwargs,
     ) -> QuerySet[OriginalFile]:
-        return OriginalFile.objects.filter(
+        input_metadata_files = OriginalFile.objects.filter(
             is_metadata=True,
             # this comes to exclude bulk metadata files,
             # though bulk samples exist in the samples metadata files
@@ -125,10 +128,16 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             library_id__isnull=True,
             s3_bucket=bucket,
         )
+        if resources:
+            project_ids = resources.values_list("project__scpca_id", flat=True).distinct()
+            return input_metadata_files.filter(project_id__in=project_ids)
 
+        return input_metadata_files
+
+    # TODO: rename to "load_metadata" before loadable feature branch merged in
     @classmethod
-    def load_all_metadata(
-        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] | None = None
+    def new_load_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] = set()
     ) -> List[Dict]:
         return metadata_parser.load_all_samples_metadata(
             metadata_files, filter_on_ids=filter_on_ids
@@ -278,10 +287,6 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         ) | set(metadata_dicts_by_ids.keys())
 
         return cls.objects.exclude(scpca_id__in=existing_sample_ids).delete()
-
-    @classmethod
-    def get_original_file_filter_on_kwargs(cls, filter_on_ids: Set) -> Dict:
-        return {f"{cls.SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY}__overlap": filter_on_ids}
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:

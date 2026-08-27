@@ -2,6 +2,7 @@ from abc import abstractmethod
 from datetime import datetime, timedelta
 from typing import Any, Dict, Iterable, List, Set
 
+from django.conf import settings
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
@@ -33,10 +34,6 @@ class LoadableResourceABC(TimestampedModel):
 
     # Corresponding to the key of the resource in input metadata files
     SCPCA_RESOURCE_METADATA_ID_KEY: str
-    # Corresponding to the key of the resource on the original file model
-    # TODO: This should be removed after foreign key relations are established between
-    # the various loadable resources and the original file model at a future point
-    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY: str
 
     @abstractmethod
     def update_from_dict(self, data: Dict) -> Self:
@@ -120,22 +117,21 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     @abstractmethod
-    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
+    def get_input_metadata_files(
+        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME, **kwargs
+    ) -> QuerySet[OriginalFile]:
         pass
-
-    @classmethod
-    def get_original_file_filter_on_kwargs(cls, filter_on_ids: Set) -> Dict:
-        return {f"{cls.SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY}__in": filter_on_ids}
 
     @staticmethod
     @abstractmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
         pass
 
+    # TODO: rename to "load_metadata" before loadable feature branch merged in
     @classmethod
     @abstractmethod
-    def load_all_metadata(
-        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: List[str]
+    def new_load_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] = set()
     ) -> List[Dict]:
         pass
 
@@ -143,23 +139,19 @@ class LoadableResourceABC(TimestampedModel):
     def get_metadata_dicts_by_id(
         cls, *, resources: QuerySet[Self] | None = None, skip_existing_file_download: bool = False
     ) -> Dict[str, Dict]:
-        kwargs = {}
-        all_resource_metadata_files = cls.get_all_input_metadata_files()
+        resource_metadata_files = cls.get_input_metadata_files(resources=resources)
 
-        if resources:
-            kwargs["filter_on_ids"] = set(resources.values_list("scpca_id", flat=True))
-            all_resource_metadata_files.filter(
-                **cls.get_original_file_filter_on_kwargs(kwargs["filter_on_ids"])
-            )
-
-        downloadable_files = OriginalFile.objects.filter(id__in=all_resource_metadata_files)
+        downloadable_files = OriginalFile.objects.filter(id__in=resource_metadata_files)
         if skip_existing_file_download:
             existing_file_ids = [df.id for df in downloadable_files if df.local_file_path.exists()]
             downloadable_files = downloadable_files.exclude(id__in=existing_file_ids)
         s3.download_files(downloadable_files)
 
-        all_resource_metadata = cls.load_all_metadata(all_resource_metadata_files, **kwargs)
-        return {md[cls.SCPCA_RESOURCE_METADATA_ID_KEY]: md for md in all_resource_metadata}
+        filter_on_ids = set(resources.values_list("scpca_id", flat=True)) if resources else set()
+        resources_metadata = cls.new_load_metadata(
+            resource_metadata_files, filter_on_ids=filter_on_ids
+        )
+        return {md[cls.SCPCA_RESOURCE_METADATA_ID_KEY]: md for md in resources_metadata}
 
     @classmethod
     def sync_metadata(cls) -> None:
