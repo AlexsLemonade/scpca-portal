@@ -1,6 +1,7 @@
 from abc import abstractmethod
+from collections import Counter
 from datetime import datetime, timedelta
-from typing import Any, Dict, Iterable, List, Set
+from typing import Any, Dict, Iterable, List, Set, TypedDict
 
 from django.conf import settings
 from django.db import models
@@ -16,6 +17,14 @@ from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
+
+
+class ModelOutputCounts(TypedDict):
+    created: int
+    deleted: int
+    locked: int
+    unlocked: int
+    tainted: int
 
 
 class LoadableResourceABC(TimestampedModel):
@@ -137,9 +146,13 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     def get_metadata_dicts_by_id(
-        cls, *, resources: QuerySet[Self] | None = None, skip_existing_file_download: bool = False
+        cls,
+        *,
+        resources: QuerySet[Self] | None = None,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        skip_existing_file_download: bool = False,
     ) -> Dict[str, Dict]:
-        resource_metadata_files = cls.get_input_metadata_files(resources=resources)
+        resource_metadata_files = cls.get_input_metadata_files(resources=resources, bucket=bucket)
 
         downloadable_files = OriginalFile.objects.filter(id__in=resource_metadata_files)
         if skip_existing_file_download:
@@ -211,7 +224,7 @@ class LoadableResourceABC(TimestampedModel):
         pass
 
     @classmethod
-    def taint_and_lock_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def taint_and_lock_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, int, int]:
         """
         This method handles three independent actions:
         1. Locking resources who's projects are associated with a lockfile in the OF table
@@ -219,6 +232,8 @@ class LoadableResourceABC(TimestampedModel):
         3. Determining whether unlocked loaded resources have been tainted since being locked.
             If so setting their state to TAINTED, and if not resetting their state to SYNCED.
         """
+        output_counts = Counter()
+
         lockfile_project_ids = list(
             OriginalFile.objects.filter(is_lockfile=True).values_list("project_id", flat=True)
         )
@@ -227,6 +242,7 @@ class LoadableResourceABC(TimestampedModel):
             **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
         )
         cls.bulk_update_loaded_state(locked_resources, LoadableResourceStates.LOCKED)
+        output_counts.update({"locked": locked_resources.count()})
 
         unlocked_resources = cls.objects.filter(loaded_state=LoadableResourceStates.LOCKED).exclude(
             **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
@@ -251,11 +267,32 @@ class LoadableResourceABC(TimestampedModel):
 
         cls.bulk_update_loaded_state(tainted_resources, LoadableResourceStates.TAINTED)
         cls.bulk_update_loaded_state(synced_resources, LoadableResourceStates.SYNCED)
+        output_counts.update({"tainted": len(tainted_resources)})
+        output_counts.update({"unlocked": len(synced_resources)})
+
+        return (output_counts["locked"], output_counts["unlocked"], output_counts["tainted"])
 
     @classmethod
-    def sync_model(cls) -> None:
-        metadata_dicts_by_id = cls.get_metadata_dicts_by_id()
+    def sync_model(
+        cls,
+        *,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        skip_existing_file_download: bool = False,
+    ) -> ModelOutputCounts:
+        metadata_dicts_by_id = cls.get_metadata_dicts_by_id(
+            bucket=bucket, skip_existing_file_download=skip_existing_file_download
+        )
 
-        cls.create_new_objects(metadata_dicts_by_id)
-        cls.remove_deleted_objects(metadata_dicts_by_id)
-        cls.taint_and_lock_objects(metadata_dicts_by_id)
+        created_count = len(cls.create_new_objects(metadata_dicts_by_id))
+        deleted_count, _ = cls.remove_deleted_objects(metadata_dicts_by_id)
+        locked_count, unlocked_count, tainted_count = cls.taint_and_lock_objects(
+            metadata_dicts_by_id
+        )
+
+        return {
+            "created": created_count,
+            "deleted": deleted_count,
+            "locked": locked_count,
+            "unlocked": unlocked_count,
+            "tainted": tainted_count,
+        }
