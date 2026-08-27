@@ -115,18 +115,9 @@
   "project_titles": {
     "SCPCP000001": "Single cell RNA sequencing of pediatric high-grade gliomas"
   },
-  "started_at": null,
-  "is_started": false,
-  "is_processing": false,
-  "succeeded_at": "2026-02-11T04:49:07.555126Z",
-  "is_succeeded": true,
-  "failed_at": null,
-  "is_failed": false,
-  "failed_reason": null,
+  "state": "SUCCEEDED",
   "expires_at": null,
   "is_expired": false,
-  "terminated_at": null,
-  "is_terminated": false,
   "terminated_reason": null,
   "computed_file": {
     "created_at": "2026-02-11T04:48:49.413400Z",
