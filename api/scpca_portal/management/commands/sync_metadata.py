@@ -26,11 +26,12 @@ class Command(BaseCommand):
     def sync_metadata(self, **kwargs) -> None:
         logger.info("Syncing metadata...")
 
-        Project.sync_metadata()
-        Sample.sync_metadata()
-        Library.sync_metadata()
-
-        # TODO: Should the sync_metadata methods return anything that could be logged out here?
-        # For example, how many Projects, Samples, and Libraries have been synced?
+        synced_projects_count = Project.sync_metadata()
+        synced_samples_count = Sample.sync_metadata()
+        synced_libraries_count = Library.sync_metadata()
 
         logger.info("Metadata sync complete.")
+        logger.info(
+            f"Sync totals: {synced_projects_count} projects, {synced_samples_count} samples, "
+            f"and {synced_libraries_count} libraries."
+        )

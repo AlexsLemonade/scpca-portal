@@ -167,7 +167,7 @@ class LoadableResourceABC(TimestampedModel):
         return {md[cls.SCPCA_RESOURCE_METADATA_ID_KEY]: md for md in resources_metadata}
 
     @classmethod
-    def sync_metadata(cls) -> None:
+    def sync_metadata(cls) -> int:
         updatable_resources = cls.objects.filter(
             loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
         )
@@ -190,6 +190,8 @@ class LoadableResourceABC(TimestampedModel):
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
         cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
+
+        return updatable_resources.count()
 
     @staticmethod
     def get_metadata_id_tuples(
