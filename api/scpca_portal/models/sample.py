@@ -153,15 +153,15 @@ class Sample(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC)
         Sample.update_modality_properties(project)
         Sample.update_aggregate_properties(project)
 
-    def update_aggregations(self) -> None:
-        self.new_update_modality_properties()
-        self.new_update_aggregate_properties()
-
     @property
     def current_aggregation_hash(self) -> str:
         return utils.hash_values(
             self.libraries.sort_by("scpca_id").values_list("metadata_hash", flat=True)
         )
+
+    def update_aggregations(self) -> None:
+        self.new_update_modality_properties()
+        self.new_update_aggregate_properties()
 
     # TODO: remove before loadable resource feature branch lands
     @classmethod

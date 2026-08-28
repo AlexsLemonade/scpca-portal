@@ -215,12 +215,6 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
         self.update_project_sample_aggregate_counts()
         self.update_project_summaries_aggregate_properties()
 
-    def update_aggregations(self) -> None:
-        self.new_update_project_modality_properties()
-        self.new_update_project_aggregate_properties()
-        self.new_update_project_sample_aggregate_counts()
-        self.new_update_project_summaries_aggregate_properties()
-
     @property
     def current_aggregation_hash(self) -> str:
         samples_metadata_hashes = self.samples.sort_by("scpca_id").values_list(
@@ -230,6 +224,12 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
             "metadata_hash", flat=True
         )
         return utils.hash_values(samples_metadata_hashes + libraries_metadata_hashes)
+
+    def update_aggregations(self) -> None:
+        self.new_update_project_modality_properties()
+        self.new_update_project_aggregate_properties()
+        self.new_update_project_sample_aggregate_counts()
+        self.new_update_project_summaries_aggregate_properties()
 
     @classmethod
     def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:

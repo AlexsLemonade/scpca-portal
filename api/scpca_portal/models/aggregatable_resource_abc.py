@@ -28,7 +28,6 @@ class AggregatableResourceABC(TimestampedModel):
         cls.objects.bulk_update(aggregating_resources, fields=fields_to_update)
 
     @property
-    @abstractmethod
     def needs_aggregations(self) -> bool:
         return self.aggregation_hash != self.current_aggregation_hash
 
