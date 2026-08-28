@@ -10,7 +10,8 @@ routes are declared before the greedy 3-segment `{organization}/{namespace}/{nam
 detail route so they are not shadowed by it.
 """
 
-from django.urls import include, path
+from django.urls import include, path, reverse_lazy
+from django.views.generic.base import RedirectView
 
 from drf_spectacular.views import SpectacularRedocView, SpectacularSwaggerView
 
@@ -152,4 +153,12 @@ api_urls = (
     + file_urls
 )
 
-urlpatterns = docs_urls + [path("v1/", include(api_urls))]
+# Bare node root and API-scope root both land on the docs; the `v1/` redirect
+# only matches exactly `v1/`, so `v1/<endpoint>` still resolves via the include.
+docs_redirect = RedirectView.as_view(url=reverse_lazy("ccdi:docs-swagger"), permanent=False)
+
+urlpatterns = (
+    [path("", docs_redirect), path("v1/", docs_redirect)]
+    + docs_urls
+    + [path("v1/", include(api_urls))]
+)

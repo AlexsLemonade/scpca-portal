@@ -58,3 +58,12 @@ class CCDISurfaceTests(SimpleTestCase):
             with self.subTest(url=url):
                 response = self.client.get(url)
                 self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+class CCDIRootRedirectTests(SimpleTestCase):
+    def test_node_and_api_roots_redirect_to_swagger(self):
+        for url in ("/federation/ccdi/", "/federation/ccdi/v1/"):
+            with self.subTest(url=url):
+                response = self.client.get(url)
+                self.assertEqual(response.status_code, status.HTTP_302_FOUND)
+                self.assertEqual(response.headers["Location"], "/federation/ccdi/docs/swagger")
