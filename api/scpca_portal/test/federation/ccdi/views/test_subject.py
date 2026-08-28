@@ -6,11 +6,11 @@ from django.test import SimpleTestCase
 from rest_framework import status
 
 ENDPOINTS = (
-    "/federation/ccdi/subject",
-    "/federation/ccdi/subject/by/sex/count",
-    "/federation/ccdi/subject/summary",
-    "/federation/ccdi/subject/alsf/scpca/SUBJECT1",
-    "/federation/ccdi/subject-diagnosis",
+    "/federation/ccdi/v1/subject",
+    "/federation/ccdi/v1/subject/by/sex/count",
+    "/federation/ccdi/v1/subject/summary",
+    "/federation/ccdi/v1/subject/alsf/scpca/SUBJECT1",
+    "/federation/ccdi/v1/subject-diagnosis",
 )
 
 

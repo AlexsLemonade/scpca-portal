@@ -13,4 +13,5 @@ from scpca_portal.federation.ccdi.views.metadata_fields import MetadataFieldsVie
 from scpca_portal.federation.ccdi.views.namespace import NamespaceViewSet
 from scpca_portal.federation.ccdi.views.organization import OrganizationViewSet
 from scpca_portal.federation.ccdi.views.sample import SampleViewSet
+from scpca_portal.federation.ccdi.views.schema import SchemaView
 from scpca_portal.federation.ccdi.views.subject import SubjectViewSet
