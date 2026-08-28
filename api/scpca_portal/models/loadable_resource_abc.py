@@ -167,14 +167,23 @@ class LoadableResourceABC(TimestampedModel):
         return {md[cls.SCPCA_RESOURCE_METADATA_ID_KEY]: md for md in resources_metadata}
 
     @classmethod
-    def sync_metadata(cls) -> int:
+    def sync_metadata(
+        cls,
+        *,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        skip_existing_file_download: bool = False,
+    ) -> int:
         updatable_resources = cls.objects.filter(
             loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
         )
         if not updatable_resources.exists():
-            return
+            return 0
 
-        metadata_by_id = cls.get_metadata_dicts_by_id(resources=updatable_resources)
+        metadata_by_id = cls.get_metadata_dicts_by_id(
+            resources=updatable_resources,
+            bucket=bucket,
+            skip_existing_file_download=skip_existing_file_download,
+        )
         for resource in updatable_resources:
             # TODO: (Tech Debt) scpca_id will either be moved to a Resource base class
             # or assigned as the pk for derived models in the future

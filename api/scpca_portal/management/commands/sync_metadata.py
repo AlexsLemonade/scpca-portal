@@ -1,5 +1,6 @@
 from argparse import ArgumentParser
 
+from django.conf import settings
 from django.core.management.base import BaseCommand
 
 from scpca_portal.config.logging import get_and_configure_logger
@@ -14,11 +15,8 @@ class Command(BaseCommand):
     """
 
     def add_arguments(self, parser: ArgumentParser) -> None:
-        # TODO: Uncomment these args and pass them through
-        #   when PR #2056 (which refactors sync_metadata) is merged in.
-        # parser.add_argument("--bucket", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME)
-        # parser.add_argument("--skip-existing-file-download", type=bool, default=False)
-        pass
+        parser.add_argument("--bucket", type=str, default=settings.AWS_S3_INPUT_BUCKET_NAME)
+        parser.add_argument("--skip-existing-file-download", type=bool, default=False)
 
     def handle(self, *args, **kwargs) -> None:
         self.sync_metadata(**kwargs)
