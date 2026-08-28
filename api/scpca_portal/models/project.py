@@ -215,26 +215,11 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
         self.update_project_sample_aggregate_counts()
         self.update_project_summaries_aggregate_properties()
 
-    @classmethod
-    def sync_aggregations(cls, synced_resource_ids: List[str]) -> None:
-        # ProjectSummary aggregations need to preceed Project aggregations because
-        # Project aggregations remove themselves from an aggregating state by resetting the hash
-        aggregating_projects = cls.get_aggregating_resources(synced_resource_ids)
-        project_summaries = []
-        for project in aggregating_projects:
-            project_summaries.extend(project.new_update_project_summaries_aggregate_properties())
-
-        fields_to_update = [
-            f.name for f in ProjectSummary._meta.concrete_fields if not f.primary_key
-        ]
-        ProjectSummary.objects.bulk_update(project_summaries, fields=fields_to_update)
-
-        super().sync_aggregations(synced_resource_ids)
-
     def update_aggregations(self) -> None:
         self.new_update_project_modality_properties()
         self.new_update_project_aggregate_properties()
         self.new_update_project_sample_aggregate_counts()
+        self.new_update_project_summaries_aggregate_properties()
 
     @property
     def current_aggregation_hash(self) -> str:
@@ -319,6 +304,7 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
             )
         )
 
+    # TODO: drop new prefix from method when loadable feature branch is merged in
     def new_update_project_modality_properties(self) -> None:
         """
         Updates project modality properties,
@@ -396,6 +382,7 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
 
         self.save()
 
+    # TODO: drop new prefix from method when loadable feature branch is merged in
     def new_update_project_aggregate_properties(self) -> None:
         """
         The Project model cache aggregated sample metadata.
@@ -474,6 +461,7 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
 
         self.save()
 
+    # TODO: drop new prefix from method when loadable feature branch is merged in
     def new_update_project_sample_aggregate_counts(self) -> None:
         """
         The Project model cache aggregated sample counts.
@@ -514,7 +502,8 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
 
             project_summary.save(update_fields=("sample_count",))
 
-    def new_update_project_summaries_aggregate_properties(self) -> List[ProjectSummary]:
+    # TODO: drop new prefix from method when loadable feature branch is merged in
+    def new_update_project_summaries_aggregate_properties(self) -> None:
         """
         The ProjectSummary model cache aggregated sample metadata.
         We need to update these after any project's sample gets added/deleted.
@@ -536,4 +525,4 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
             project_summary.sample_count = count
             project_summaries.append(project_summary)
 
-        return project_summaries
+        ProjectSummary.objects.bulk_update(project_summaries, fields=["sample_count"])
