@@ -42,3 +42,11 @@ NAMESPACE = {
     ),
     "contact_email": "ccdl@alexslemonade.org",
 }
+
+# GET /metadata/fields/{entity} — see `responses.metadata.FieldDescriptions`.
+# Empty for now; field descriptions get populated with the metadata mapping work.
+METADATA_FIELDS = {
+    "subject": {"fields": []},
+    "sample": {"fields": []},
+    "file": {"fields": []},
+}
