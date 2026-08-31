@@ -1,9 +1,9 @@
-"""Response tests for the /namespace endpoints (burndown until implemented)."""
-
-from unittest import expectedFailure
+"""Response tests for the /namespace endpoints."""
 
 from django.test import SimpleTestCase
 from rest_framework import status
+
+from scpca_portal.federation.ccdi.schema import NamespaceResponse, NamespacesResponse
 
 ENDPOINTS = (
     "/federation/ccdi/v1/namespace",
@@ -12,9 +12,16 @@ ENDPOINTS = (
 
 
 class NamespaceViewTests(SimpleTestCase):
-    @expectedFailure
-    def test_endpoints_implemented(self):
-        # Expected-fails (501) until the endpoints return real responses;
-        # convert to real content assertions once implemented.
-        for url in ENDPOINTS:
-            self.assertEqual(self.client.get(url).status_code, status.HTTP_200_OK)
+    def test_list_returns_a_valid_response(self):
+        response = self.client.get("/federation/ccdi/v1/namespace")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        NamespacesResponse.model_validate(response.json())
+
+    def test_detail_returns_a_valid_response(self):
+        response = self.client.get("/federation/ccdi/v1/namespace/alsf/scpca")
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        NamespaceResponse.model_validate(response.json())
+
+    def test_unknown_namespace_is_not_found(self):
+        response = self.client.get("/federation/ccdi/v1/namespace/alsf/unknown")
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
