@@ -1,5 +1,6 @@
 """The committed CCDI response types must match a fresh generation from the spec."""
 
+import ast
 import tempfile
 from pathlib import Path
 
@@ -10,14 +11,17 @@ from scpca_portal.federation.ccdi.schema.generate import MODELS_PATH, generate
 
 class ModelsUpToDateTests(SimpleTestCase):
     def test_committed_models_match_the_spec(self):
-        # Regenerate inside the repo tree so the formatter resolves the same
-        # pyproject line-length (black's config discovery is relative to the
-        # output path, not the cwd).
-        with tempfile.TemporaryDirectory(dir=MODELS_PATH.parent) as tmp:
+        # Compare parsed ASTs, not raw text. The formatter's line-length is
+        # discovered from pyproject, which isn't reachable in every environment
+        # (e.g. the Docker test image mounts only `api/`), so byte formatting can
+        # differ run-to-run. The model *content* is what must stay in sync.
+        with tempfile.TemporaryDirectory() as tmp:
             fresh = Path(tmp) / "_models.py"
             generate(fresh)
-            self.assertEqual(
-                fresh.read_text(),
-                MODELS_PATH.read_text(),
+            up_to_date = ast.dump(ast.parse(fresh.read_text())) == ast.dump(
+                ast.parse(MODELS_PATH.read_text())
+            )
+            self.assertTrue(
+                up_to_date,
                 "CCDI response types are stale; run `./manage.py generate_ccdi_types`.",
             )
