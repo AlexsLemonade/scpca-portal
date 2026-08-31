@@ -32,3 +32,13 @@ ORGANIZATION = {
     "identifier": "alsf",
     "name": "Alex's Lemonade Stand Foundation",
 }
+
+# GET /namespace[/{organization}/{namespace}] — see `models.Namespace` in the spec.
+NAMESPACE = {
+    "id": {"organization": ORGANIZATION["identifier"], "name": "scpca"},
+    "description": (
+        "Single-cell Pediatric Cancer Atlas (ScPCA) data contributed by "
+        "Alex's Lemonade Stand Foundation."
+    ),
+    "contact_email": "ccdl@alexslemonade.org",
+}

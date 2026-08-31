@@ -8,6 +8,8 @@ names here as endpoints are implemented.
 
 from scpca_portal.federation.ccdi.schema._models import (
     ResponsesInformation as InfoResponse,
+    ResponsesNamespace as NamespaceResponse,
+    ResponsesNamespaces as NamespacesResponse,
     ResponsesOrganization as OrganizationResponse,
     ResponsesOrganizations as OrganizationsResponse,
 )
