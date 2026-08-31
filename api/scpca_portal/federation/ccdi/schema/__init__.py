@@ -6,4 +6,8 @@ The generated models live in `_models.py` (regenerate with
 names here as endpoints are implemented.
 """
 
-from scpca_portal.federation.ccdi.schema._models import ResponsesInformation as InfoResponse
+from scpca_portal.federation.ccdi.schema._models import (
+    ResponsesInformation as InfoResponse,
+    ResponsesOrganization as OrganizationResponse,
+    ResponsesOrganizations as OrganizationsResponse,
+)

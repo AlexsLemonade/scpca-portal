@@ -26,3 +26,9 @@ INFO = {
         "documentation_url": "https://scpca.readthedocs.io/en/stable/",
     },
 }
+
+# GET /organization[/{name}] — see `models.Organization` in the spec.
+ORGANIZATION = {
+    "identifier": "alsf",
+    "name": "Alex's Lemonade Stand Foundation",
+}
