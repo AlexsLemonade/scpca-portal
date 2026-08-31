@@ -1,2 +1,4 @@
 [tool.black]
 line-length = 100
+# Generated file; owned by datamodel-code-generator, not our formatters.
+force-exclude = 'federation/ccdi/schema/_models\.py'
