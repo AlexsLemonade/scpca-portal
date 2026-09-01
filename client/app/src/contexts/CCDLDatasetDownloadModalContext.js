@@ -42,10 +42,10 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [formatOptions, setFormatOptions] = useState([])
 
   // CCDI deep links for valid CCDLNames
-  const [isDeepLinkError, setIsDeepLinkError] = useState(false) // For a warning message
+  const [isDeepLinkError, setIsDeepLinkError] = useState(false) // For displaying a warning message
   const { query, pathname, replace } = useRouter()
   const { ccdl_name: ccdlName, ...remainingQuery } = query
-  // Remove deep link error and ccdlName query from URL
+  // Remove the warning message and ccdlName query from URL
   const removeDeepLink = () => {
     replace(
       {
@@ -56,11 +56,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       { shallow: true }
     )
     setIsDeepLinkError(false)
-  }
-  // Wrapper event handler for download option changes
-  const onDownloadOptionChange = (setter) => (val) => {
-    if (isDeepLinkError) removeDeepLink()
-    setter(val)
   }
 
   const getFormatLabel = (d) =>
@@ -87,6 +82,13 @@ export const CCDLDatasetDownloadModalContextProvider = ({
 
     setShowing(true)
   }, [ccdlName, datasets])
+
+  // Call removeDeepLink when a user's download option change selects a different dataset
+  useEffect(() => {
+    if (!isDeepLinkError) return
+
+    if (selectedDataset.id !== datasets[0].id) removeDeepLink()
+  }, [selectedDataset])
 
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
@@ -246,13 +248,13 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         showing,
         setShowing,
         modality,
-        setModality: onDownloadOptionChange(setModality),
+        setModality,
         format,
-        setFormat: onDownloadOptionChange(setFormat),
+        setFormat,
         includesMerged,
-        setIncludesMerged: onDownloadOptionChange(setIncludesMerged),
+        setIncludesMerged,
         excludeMultiplexed,
-        setExcludeMultiplexed: onDownloadOptionChange(setExcludeMultiplexed),
+        setExcludeMultiplexed,
         selectedDataset,
         isMergedObjectsAvailable,
         isMultiplexedAvailable,
