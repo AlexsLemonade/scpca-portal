@@ -17,7 +17,7 @@ class AggregatableResourceABC(TimestampedModel):
     aggregation_hash = models.CharField(max_length=32, null=True)
 
     @classmethod
-    def sync_aggregations(cls, resources: QuerySet[Self]) -> None:
+    def sync_aggregations(cls, resources: QuerySet[Self]) -> int:
         aggregating_resources = [resource for resource in resources if resource.needs_aggregations]
 
         for aggregating_resource in aggregating_resources:
@@ -25,7 +25,7 @@ class AggregatableResourceABC(TimestampedModel):
             aggregating_resource.aggregation_hash = aggregating_resource.current_aggregation_hash
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
-        cls.objects.bulk_update(aggregating_resources, fields=fields_to_update)
+        return cls.objects.bulk_update(aggregating_resources, fields=fields_to_update)
 
     @property
     def needs_aggregations(self) -> bool:
