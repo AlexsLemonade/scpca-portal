@@ -13,9 +13,9 @@ class Command(BaseCommand):
     """
 
     def handle(self, *args, **kwargs) -> None:
-        self.sync_metadata(**kwargs)
+        self.sync_aggregations(**kwargs)
 
-    def sync_metadata(self, **kwargs) -> None:
+    def sync_aggregations(self, **kwargs) -> None:
         logger.info("Syncing aggregations...")
 
         aggregated_projects_count = Project.sync_aggregations(
