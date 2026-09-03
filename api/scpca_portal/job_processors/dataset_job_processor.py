@@ -72,7 +72,9 @@ class DatasetJobProcessor(JobProcessorABC):
     def handle_locked_project(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
-        self.job.create_retry_job()
+        # Creates a retry job on last retry attempt
+        if self.job.is_last_batch_attempt:
+            self.job.create_retry_job()
 
     def handle_missing_libraries(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
@@ -84,7 +86,9 @@ class DatasetJobProcessor(JobProcessorABC):
     def handle_upload_failure(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
-        self.job.create_retry_job()
+        # Creates a retry job on last retry attempt
+        if self.job.is_last_batch_attempt:
+            self.job.create_retry_job()
 
     def handle_tag_failure(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
