@@ -360,14 +360,14 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
         }
         self.organisms = sorted(organisms)
 
-        bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
+        non_bulk_libraries = Library.objects.filter(samples__in=samples).exclude(
             modality=Modalities.BULK_RNA_SEQ
         )
 
         # Sequencing Units
         seq_units = {
             seq_unit
-            for library in bulk_libraries
+            for library in non_bulk_libraries
             if (seq_unit := library.metadata.get("seq_unit", "").strip())
         }
         self.seq_units = sorted(seq_units)
@@ -375,7 +375,7 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
         # Technologies
         technologies = {
             technology
-            for library in bulk_libraries
+            for library in non_bulk_libraries
             if (technology := library.metadata.get("technology", "").strip())
         }
         self.technologies = sorted(technologies)
