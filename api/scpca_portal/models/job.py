@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import List
 
@@ -104,6 +105,15 @@ class Job(TimestampedModel):
     # Number should be half of max fargate ephemeral storage (which is 200 GB)
     # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
     MAX_FARGATE_SIZE_IN_BYTES = 100 * common.GB_IN_BYTES
+
+    # Maximum retry attempt for the batch job. The value should match retry_strategy defined for
+    # Fargate in infrastructure/batch/job_definition.tf
+    MAX_FARGATE_RETRY_STRATEGY = 3
+
+    @property
+    def is_last_batch_attempt(self) -> bool:
+        attempt = int(os.environ.get("AWS_BATCH_JOB_ATTEMPT", "1"))
+        return attempt >= self.MAX_FARGATE_RETRY_STRATEGY
 
     def __str__(self) -> str:
         if self.batch_job_id:

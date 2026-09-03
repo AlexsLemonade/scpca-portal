@@ -69,24 +69,28 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.computed_file.save()
         self.job.dataset.save()
 
-    def handle_locked_project(self, step: str, e: Exception) -> None:
+    def handle_locked_project(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
-        self.job.create_retry_job()
+        # Creates a retry job on last retry attempt
+        if self.job.is_last_batch_attempt:
+            self.job.create_retry_job()
 
-    def handle_missing_libraries(self, step: str, e: Exception) -> None:
+    def handle_missing_libraries(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
 
-    def handle_upload_failure(self, step: str, e: Exception) -> None:
+    def handle_upload_failure(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
-        self.job.create_retry_job()
+        # Creates a retry job on last retry attempt
+        if self.job.is_last_batch_attempt:
+            self.job.create_retry_job()
 
-    def handle_tag_failure(self, step: str, e: Exception) -> None:
+    def handle_tag_failure(self, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         logger.info("Sending Slack notification for manual tagging.")
         notifications.send_slack_notification(self.job)
