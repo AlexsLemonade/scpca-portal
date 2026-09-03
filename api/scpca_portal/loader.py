@@ -1,22 +1,11 @@
-from concurrent.futures import ThreadPoolExecutor
-from functools import partial
 from typing import Any, Dict, List, Set
 
 from django.conf import settings
-from django.db import connection
 from django.template.defaultfilters import pluralize
 
 from scpca_portal import s3
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import (
-    ComputedFile,
-    Contact,
-    ExternalAccession,
-    OriginalFile,
-    Project,
-    Publication,
-    Sample,
-)
+from scpca_portal.models import Contact, ExternalAccession, OriginalFile, Project, Publication
 
 logger = get_and_configure_logger(__name__)
 
@@ -42,7 +31,6 @@ def download_projects_related_metadata(filter_on_project_ids: List[str]) -> None
     s3.download_files(metadata_original_files | bulk_original_files)
 
 
-# TODO: Remove after the dataset release
 def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: Set[str]) -> bool:
     """
     Validate that a project can be processed by assessing that:
@@ -64,7 +52,6 @@ def _can_process_project(project_metadata: Dict[str, Any], submitter_whitelist: 
     return True
 
 
-# TODO: Remove after the dataset release
 def _can_purge_project(
     project: Project,
     *,
@@ -123,97 +110,3 @@ def create_project(
         logger.info(f"Created {samples_count} sample{pluralize(samples_count)} for '{project}'")
 
     return project
-
-
-# TODO: Remove after the dataset release
-def _create_computed_file(
-    computed_file: ComputedFile, update_s3: bool, clean_up_output_data: bool
-) -> None:
-    """
-    Save computed file returned from future to the db.
-    Upload file to s3 and clean up output data depending on passed options.
-    """
-    if update_s3:
-        s3.upload_output_file(computed_file.s3_key, computed_file.s3_bucket)
-    if clean_up_output_data:
-        computed_file.clean_up_local_computed_file()
-
-    if computed_file.sample and computed_file.has_multiplexed_data:
-        computed_files = computed_file.get_multiplexed_computed_files()
-        ComputedFile.objects.bulk_create(computed_files)
-    else:
-        computed_file.save()
-
-
-# TODO: Remove after the dataset release
-def _create_computed_file_callback(future, *, update_s3: bool, clean_up_output_data: bool) -> None:
-    """
-    Wrap computed file saving and uploading to s3 in a way that accommodates multiprocessing.
-    """
-    if computed_file := future.result():
-        _create_computed_file(computed_file, update_s3, clean_up_output_data)
-
-    # Close DB connection for each thread.
-    connection.close()
-
-
-# TODO: Remove after the dataset release
-def generate_computed_file(
-    *,
-    download_config: Dict,
-    project: Project | None = None,
-    sample: Sample | None = None,
-    update_s3: bool = True,
-) -> None:
-
-    # Purge old computed file
-    if old_computed_file := (project or sample).get_computed_file(download_config):
-        old_computed_file.purge(update_s3)
-
-    if project and (computed_file := ComputedFile.get_project_file(project, download_config)):
-        _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
-    if sample and (computed_file := ComputedFile.get_sample_file(sample, download_config)):
-        _create_computed_file(computed_file, update_s3, clean_up_output_data=False)
-        sample.project.get_downloadable_sample_count()
-
-
-# TODO: Remove after the dataset release
-def generate_computed_files(
-    project: Project,
-    max_workers: int,
-    update_s3: bool,
-    clean_up_output_data: bool,
-) -> None:
-    """
-    Generate all computed files associated with the passed project,
-    on both sample and project levels.
-    """
-    # Purge all of a project's associated computed file objects before generating new ones.
-    project.purge_computed_files(update_s3)
-
-    # Prep callback function
-    on_get_file = partial(
-        _create_computed_file_callback,
-        update_s3=update_s3,
-        clean_up_output_data=clean_up_output_data,
-    )
-
-    with ThreadPoolExecutor(max_workers=max_workers) as tasks:
-        # Generated project computed files
-        for download_config in project.valid_download_configs:
-            tasks.submit(
-                ComputedFile.get_project_file,
-                project,
-                download_config,
-            ).add_done_callback(on_get_file)
-
-        # Generated sample computed files
-        for sample in project.samples_to_generate:
-            for download_config in sample.valid_download_configs:
-                tasks.submit(
-                    ComputedFile.get_sample_file,
-                    sample,
-                    download_config,
-                ).add_done_callback(on_get_file)
-
-    project.get_downloadable_sample_count()

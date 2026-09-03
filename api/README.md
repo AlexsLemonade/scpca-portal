@@ -23,21 +23,18 @@ sportal api:test
 ```
 
 Note that the tests are run with the Django unittest runner, so specific modules, classes, or methods may be specified in the standard unittest manner: https://docs.python.org/3/library/unittest.html#unittest-test-discovery.
-For example:
+
+For example, to run all the tests in the TestProjectSerializer class:
 
 ```
 sportal api:test scpca_portal.test.serializers.test_project.TestProjectSerializer
 ```
 
-will run all the tests in the TestProjectSerializer class.
-
-See
+For more commands, see:
 
 ```
 sportal -h
 ```
-
-For more commands.
 
 The dev server runs by default on port 8000 with the docs being served at 8001.
 If these ports are already in use on your local machine, you can run them at different ports with:
@@ -60,14 +57,13 @@ You can use this to make a curl request to the API like so:
 curl http://0.0.0.0:8000/v1/projects/
 ```
 
-Computed files won't provide a `download_url` unless an API token is provided.
 To get and activate an API token, make a request similar to:
 
 ```
 curl http://0.0.0.0:8000/v1/tokens/ -X POST -d '{"is_activated": true}' -H "Content-Type: application/json"
 ```
 
-Which should return something like
+Which should return something like:
 
 ```
 {
@@ -77,15 +73,17 @@ Which should return something like
 }
 ```
 
-This `id` can then be provided as the value for the `API-KEY` header in a request to the `/v1/computed-files/` endpoint like so:
+For end-to-end example scripts that demonstrate querying, authenticating, and downloading data, see [`api-examples/`](../api-examples/).
 
-```
-curl http://0.0.0.0:8000/v1/computed-files/1/ -H 'API-KEY: 658f859a-b9d0-4b44-be3d-dad9db57164a'
-```
-
-`download_url` can only be retrieved for ComputedFiles one at a time.
 
 ## Local Data Management
+
+> [!NOTE]
+> **AWS SSO required.** Commands that access AWS resources (S3, Batch) must be run with an SSO profile:
+> ```bash
+> sportal --sso <profile> api:manage <command>
+> ```
+> Without `--sso`, `sportal` proceeds without credentials and AWS calls will fail.
 
 ### Syncing the OriginalFile Table
 Before data can be processed, the `OriginalFile` table must be populated and synced via the `sync-original-files` command. This command builds a local representation of all objects available in the default (or passed) s3 input bucket, and is considered the single source of truth for input files throughout the codebase.
@@ -97,21 +95,21 @@ sportal api:manage sync_original_files
 
 By default the `sync_original_files` command uses the default bucket defined in the config file associated with the environment calling the command. This can be overriden by passing the `--bucket bucket-name` flag to sync the files of an alternative bucket.
 
-In the rare case where all files have been deleted from the requested bucket, the `--allow-bucket-wipe` flag must be explictly passed in order for all bucket files in the OriginalFile table to be wiped.
+In the rare case where all files have been deleted from the requested bucket, the `--allow-bucket-wipe` flag must be explicitly passed in order for all bucket files in the OriginalFile table to be wiped.
 
 
 ### The Pipeline and its Workflows
-There are two independent workflows carried out within the data processing  pipeline:
+There are two independent workflows carried out within the data processing pipeline:
 1. Loading metadata and populating the database
-2. Generating computed files and populating s3
+2. Creating CCDL datasets and populating S3
 
 To run the load metadata workflow, call:
 ```
 sportal api:manage load_metadata
 ```
-To run the generate computed files workflow, call:
+To run the create CCDL datasets workflow, call:
 ```
-sportal api:manage generate_computed_files
+sportal api:manage create_ccdl_datasets
 ```
 
 ### Load Metadata Configuration Options
@@ -147,55 +145,68 @@ The `--clean-up-input-data` flag can help you control the projects input data si
 sportal api:manage load_metadata --clean-up-input-data
 ```
 
-If there are existing computed files in the output bucket, which for local development is set to `scpca-local-data` by default, it is best practice to remove project and sample computed files while reloading metadata. This is accomplished by running:
-
-```
-sportal api:manage load_metadata --update-s3
-```
-
 If you would like to purge a project from the db and remove its files from the S3 output bucket, the `purge_project` command should be used, as follows:
 
 ```
 sportal api:manage purge_project --scpca-project-id SCPCP000001
 ```
 
-### Generate Computed Files Configuration Options
-Calling `sportal api:manage generate_computed_files` will generate computed files locally. To save time, by default it will not package up the actual data in that bucket and upload it to `scpca-local-data`. The `generate_computed_files` command will fail if `load_metadata` was not previously called.
+### Create CCDL Datasets Configuration Options
+> [!NOTE]
+> **Local limitation.** Running `create_ccdl_datasets` against the local Docker environment only inserts database records with `computed_file=null`. It does not submit Batch jobs or populate S3. Full end-to-end execution requires the `dev` server on cloud, which also requires an SSO profile.
 
-If you would like to update the data in the `scpca-local-data` bucket, you can do so with the following command:
+Calling `sportal api:manage create_ccdl_datasets` will create all CCDL datasets and dispatch them as jobs to AWS Batch.
 
-```
-sportal api:manage generate_computed_files --update-s3
-```
-
-If you would like to generate computed files for a specific project, use the `--scpca-project-id` flag:
+By default the `create_ccdl_datasets` command only processes datasets that are new or whose hash has changed. To force reprocessing of all datasets regardless of hash:
 
 ```
-sportal api:manage generate_computed_files --scpca-project-id SCPCP000001
+sportal api:manage create_ccdl_datasets --ignore-hash
 ```
 
-The `--clean-up-output-data` flag can help you control the projects output data size. If the flag is set, the output (no longer needed) data cleanup process will be run for each project right after its processing is over.
+By default, failed jobs are queued for retry. To disable automatic retry queueing:
+
 ```
-sportal api:manage generate_computed_files --clean-up-output-data
+sportal api:manage create_ccdl_datasets --no-retry-failed-jobs
 ```
 
-The `--max-workers` flag can be used for setting a number of simultaneously processed projects/samples to speed up the data loading process. The provided number will be used to spawn threads within two separate thread pool executors -- for project and sample processing.
+### Creating User Datasets
+> [!NOTE]
+> **Local limitation.** Against the local Docker environment, Batch submission is skipped. The user dataset record is created without populating the computed file to S3. Full end-to-end processing requires the `dev` server on cloud.
+
+User datasets are customizable collections of samples created on demand via the API.
+
+To create a dataset, POST to `/v1/datasets/`:
+
 ```
-sportal api:manage generate_computed_files --max-workers 10
+curl http://0.0.0.0:8000/v1/datasets/ \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -H "API-KEY: <token-id>" \
+  -d '{"format": "SINGLE_CELL_EXPERIMENT", "data": {...}, "email": "user@example.com", "start": true}'
 ```
+
+Include `email` and an `API-KEY` header to start dataset processing with `"start": true`:
+
+```
+curl http://0.0.0.0:8000/v1/datasets/<dataset-id>/ \
+  -X PUT \
+  -H "Content-Type: application/json" \
+  -H "API-KEY: <token-id>" \
+  -d '{"start": true}'
+```
+
+For end-to-end example scripts that demonstrate querying projects, authenticating, and downloading user datasets, see:
+- Bash: [`dataset-download-with-merged-objects.sh`](../api-examples/dataset-download-with-merged-objects.sh), [`dataset-download-with-samples-by-diagnosis.sh`](../api-examples/dataset-download-with-samples-by-diagnosis.sh)
+- Python: [`dataset-download-with-merged-objects.py`](../api-examples/dataset-download-with-merged-objects.py), [`dataset-download-with-samples-by-diagnosis.py`](../api-examples/dataset-download-with-samples-by-diagnosis.py)
 
 
 ## Cloud Data Management
 
 ### Processing Options
-After syncing the database by running the `sync_original_files` and `load_metadata` commands, there are two options available for processing data in the Cloud:
-- Running `generate_computed_files` on the API instance
-- Running `dispatch_to_batch` on the API instance, which kicks off processing on AWS Batch resources
-
-Due to the fact that processing on Batch is ~10x faster than processing on the API, we recommend using Batch for processing.
+After syncing the database by running the `sync_original_files` and `load_metadata` commands, CCDL datasets are created and dispatched to AWS Batch via the `create_ccdl_datasets` command.
 
 ### Commands in Production
-To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable `./run_command.sh generate_computed_files --update-s3 --max-workers 4`.
+To run a command in production, there is a `run_command.sh` script that is created on the API instance. It passes any arguments through to the `manage.py` script, making the following acceptable: `./run_command.sh create_ccdl_datasets`.
 
 ### Syncing the OriginalFile Table
 As mentioned in the above [Local Data Management - Syncing the OriginalFile Table section](#syncing-the-originalfile-table), the `OriginalFile` table must be populated before data can be processed via the `sync_original_files` command.
@@ -207,31 +218,25 @@ Syncing is carried out as follows:
 
 Details of the `sync_original_files` can be found in the Syncing the OriginalFile table header in the Local Data Management section above.
 
-### Processing on the API
-The following code can be used to process projects on the API, one by one, with a minimum disk space footprint:
-
-```bash
-./run_command.sh load_metadata --clean-up-input-data --reload-existing
-
-for i in $(seq -f "%02g" 1 25);
-    ./run_command.sh generate_computed_files --clean-up-input-data --clean-up-output-data --scpca-project-id SCPCP0000$i
-done
-
-```
-
-**Note**: Running `generate_computed_files` in production defaults to uploading completed computed files to S3. This is to help prevent the S3 bucket data from accidentally becoming out of sync with the database.
-
 ### Processing via Batch
-The following code is used for processing projects via AWS Batch:
+
+#### CCDL Datasets
+
+CCDL datasets are pre-configured datasets managed by the CCDL (see [Local Data Management - Create CCDL Datasets Configuration Options](#create-ccdl-datasets-configuration-options)).
+
+To create all CCDL datasets and dispatch them to AWS Batch:
+
 ```bash
-./run_command.sh dispatch_to_batch
+./run_command.sh create_ccdl_datasets
 ```
 
-By default the `dispatch_to_batch` command will look at all projects and filter out all projects that already have at least 1 computed file. AWS Batch jobs will be dispatched and create valid computed files for matching projects that were not filtered out.
+Details of the `sync_original_files` can be found in the Create CCDL Datasets Configuration Options header in the Local Data Management section above.
 
-You can override this filter by passing the `--regenerate-all` flag. This will dispatch jobs independent of existing computed files. Any existing computed files will be purged before new ones are generated to replace them.
+#### User Datasets
 
-You can limit the scope of this command to only apply to a specific project by passing the `--project-id <SCPCP999999>` flag. This can be used in conjunction with `--regenerate-all` if you want to ignore existing computed files for that project.
+User datasets are created via the `/v1/datasets/` API endpoint (see [Local Data Management - Creating User Datasets](#creating-user-datasets)).
+
+Details of the `sync_original_files` can be found in the Syncing the Creating User Datasets header in the Local Data Management section above.
 
 ### Purge Project
 To purge a project from the database (and from S3 if so desired), run the following command:
