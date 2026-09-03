@@ -132,7 +132,7 @@ resource "aws_batch_job_definition" "scpca_portal_fargate" {
   ))
 
   retry_strategy {
-    attempts = 1
+    attempts = 3
   }
 
   propagate_tags = true
