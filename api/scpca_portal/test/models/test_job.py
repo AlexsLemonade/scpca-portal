@@ -115,6 +115,22 @@ class TestJob(TestCase):
             terminated_reason=terminated_reason,
         )
 
+    def test_get_dataset_job(self):
+        dataset = UserDatasetFactory()
+        job = Job.get_dataset_job(dataset)
+        # Before saving
+        self.assertIsNone(job.id)
+        self.assertEqual(job.state, JobStates.PENDING)
+        self.assertEqual(job.dataset_snapshot, {})  # Should be the default value
+
+        job.save()
+        # After saving
+        self.assertIsNotNone(job.id)
+        self.assertEqual(job.state, JobStates.PENDING)  # Should remain PENDING before submission
+        self.assertEqual(
+            job.dataset_snapshot, Job.get_dataset_snapshot(job.dataset)
+        )  # Should populate
+
     @patch("scpca_portal.batch.submit_job")
     def test_submit(self, mock_batch_submit_job):
         # Set up mock for submit_job
@@ -671,11 +687,12 @@ class TestJob(TestCase):
 
         # After execution, the call should returns a new saved instance for retry
         retry_job = job.create_retry_job()
-        # Should correctly copy the exsiting field values
+        # Should correctly copy the existing field values
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
         self.assertEqual(retry_job.attempt, job.attempt + 1)
+        self.assertEqual(retry_job.dataset_snapshot, Job.get_dataset_snapshot(retry_job.dataset))
 
     def test_create_retry_jobs(self):
         # Set up mock field values for base terminated jobs
@@ -718,6 +735,7 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_job_queue, batch_job_queue)
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
             self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
+            self.assertEqual(job.dataset_snapshot, Job.get_dataset_snapshot(job.dataset))
 
     @patch("scpca_portal.batch.submit_job")
     def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job):
