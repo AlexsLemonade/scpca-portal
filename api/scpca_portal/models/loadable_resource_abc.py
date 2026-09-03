@@ -1,7 +1,9 @@
 from abc import abstractmethod
+from collections import Counter
 from datetime import datetime, timedelta
-from typing import Any, Dict, Iterable, List, Set
+from typing import Any, Dict, Iterable, List, Set, TypedDict
 
+from django.conf import settings
 from django.db import models
 from django.db.models import QuerySet
 from django.utils.timezone import make_aware
@@ -15,6 +17,14 @@ from scpca_portal.models.base import TimestampedModel
 from scpca_portal.models.original_file import OriginalFile
 
 logger = get_and_configure_logger(__name__)
+
+
+class ModelOutputCounts(TypedDict):
+    created: int
+    deleted: int
+    locked: int
+    unlocked: int
+    tainted: int
 
 
 class LoadableResourceABC(TimestampedModel):
@@ -31,8 +41,8 @@ class LoadableResourceABC(TimestampedModel):
     metadata_hash = models.CharField(max_length=32, null=True)
     combined_hash = models.CharField(max_length=32, null=True)
 
+    # Corresponding to the key of the resource in input metadata files
     SCPCA_RESOURCE_METADATA_ID_KEY: str
-    SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY: str
 
     @abstractmethod
     def update_from_dict(self, data: Dict) -> Self:
@@ -116,56 +126,64 @@ class LoadableResourceABC(TimestampedModel):
 
     @classmethod
     @abstractmethod
-    def get_all_input_metadata_files(cls) -> QuerySet[OriginalFile]:
+    def get_input_metadata_files(
+        cls, *, bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME, **kwargs
+    ) -> QuerySet[OriginalFile]:
         pass
-
-    @classmethod
-    def get_original_file_filter_on_kwargs(cls, filter_on_ids: Set) -> Dict:
-        return {f"{cls.SCPCA_RESOURCE_ORIGINAL_FILE_ID_KEY}__in": filter_on_ids}
 
     @staticmethod
     @abstractmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
         pass
 
+    # TODO: rename to "load_metadata" before loadable feature branch merged in
     @classmethod
     @abstractmethod
-    def load_all_metadata(
-        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: List[str]
+    def new_load_metadata(
+        cls, metadata_files: QuerySet[OriginalFile], *, filter_on_ids: Set[str] = set()
     ) -> List[Dict]:
         pass
 
     @classmethod
     def get_metadata_dicts_by_id(
-        cls, *, resources: QuerySet[Self] | None = None, skip_existing_file_download: bool = False
+        cls,
+        *,
+        resources: QuerySet[Self] | None = None,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        skip_existing_file_download: bool = False,
     ) -> Dict[str, Dict]:
-        kwargs = {}
-        all_resource_metadata_files = cls.get_all_input_metadata_files()
+        resource_metadata_files = cls.get_input_metadata_files(resources=resources, bucket=bucket)
 
-        if resources:
-            kwargs["filter_on_ids"] = set(resources.values_list("scpca_id", flat=True))
-            all_resource_metadata_files.filter(
-                **cls.get_original_file_filter_on_kwargs(kwargs["filter_on_ids"])
-            )
-
-        downloadable_files = OriginalFile.objects.filter(id__in=all_resource_metadata_files)
+        downloadable_files = OriginalFile.objects.filter(id__in=resource_metadata_files)
         if skip_existing_file_download:
             existing_file_ids = [df.id for df in downloadable_files if df.local_file_path.exists()]
             downloadable_files = downloadable_files.exclude(id__in=existing_file_ids)
         s3.download_files(downloadable_files)
 
-        all_resource_metadata = cls.load_all_metadata(all_resource_metadata_files, **kwargs)
-        return {md[cls.SCPCA_RESOURCE_METADATA_ID_KEY]: md for md in all_resource_metadata}
+        filter_on_ids = set(resources.values_list("scpca_id", flat=True)) if resources else set()
+        resources_metadata = cls.new_load_metadata(
+            resource_metadata_files, filter_on_ids=filter_on_ids
+        )
+        return {md[cls.SCPCA_RESOURCE_METADATA_ID_KEY]: md for md in resources_metadata}
 
     @classmethod
-    def sync_metadata(cls) -> None:
+    def sync_metadata(
+        cls,
+        *,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        skip_existing_file_download: bool = False,
+    ) -> int:
         updatable_resources = cls.objects.filter(
             loaded_state__in=[LoadableResourceStates.NEW, LoadableResourceStates.TAINTED]
         )
         if not updatable_resources.exists():
-            return
+            return 0
 
-        metadata_by_id = cls.get_metadata_dicts_by_id(resources=updatable_resources)
+        metadata_by_id = cls.get_metadata_dicts_by_id(
+            resources=updatable_resources,
+            bucket=bucket,
+            skip_existing_file_download=skip_existing_file_download,
+        )
         for resource in updatable_resources:
             # TODO: (Tech Debt) scpca_id will either be moved to a Resource base class
             # or assigned as the pk for derived models in the future
@@ -181,6 +199,8 @@ class LoadableResourceABC(TimestampedModel):
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
         cls.objects.bulk_update(updatable_resources, fields=fields_to_update)
+
+        return updatable_resources.count()
 
     @staticmethod
     def get_metadata_id_tuples(
@@ -215,7 +235,7 @@ class LoadableResourceABC(TimestampedModel):
         pass
 
     @classmethod
-    def taint_and_lock_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> None:
+    def taint_and_lock_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> tuple[int, int, int]:
         """
         This method handles three independent actions:
         1. Locking resources who's projects are associated with a lockfile in the OF table
@@ -223,6 +243,8 @@ class LoadableResourceABC(TimestampedModel):
         3. Determining whether unlocked loaded resources have been tainted since being locked.
             If so setting their state to TAINTED, and if not resetting their state to SYNCED.
         """
+        output_counts = Counter()
+
         lockfile_project_ids = list(
             OriginalFile.objects.filter(is_lockfile=True).values_list("project_id", flat=True)
         )
@@ -231,6 +253,7 @@ class LoadableResourceABC(TimestampedModel):
             **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
         )
         cls.bulk_update_loaded_state(locked_resources, LoadableResourceStates.LOCKED)
+        output_counts.update({"locked": locked_resources.count()})
 
         unlocked_resources = cls.objects.filter(loaded_state=LoadableResourceStates.LOCKED).exclude(
             **cls.get_lockfile_filter_kwargs(lockfile_project_ids)
@@ -255,11 +278,32 @@ class LoadableResourceABC(TimestampedModel):
 
         cls.bulk_update_loaded_state(tainted_resources, LoadableResourceStates.TAINTED)
         cls.bulk_update_loaded_state(synced_resources, LoadableResourceStates.SYNCED)
+        output_counts.update({"tainted": len(tainted_resources)})
+        output_counts.update({"unlocked": len(synced_resources)})
+
+        return (output_counts["locked"], output_counts["unlocked"], output_counts["tainted"])
 
     @classmethod
-    def sync_model(cls) -> None:
-        metadata_dicts_by_id = cls.get_metadata_dicts_by_id()
+    def sync_model(
+        cls,
+        *,
+        bucket: str = settings.AWS_S3_INPUT_BUCKET_NAME,
+        skip_existing_file_download: bool = False,
+    ) -> ModelOutputCounts:
+        metadata_dicts_by_id = cls.get_metadata_dicts_by_id(
+            bucket=bucket, skip_existing_file_download=skip_existing_file_download
+        )
 
-        cls.create_new_objects(metadata_dicts_by_id)
-        cls.remove_deleted_objects(metadata_dicts_by_id)
-        cls.taint_and_lock_objects(metadata_dicts_by_id)
+        created_count = len(cls.create_new_objects(metadata_dicts_by_id))
+        deleted_count, _ = cls.remove_deleted_objects(metadata_dicts_by_id)
+        locked_count, unlocked_count, tainted_count = cls.taint_and_lock_objects(
+            metadata_dicts_by_id
+        )
+
+        return {
+            "created": created_count,
+            "deleted": deleted_count,
+            "locked": locked_count,
+            "unlocked": unlocked_count,
+            "tainted": tainted_count,
+        }

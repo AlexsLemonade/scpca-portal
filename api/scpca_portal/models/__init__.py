@@ -1,3 +1,4 @@
+from scpca_portal.models.aggregatable_resource_abc import AggregatableResourceABC
 from scpca_portal.models.api_token import APIToken
 from scpca_portal.models.computed_file import ComputedFile
 from scpca_portal.models.contact import Contact
@@ -7,6 +8,7 @@ from scpca_portal.models.datasets.user_dataset import UserDataset
 from scpca_portal.models.external_accession import ExternalAccession
 from scpca_portal.models.job import Job
 from scpca_portal.models.library import Library
+from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.project_summary import ProjectSummary
