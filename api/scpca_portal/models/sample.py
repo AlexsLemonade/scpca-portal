@@ -8,6 +8,7 @@ from django.db.models import F, Func, QuerySet
 from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import FileFormats, Modalities
+from scpca_portal.models.aggregatable_resource_abc import AggregatableResourceABC
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.library import Library
 from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
@@ -19,7 +20,7 @@ if TYPE_CHECKING:
 logger = get_and_configure_logger(__name__)
 
 
-class Sample(CommonDataAttributes, LoadableResourceABC):
+class Sample(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC):
     class Meta:
         db_table = "samples"
         get_latest_by = "updated_at"
@@ -161,6 +162,17 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
         Sample.update_modality_properties(project)
         Sample.update_aggregate_properties(project)
 
+    @property
+    def current_aggregation_hash(self) -> str:
+        return utils.hash_values(
+            self.libraries.sort_by("scpca_id").values_list("metadata_hash", flat=True)
+        )
+
+    def update_aggregations(self) -> None:
+        self.new_update_modality_properties()
+        self.new_update_aggregate_properties()
+
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def update_aggregate_properties(cls, project: "Project") -> None:
         """
@@ -219,6 +231,51 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
 
         Sample.objects.bulk_update(updated_samples, updated_attrs)
 
+    def new_update_aggregate_properties(self) -> None:
+        """
+        The Sample model caches aggregated library metadata.
+        We need to update these after libraries are added/deleted.
+        """
+        libraries = self.libraries.all()
+
+        # Sequencing Units
+        seq_units = {
+            seq_unit
+            for library in libraries
+            if (seq_unit := library.metadata.get("seq_unit", "").strip())
+        }
+        self.seq_units = sorted(seq_units, key=str.lower)
+
+        # Technologies
+        technologies = {
+            technology
+            for library in libraries
+            if (technology := library.metadata.get("technology", "").strip())
+        }
+        self.technologies = sorted(technologies, key=str.lower)
+
+        if multiplexed_libraries := self.libraries.filter(is_multiplexed=True):
+            # Cache all sample ID's related through the multiplexed libraries.
+            self.multiplexed_with = list(
+                self.multiplexed_with_samples.order_by("scpca_id").values_list(
+                    "scpca_id", flat=True
+                )
+            )
+            # Sum of all related libraries' sample_cell_estimates for that sample.
+            self.demux_cell_count_estimate_sum = sum(
+                library.metadata["sample_cell_estimates"].get(self.scpca_id, 0)
+                for library in multiplexed_libraries
+            )
+        else:
+            # Sum of filtered_cell_count from non-multiplexed Single-cell libraries.
+            self.sample_cell_count_estimate = sum(
+                library.metadata.get("filtered_cell_count", 0)
+                for library in libraries.filter(
+                    modality=Modalities.SINGLE_CELL, is_multiplexed=False
+                )
+            )
+
+    # TODO: remove before loadable resource feature branch lands
     @classmethod
     def update_modality_properties(cls, project: "Project") -> None:
         """
@@ -249,6 +306,21 @@ class Sample(CommonDataAttributes, LoadableResourceABC):
             updated_samples.append(sample)
 
         Sample.objects.bulk_update(updated_samples, updated_attrs)
+
+    def new_update_modality_properties(self) -> None:
+        """
+        Updates sample modality properties,
+        derived from the existence of a certain attribute within a collection of Libraries.
+        """
+        # Set modality flags based on a real data availability.
+        self.has_bulk_rna_seq = self.scpca_id in self.project.get_bulk_rna_seq_sample_ids()
+        self.has_cite_seq_data = self.libraries.filter(has_cite_seq_data=True).exists()
+        self.has_multiplexed_data = self.libraries.filter(is_multiplexed=True).exists()
+        self.has_single_cell_data = self.libraries.filter(modality=Modalities.SINGLE_CELL).exists()
+        self.has_spatial_data = self.libraries.filter(modality=Modalities.SPATIAL).exists()
+        self.includes_anndata = self.libraries.filter(
+            formats__contains=[FileFormats.ANN_DATA]
+        ).exists()
 
     @classmethod
     def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
