@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Self
+from typing import List, Self
 
 from django.db import models
 from django.db.models import QuerySet
@@ -18,7 +18,7 @@ class AggregatableResourceABC(TimestampedModel):
 
     @classmethod
     def sync_aggregations(cls, resources: QuerySet[Self]) -> int:
-        aggregating_resources = [resource for resource in resources if resource.needs_aggregations]
+        aggregating_resources = cls.get_aggregating_resources()
 
         for aggregating_resource in aggregating_resources:
             aggregating_resource.update_aggregations()
@@ -26,6 +26,11 @@ class AggregatableResourceABC(TimestampedModel):
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
         return cls.objects.bulk_update(aggregating_resources, fields=fields_to_update)
+
+    @classmethod
+    @abstractmethod
+    def get_aggregating_resources(cls) -> List[Self]:
+        pass
 
     @property
     def needs_aggregations(self) -> bool:
