@@ -11,7 +11,7 @@ from typing_extensions import Self
 
 from scpca_portal import common, metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import Modalities
+from scpca_portal.enums import LoadableResourceStates, Modalities
 from scpca_portal.models.aggregatable_resource_abc import AggregatableResourceABC
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.contact import Contact
@@ -214,6 +214,14 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
         self.update_project_aggregate_properties()
         self.update_project_sample_aggregate_counts()
         self.update_project_summaries_aggregate_properties()
+
+    @classmethod
+    def get_aggregating_resources(cls) -> List[Self]:
+        return [
+            project
+            for project in cls.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
+            if project.needs_aggregations
+        ]
 
     @property
     def current_aggregation_hash(self) -> str:

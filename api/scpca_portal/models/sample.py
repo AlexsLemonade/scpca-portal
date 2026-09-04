@@ -7,7 +7,7 @@ from django.db.models import F, Func, QuerySet
 
 from scpca_portal import metadata_parser, utils
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import FileFormats, Modalities
+from scpca_portal.enums import FileFormats, LoadableResourceStates, Modalities
 from scpca_portal.models.aggregatable_resource_abc import AggregatableResourceABC
 from scpca_portal.models.base import CommonDataAttributes
 from scpca_portal.models.library import Library
@@ -161,6 +161,14 @@ class Sample(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC)
         # Update sample properties based on library queries after processing all samples
         Sample.update_modality_properties(project)
         Sample.update_aggregate_properties(project)
+
+    @classmethod
+    def get_aggregating_resources(cls) -> List[Self]:
+        return [
+            sample
+            for sample in cls.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
+            if sample.needs_aggregations
+        ]
 
     @property
     def current_aggregation_hash(self) -> str:
