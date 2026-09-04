@@ -2,7 +2,6 @@ from abc import abstractmethod
 from typing import List, Self
 
 from django.db import models
-from django.db.models import QuerySet
 
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.models.base import TimestampedModel
@@ -17,7 +16,7 @@ class AggregatableResourceABC(TimestampedModel):
     aggregation_hash = models.CharField(max_length=32, null=True)
 
     @classmethod
-    def sync_aggregations(cls, resources: QuerySet[Self]) -> int:
+    def sync_aggregations(cls) -> int:
         aggregating_resources = cls.get_aggregating_resources()
 
         for aggregating_resource in aggregating_resources:

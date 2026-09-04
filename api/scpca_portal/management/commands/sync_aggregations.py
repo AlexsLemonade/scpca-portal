@@ -1,7 +1,6 @@
 from django.core.management.base import BaseCommand
 
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models import Project, Sample
 
 logger = get_and_configure_logger(__name__)
@@ -18,12 +17,8 @@ class Command(BaseCommand):
     def sync_aggregations(self, **kwargs) -> None:
         logger.info("Syncing aggregations...")
 
-        aggregated_projects_count = Project.sync_aggregations(
-            Project.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
-        )
-        aggregated_samples_count = Sample.sync_aggregations(
-            Sample.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
-        )
+        aggregated_projects_count = Project.sync_aggregations()
+        aggregated_samples_count = Sample.sync_aggregations()
 
         logger.info("Aggregation syncing complete.")
         logger.info(
