@@ -12,3 +12,9 @@ More information can be found [in the ScPCA docs.]({{content_metadata_link}}).
 {% for row in content_table_rows %}|[{{ row.project.scpca_id }}]({{ row.project.url }})|{{ row.modality }}|{{ row.format }}|{{ row.docs }}|
 {% endfor %}
 {% endif %}
+{% if additional_processing_table_rows %}
+|Project ID|Additional Processing|
+|:---------|:--------------------|
+{% for row in additional_processing_table_rows %}|[{{ row.project.scpca_id }}]({{ row.project.url }})|{{ row.docs }}|
+{% endfor %}
+{% endif %}

@@ -9,7 +9,7 @@ from scpca_portal import utils  # ccdl_datasets,
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, FileFormats, Modalities
 
 if TYPE_CHECKING:
-    from scpca_portal.models import CCDLDataset, DatasetABC
+    from scpca_portal.models import CCDLDataset, DatasetABC, Project
 
 OUTPUT_NAME = "README.md"
 
@@ -62,8 +62,13 @@ PORTAL_CCDL_DATASET_LINKS = {
     ),
 }
 
+ADDITIONAL_PROCESSING_LINK = utils.get_docs_url("{project_id}")
+
 # used in get_content_table_rows and in 2_contents.md
 ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
+
+# used in get_additional_processing_table_rows and in 2_contents.md
+AdditionalProcessingContentRow = namedtuple("AdditionalProcessingContentRow", ["project", "docs"])
 
 # used to map the human-readable values to the corresponding format and modality tokens
 FORMAT_STRING = {
@@ -191,6 +196,34 @@ def get_content_table_rows(dataset: "DatasetABC") -> list[ContentRow]:
     )
 
 
+def get_additional_processing_table_rows(
+    dataset: "DatasetABC",
+) -> list[AdditionalProcessingContentRow]:
+    """
+    Returns rows for projects with additional processing.
+    """
+    # Metadata
+    additional_processing_rows: set[AdditionalProcessingContentRow] = set()
+
+    for project in dataset.projects:
+        if project.additional_processing:
+            additional_processing_rows.add(
+                AdditionalProcessingContentRow(project, get_additional_processing_link(project))
+            )
+
+    return sorted(
+        additional_processing_rows,
+        key=lambda additional_processing_row: additional_processing_row.project.scpca_id,
+    )
+
+
+def get_additional_processing_link(project: "Project") -> str | None:
+    """
+    Returns the link to the documentation for the project with additional processing.
+    """
+    return ADDITIONAL_PROCESSING_LINK.format(project_id=project.scpca_id)
+
+
 def get_content_portal_wide_link(dataset: "CCDLDataset") -> str | None:
     """
     Returns the link to the documentation if ccdl dataset is a portal wide download
@@ -229,6 +262,7 @@ def get_file_contents_dataset(dataset: "DatasetABC") -> str:
                 else None
             ),
             "content_table_rows": get_content_table_rows(dataset),
+            "additional_processing_table_rows": get_additional_processing_table_rows(dataset),
         }
     }
 
