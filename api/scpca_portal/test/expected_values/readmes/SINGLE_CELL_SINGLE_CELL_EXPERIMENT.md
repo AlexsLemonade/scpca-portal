@@ -11,6 +11,10 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 |[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|Bulk RNA-seq|Bulk Format|https://scpca.readthedocs.io/en/development/processing_information.html#bulk-rna-samples|
 |[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|Single-cell|Single-cell experiment|https://scpca.readthedocs.io/en/development/sce_file_contents.html#components-of-a-singlecellexperiment-object|
 
+|Project ID|Additional Processing|
+|:---------|:--------------------|
+|[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|https://scpca.readthedocs.io/en/development/SCPCP999990|
+
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).

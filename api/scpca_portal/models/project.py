@@ -32,6 +32,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = ArrayField(models.TextField(), default=list)
+    additional_processing = models.TextField(blank=True, null=True, default="Metaprograms")
     additional_restrictions = models.TextField(blank=True, null=True)
     diagnoses = ArrayField(models.TextField(), default=list)
     diagnoses_counts = models.JSONField(default=dict)

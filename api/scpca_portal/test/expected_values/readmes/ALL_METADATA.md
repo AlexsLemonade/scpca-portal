@@ -8,6 +8,12 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 This is a portal-wide download you can find more information about your download [in ScPCA docs.](https://scpca.readthedocs.io/en/development/download_files.html#portal-wide-downloads)
 
+|Project ID|Additional Processing|
+|:---------|:--------------------|
+|[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|https://scpca.readthedocs.io/en/development/SCPCP999990|
+|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|https://scpca.readthedocs.io/en/development/SCPCP999991|
+|[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)|https://scpca.readthedocs.io/en/development/SCPCP999992|
+
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).

@@ -15,6 +15,12 @@ This is a portal-wide download you can find more information about your download
 |[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|Single-cell|Single-cell experiment|https://scpca.readthedocs.io/en/development/sce_file_contents.html#additional-singlecellexperiment-components-for-multiplexed-libraries|
 |[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)|Single-cell|Single-cell experiment|https://scpca.readthedocs.io/en/development/sce_file_contents.html#components-of-a-singlecellexperiment-object|
 
+|Project ID|Additional Processing|
+|:---------|:--------------------|
+|[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|https://scpca.readthedocs.io/en/development/SCPCP999990|
+|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|https://scpca.readthedocs.io/en/development/SCPCP999991|
+|[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)|https://scpca.readthedocs.io/en/development/SCPCP999992|
+
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).

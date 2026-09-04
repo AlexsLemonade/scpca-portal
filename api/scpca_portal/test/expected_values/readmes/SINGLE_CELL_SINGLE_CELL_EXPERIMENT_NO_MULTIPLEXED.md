@@ -10,6 +10,10 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 |:---------|:-------|:-----|:--------------------|
 |[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|Single-cell|Single-cell experiment|https://scpca.readthedocs.io/en/development/sce_file_contents.html#components-of-a-singlecellexperiment-object|
 
+|Project ID|Additional Processing|
+|:---------|:--------------------|
+|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|https://scpca.readthedocs.io/en/development/SCPCP999991|
+
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).

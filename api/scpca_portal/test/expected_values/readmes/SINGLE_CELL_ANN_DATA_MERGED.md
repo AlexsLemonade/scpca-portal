@@ -15,6 +15,12 @@ This is a portal-wide download you can find more information about your download
 |[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|Single-cell|AnnData|https://scpca.readthedocs.io/en/development/merged_objects.html#components-of-an-anndata-merged-object|
 |[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)|Single-cell|AnnData|https://scpca.readthedocs.io/en/development/merged_objects.html#additional-anndata-components-for-cite-seq-libraries-with-adt-tags|
 
+|Project ID|Additional Processing|
+|:---------|:--------------------|
+|[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|https://scpca.readthedocs.io/en/development/SCPCP999990|
+|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|https://scpca.readthedocs.io/en/development/SCPCP999991|
+|[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)|https://scpca.readthedocs.io/en/development/SCPCP999992|
+
 ## CHANGELOG
 
 A summary of changes impacting downloads from the ScPCA Portal is available in [the CHANGELOG section of our documentation](https://scpca.readthedocs.io/en/stable/CHANGELOG.html).
