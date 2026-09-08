@@ -5,6 +5,7 @@ from django.conf import settings
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
+from scpca_portal import common
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models import Library
 from scpca_portal.test.factories import (
@@ -87,18 +88,18 @@ class TestLibrary(TestCase):
 
     def test_sync_model(self):
         project = LeafProjectFactory()
-        sample = SampleFactory(project=project)
 
         # DELETED: no longer referenced by any original file, and isn't in current metadata
         to_be_deleted_library = LibraryFactory(project=project)
 
-        # CREATED: only referenced by incoming metadata and a data file, doesn't exist in the DB yet
+        # CREATED: only referenced by incoming metadata, doesn't exist in the DB yet.
+        # Multiplexed libraries list their associated sample ids as a single delimited string
+        # (e.g. "SCPCS999992,SCPCS999993") rather than a single sample id.
         new_library_id = "SCPCL999901"
-        OriginalFileFactory(
-            project_id=project.scpca_id,
-            library_id=new_library_id,
-            sample_ids=[sample.scpca_id],
-            is_lockfile=False,
+        multiplexed_sample_1 = SampleFactory(project=project)
+        multiplexed_sample_2 = SampleFactory(project=project)
+        new_library_sample_id = common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER.join(
+            [multiplexed_sample_1.scpca_id, multiplexed_sample_2.scpca_id]
         )
 
         # LOCKED: its project has a lockfile in the input bucket
@@ -140,7 +141,7 @@ class TestLibrary(TestCase):
         metadata_by_id = {
             new_library_id: {
                 "scpca_project_id": project.scpca_id,
-                "scpca_sample_id": sample.scpca_id,
+                "scpca_sample_id": new_library_sample_id,
                 "scpca_library_id": new_library_id,
             },
             # present so it survives remove_deleted_objects; locking doesn't need its metadata
@@ -172,7 +173,10 @@ class TestLibrary(TestCase):
         self.assertFalse(Library.objects.filter(scpca_id=to_be_deleted_library.scpca_id).exists())
         new_library = Library.objects.filter(scpca_id=new_library_id, project=project).first()
         self.assertIsNotNone(new_library)
-        self.assertIn(sample.scpca_id, new_library.samples.values_list("scpca_id", flat=True))
+        self.assertEqual(
+            set(new_library.samples.values_list("scpca_id", flat=True)),
+            {multiplexed_sample_1.scpca_id, multiplexed_sample_2.scpca_id},
+        )
 
         newly_locked_library.refresh_from_db()
         self.assertEqual(newly_locked_library.loaded_state, LoadableResourceStates.LOCKED)
