@@ -1,12 +1,13 @@
 from datetime import datetime
 from unittest.mock import patch
 
+from django.conf import settings
 from django.test import TestCase, tag
 from django.utils.timezone import make_aware
 
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models import Project
-from scpca_portal.test.factories import LeafProjectFactory, ProjectFactory
+from scpca_portal.test.factories import LeafProjectFactory, OriginalFileFactory, ProjectFactory
 
 
 class TestProject(TestCase):
@@ -101,3 +102,83 @@ class TestProject(TestCase):
             Project.sync_metadata()
 
         mock_get_metadata.assert_not_called()
+
+    def test_sync_model(self):
+        # DELETED: no longer has any associated original files, and isn't in current metadata
+        to_be_deleted_project = LeafProjectFactory()
+
+        # CREATED: only referenced by incoming metadata, doesn't exist in the DB yet
+        new_project_id = "SCPCP999901"
+
+        # LOCKED: has a lockfile in the input bucket
+        newly_locked_project = LeafProjectFactory(loaded_state=LoadableResourceStates.SYNCED)
+        OriginalFileFactory(project_id=newly_locked_project.scpca_id, is_lockfile=True)
+
+        # UNLOCKED & SYNCED: was locked, its lockfile has since been removed,
+        # and its metadata is unchanged
+        unlocked_synced_project = LeafProjectFactory(
+            loaded_state=LoadableResourceStates.LOCKED, loaded_at=make_aware(datetime.now())
+        )
+        unlocked_synced_metadata = {
+            "scpca_project_id": unlocked_synced_project.scpca_id,
+            "title": "Unchanged Title",
+        }
+        unlocked_synced_project.combined_hash = unlocked_synced_project.get_current_combined_hash(
+            unlocked_synced_metadata
+        )
+        unlocked_synced_project.save(update_fields=["combined_hash"])
+
+        # UNLOCKED & TAINTED: was locked, its lockfile has since been removed,
+        # and its metadata has changed
+        unlocked_tainted_project = LeafProjectFactory(
+            loaded_state=LoadableResourceStates.LOCKED,
+            loaded_at=make_aware(datetime.now()),
+            combined_hash="outdated_combined_hash",
+        )
+        unlocked_tainted_metadata = {
+            "scpca_project_id": unlocked_tainted_project.scpca_id,
+            "title": "New Title",
+        }
+
+        metadata_by_id = {
+            new_project_id: {"scpca_project_id": new_project_id},
+            unlocked_synced_project.scpca_id: unlocked_synced_metadata,
+            unlocked_tainted_project.scpca_id: unlocked_tainted_metadata,
+        }
+
+        with patch.object(
+            Project, "get_metadata_dicts_by_id", return_value=metadata_by_id
+        ) as mock_get_metadata:
+            output_counts = Project.sync_model()
+
+        # verify inputs
+        mock_get_metadata.assert_called_once_with(
+            bucket=settings.AWS_S3_INPUT_BUCKET_NAME, skip_existing_file_download=False
+        )
+
+        # verify outputs
+        self.assertDictEqual(
+            output_counts,
+            {"created": 1, "deleted": 1, "locked": 1, "unlocked": 1, "tainted": 1},
+        )
+
+        self.assertFalse(Project.objects.filter(scpca_id=to_be_deleted_project.scpca_id).exists())
+        self.assertTrue(Project.objects.filter(scpca_id=new_project_id).exists())
+
+        newly_locked_project.refresh_from_db()
+        self.assertEqual(newly_locked_project.loaded_state, LoadableResourceStates.LOCKED)
+
+        unlocked_synced_project.refresh_from_db()
+        self.assertEqual(unlocked_synced_project.loaded_state, LoadableResourceStates.SYNCED)
+
+        unlocked_tainted_project.refresh_from_db()
+        self.assertEqual(unlocked_tainted_project.loaded_state, LoadableResourceStates.TAINTED)
+
+    def test_sync_model_no_changes(self):
+        with patch.object(Project, "get_metadata_dicts_by_id", return_value={}):
+            output_counts = Project.sync_model()
+
+        self.assertDictEqual(
+            output_counts,
+            {"created": 0, "deleted": 0, "locked": 0, "unlocked": 0, "tainted": 0},
+        )

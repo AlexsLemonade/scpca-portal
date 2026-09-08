@@ -1,12 +1,18 @@
 from datetime import datetime
 from unittest.mock import patch
 
+from django.conf import settings
 from django.test import TestCase
 from django.utils.timezone import make_aware
 
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models import Library
-from scpca_portal.test.factories import LibraryFactory
+from scpca_portal.test.factories import (
+    LeafProjectFactory,
+    LibraryFactory,
+    OriginalFileFactory,
+    SampleFactory,
+)
 
 
 class TestLibrary(TestCase):
@@ -78,3 +84,110 @@ class TestLibrary(TestCase):
             Library.sync_metadata()
 
         mock_get_metadata.assert_not_called()
+
+    def test_sync_model(self):
+        project = LeafProjectFactory()
+        sample = SampleFactory(project=project)
+
+        # DELETED: no longer referenced by any original file, and isn't in current metadata
+        to_be_deleted_library = LibraryFactory(project=project)
+
+        # CREATED: only referenced by incoming metadata and a data file, doesn't exist in the DB yet
+        new_library_id = "SCPCL999901"
+        OriginalFileFactory(
+            project_id=project.scpca_id,
+            library_id=new_library_id,
+            sample_ids=[sample.scpca_id],
+            is_lockfile=False,
+        )
+
+        # LOCKED: its project has a lockfile in the input bucket
+        locked_project = LeafProjectFactory()
+        newly_locked_library = LibraryFactory(
+            project=locked_project, loaded_state=LoadableResourceStates.SYNCED
+        )
+        OriginalFileFactory(project_id=locked_project.scpca_id, is_lockfile=True)
+
+        # UNLOCKED & SYNCED: was locked, its project's lockfile has since been removed,
+        # and its metadata is unchanged
+        unlocked_synced_library = LibraryFactory(
+            project=project,
+            loaded_state=LoadableResourceStates.LOCKED,
+            loaded_at=make_aware(datetime.now()),
+        )
+        unlocked_synced_metadata = {
+            "scpca_library_id": unlocked_synced_library.scpca_id,
+            "workflow_version": "1.2.3",
+        }
+        unlocked_synced_library.combined_hash = unlocked_synced_library.get_current_combined_hash(
+            unlocked_synced_metadata
+        )
+        unlocked_synced_library.save(update_fields=["combined_hash"])
+
+        # UNLOCKED & TAINTED: was locked, its project's lockfile has since been removed,
+        # and its metadata has changed
+        unlocked_tainted_library = LibraryFactory(
+            project=project,
+            loaded_state=LoadableResourceStates.LOCKED,
+            loaded_at=make_aware(datetime.now()),
+            combined_hash="outdated_combined_hash",
+        )
+        unlocked_tainted_metadata = {
+            "scpca_library_id": unlocked_tainted_library.scpca_id,
+            "workflow_version": "4.5.6",
+        }
+
+        metadata_by_id = {
+            new_library_id: {
+                "scpca_project_id": project.scpca_id,
+                "scpca_sample_id": sample.scpca_id,
+                "scpca_library_id": new_library_id,
+            },
+            # present so it survives remove_deleted_objects; locking doesn't need its metadata
+            newly_locked_library.scpca_id: {
+                "scpca_project_id": locked_project.scpca_id,
+                "scpca_sample_id": "",
+                "scpca_library_id": newly_locked_library.scpca_id,
+            },
+            unlocked_synced_library.scpca_id: unlocked_synced_metadata,
+            unlocked_tainted_library.scpca_id: unlocked_tainted_metadata,
+        }
+
+        with patch.object(
+            Library, "get_metadata_dicts_by_id", return_value=metadata_by_id
+        ) as mock_get_metadata:
+            output_counts = Library.sync_model()
+
+        # verify inputs
+        mock_get_metadata.assert_called_once_with(
+            bucket=settings.AWS_S3_INPUT_BUCKET_NAME, skip_existing_file_download=False
+        )
+
+        # verify outputs
+        self.assertDictEqual(
+            output_counts,
+            {"created": 1, "deleted": 1, "locked": 1, "unlocked": 1, "tainted": 1},
+        )
+
+        self.assertFalse(Library.objects.filter(scpca_id=to_be_deleted_library.scpca_id).exists())
+        new_library = Library.objects.filter(scpca_id=new_library_id, project=project).first()
+        self.assertIsNotNone(new_library)
+        self.assertIn(sample.scpca_id, new_library.samples.values_list("scpca_id", flat=True))
+
+        newly_locked_library.refresh_from_db()
+        self.assertEqual(newly_locked_library.loaded_state, LoadableResourceStates.LOCKED)
+
+        unlocked_synced_library.refresh_from_db()
+        self.assertEqual(unlocked_synced_library.loaded_state, LoadableResourceStates.SYNCED)
+
+        unlocked_tainted_library.refresh_from_db()
+        self.assertEqual(unlocked_tainted_library.loaded_state, LoadableResourceStates.TAINTED)
+
+    def test_sync_model_no_changes(self):
+        with patch.object(Library, "get_metadata_dicts_by_id", return_value={}):
+            output_counts = Library.sync_model()
+
+        self.assertDictEqual(
+            output_counts,
+            {"created": 0, "deleted": 0, "locked": 0, "unlocked": 0, "tainted": 0},
+        )
