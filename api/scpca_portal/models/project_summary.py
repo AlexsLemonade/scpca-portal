@@ -12,11 +12,11 @@ class ProjectSummary(TimestampedModel):
     For example:
         diagnosis=AML
         seq_unit=cell
-        technology=10Xv2_5prime
+        technology=10xv2_5prime
         sample_count=28
 
     indicates that this project has 28 samples diagnosed with AML that
-    were sequenced at the cell level using 10Xv2_5prime.
+    were sequenced at the cell level using 10xv2_5prime.
     """
 
     class Meta:

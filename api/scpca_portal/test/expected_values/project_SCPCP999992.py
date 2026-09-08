@@ -17,7 +17,7 @@ class Project_SCPCP999992:
         "has_multiplexed_data": False,
         "has_single_cell_data": True,
         "has_spatial_data": False,
-        "human_readable_pi_name": "PI3",
+        "human_readable_pi_name": "NA",
         "includes_anndata": True,
         "includes_cell_lines": False,
         "includes_merged_sce": True,
@@ -40,7 +40,7 @@ class Project_SCPCP999992:
         "sample_count": 2,
         "scpca_id": SCPCA_ID,
         "seq_units": ["cell"],
-        "technologies": ["10Xv2_5prime", "10Xv3"],
+        "technologies": ["10xv2_5prime", "10xv3"],
         "title": "Title3",
         "unavailable_samples_count": 0,
     }
@@ -67,7 +67,7 @@ class Project_SCPCP999992:
             "sex": "M",
             "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3"],
+            "technologies": ["10xv3"],
             "tissue_location": "tissue7",
             "treatment": "",
         }
@@ -94,7 +94,7 @@ class Project_SCPCP999992:
             "sex": "M",
             "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv2_5prime"],
+            "technologies": ["10xv2_5prime"],
             "tissue_location": "tissue9",
             "treatment": "",
         }
@@ -155,7 +155,7 @@ class Project_SCPCP999992:
             "diagnosis": "diagnosis7",
             "sample_count": 1,
             "seq_unit": "cell",
-            "technology": "10Xv3",
+            "technology": "10xv3",
         }
 
     class Summary2:
@@ -163,7 +163,7 @@ class Project_SCPCP999992:
             "diagnosis": "diagnosis7",
             "sample_count": 1,
             "seq_unit": "cell",
-            "technology": "10Xv2_5prime",
+            "technology": "10xv2_5prime",
         }
 
     class Contact1:
