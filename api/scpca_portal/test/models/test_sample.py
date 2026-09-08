@@ -7,7 +7,12 @@ from django.utils.timezone import make_aware
 
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models import Sample
-from scpca_portal.test.factories import LeafProjectFactory, OriginalFileFactory, SampleFactory
+from scpca_portal.test.factories import (
+    LeafProjectFactory,
+    LibraryFactory,
+    OriginalFileFactory,
+    SampleFactory,
+)
 
 
 class TestSample(TestCase):
@@ -179,3 +184,44 @@ class TestSample(TestCase):
             output_counts,
             {"created": 0, "deleted": 0, "locked": 0, "unlocked": 0, "tainted": 0},
         )
+
+    def test_sync_aggregations(self):
+        # bulk RNA-seq is turned off to avoid a real bulk metadata file lookup
+        project = LeafProjectFactory(has_bulk_rna_seq=False)
+
+        stale_sample = SampleFactory(
+            project=project, aggregation_hash="stale_hash", seq_units=["placeholder"]
+        )
+        stale_library = LibraryFactory(project=project, metadata_hash="library_hash")
+        stale_sample.libraries.add(stale_library)
+
+        # placeholder seq_units proves this sample's aggregations are left untouched
+        up_to_date_sample = SampleFactory(project=project, seq_units=["placeholder"])
+        up_to_date_library = LibraryFactory(project=project, metadata_hash="library_hash_2")
+        up_to_date_sample.libraries.add(up_to_date_library)
+        up_to_date_sample.aggregation_hash = up_to_date_sample.current_aggregation_hash
+        up_to_date_sample.save(update_fields=["aggregation_hash"])
+
+        resources = Sample.objects.filter(id__in=[stale_sample.id, up_to_date_sample.id])
+        Sample.sync_aggregations(resources)
+
+        stale_sample.refresh_from_db()
+        up_to_date_sample.refresh_from_db()
+
+        # stale sample's aggregations were recomputed and its hash brought up to date
+        self.assertEqual(stale_sample.aggregation_hash, stale_sample.current_aggregation_hash)
+        self.assertEqual(stale_sample.seq_units, ["cell"])
+
+        # up-to-date sample was left untouched
+        self.assertEqual(up_to_date_sample.seq_units, ["placeholder"])
+
+    def test_sync_aggregations_no_changes(self):
+        project = LeafProjectFactory(has_bulk_rna_seq=False)
+        sample = SampleFactory(project=project, seq_units=["placeholder"])
+        sample.aggregation_hash = sample.current_aggregation_hash
+        sample.save(update_fields=["aggregation_hash"])
+
+        Sample.sync_aggregations(Sample.objects.filter(id=sample.id))
+
+        sample.refresh_from_db()
+        self.assertEqual(sample.seq_units, ["placeholder"])
