@@ -83,7 +83,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     diagnoses_counts = {"AML": 20, "Normal": 40}
     seq_units = ["cell"]
     technologies = ["10Xv2_5prime", "CITE-seq"]
-    has_bulk_rna_seq = True
+    has_bulk_rna_seq = False
     modalities = ["CITE_SEQ"]
     organisms = ["Homo sapiens"]
     sample_count = 60
