@@ -21,12 +21,18 @@ class Command(BaseCommand):
     def handle(self, *args, **kwargs) -> None:
         self.sync_metadata(**kwargs)
 
-    def sync_metadata(self, **kwargs) -> None:
+    def sync_metadata(self, bucket: str, skip_existing_file_download: bool, **kwargs) -> None:
         logger.info("Syncing metadata...")
 
-        synced_projects_count = Project.sync_metadata()
-        synced_samples_count = Sample.sync_metadata()
-        synced_libraries_count = Library.sync_metadata()
+        synced_projects_count = Project.sync_metadata(
+            bucket=bucket, skip_existing_file_download=skip_existing_file_download
+        )
+        synced_samples_count = Sample.sync_metadata(
+            bucket=bucket, skip_existing_file_download=skip_existing_file_download
+        )
+        synced_libraries_count = Library.sync_metadata(
+            bucket=bucket, skip_existing_file_download=skip_existing_file_download
+        )
 
         logger.info("Metadata sync complete.")
         logger.info(
