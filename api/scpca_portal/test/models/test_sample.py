@@ -187,7 +187,7 @@ class TestSample(TestCase):
 
     def test_sync_aggregations(self):
         # bulk RNA-seq is turned off to avoid a real bulk metadata file lookup
-        project = LeafProjectFactory(has_bulk_rna_seq=False)
+        project = LeafProjectFactory()
 
         stale_sample = SampleFactory(
             project=project, aggregation_hash="stale_hash", seq_units=["placeholder"]
@@ -216,7 +216,7 @@ class TestSample(TestCase):
         self.assertEqual(up_to_date_sample.seq_units, ["placeholder"])
 
     def test_sync_aggregations_no_changes(self):
-        project = LeafProjectFactory(has_bulk_rna_seq=False)
+        project = LeafProjectFactory()
         sample = SampleFactory(project=project, seq_units=["placeholder"])
         sample.aggregation_hash = sample.current_aggregation_hash
         sample.save(update_fields=["aggregation_hash"])

@@ -184,10 +184,7 @@ class TestProject(TestCase):
         )
 
     def test_sync_aggregations(self):
-        # bulk RNA-seq is turned off on both projects to avoid a real bulk metadata file lookup
-        stale_project = ProjectFactory(
-            has_bulk_rna_seq=False, aggregation_hash="stale_hash", sample_count=0
-        )
+        stale_project = ProjectFactory(aggregation_hash="stale_hash", sample_count=0)
         for sample in stale_project.samples.all():
             sample.metadata_hash = "sample_hash"
             sample.save(update_fields=["metadata_hash"])
@@ -196,7 +193,7 @@ class TestProject(TestCase):
             library.save(update_fields=["metadata_hash"])
 
         # placeholder sample_count proves this project's aggregations are left untouched
-        up_to_date_project = ProjectFactory(has_bulk_rna_seq=False, sample_count=999)
+        up_to_date_project = ProjectFactory(sample_count=999)
         for sample in up_to_date_project.samples.all():
             sample.metadata_hash = "sample_hash_2"
             sample.save(update_fields=["metadata_hash"])
@@ -220,7 +217,7 @@ class TestProject(TestCase):
         self.assertEqual(up_to_date_project.sample_count, 999)
 
     def test_sync_aggregations_no_changes(self):
-        project = LeafProjectFactory(has_bulk_rna_seq=False, sample_count=999)
+        project = LeafProjectFactory(sample_count=999)
         project.aggregation_hash = project.current_aggregation_hash
         project.save(update_fields=["aggregation_hash"])
 
