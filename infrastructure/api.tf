@@ -107,6 +107,9 @@ resource "aws_instance" "api_server_1" {
       sync_batch_jobs_log_stream      = aws_cloudwatch_log_stream.log_stream_api_sync_batch_jobs.name
       submit_pending_log_stream       = aws_cloudwatch_log_stream.log_stream_api_submit_pending.name
       expire_user_datasets_log_stream = aws_cloudwatch_log_stream.log_stream_api_expire_user_datasets.name
+      sync_models_log_stream          = aws_cloudwatch_log_stream.log_stream_api_sync_models.name
+      sync_metadata_log_stream        = aws_cloudwatch_log_stream.log_stream_api_sync_metadata.name
+      sync_aggregations_log_stream    = aws_cloudwatch_log_stream.log_stream_api_sync_aggregations.name
       certbot_renew_log_stream        = aws_cloudwatch_log_stream.log_stream_api_certbot_renew.name
   })
 

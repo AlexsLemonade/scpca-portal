@@ -123,6 +123,24 @@ cat <<EOF >awslogs.json
                         "retention_in_days": 30
                     },
                     {
+                        "file_path": "/var/log/cron/sync_models.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${sync_models_log_stream}",
+                        "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/cron/sync_metadata.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${sync_metadata_log_stream}",
+                        "retention_in_days": 30
+                    },
+                    {
+                        "file_path": "/var/log/cron/sync_aggregations.log",
+                        "log_group_name": "${log_group}",
+                        "log_stream_name": "${sync_aggregations_log_stream}",
+                        "retention_in_days": 30
+                    },
+                    {
                         "file_path": "/var/log/cron/certbot_renew.log",
                         "log_group_name": "${log_group}",
                         "log_stream_name": "${certbot_renew_log_stream}",
@@ -169,6 +187,42 @@ echo "
 }" >> /etc/logrotate.conf
 echo "
 /var/log/cron/submit_pending.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/expire_user_datasets.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/sync_models.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/sync_metadata.log {
+    missingok
+    notifempty
+    compress
+    size 20K
+    daily
+    maxage 3
+}" >> /etc/logrotate.conf
+echo "
+/var/log/cron/sync_aggregations.log {
     missingok
     notifempty
     compress
