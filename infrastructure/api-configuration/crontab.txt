@@ -1,3 +1,8 @@
 */10 * * * * cd /home/ubuntu && ./run_command.sh sync_batch_jobs >> /var/log/cron/sync_batch_jobs.log 2>&1
 */30 * * * * cd /home/ubuntu && ./run_command.sh submit_pending >> /var/log/cron/submit_pending.log 2>&1
 0 * * * * cd /home/ubuntu && ./run_command.sh expire_user_datasets >> /var/log/cron/expire_user_datasets.log 2>&1
+
+# Loadable Commands
+0 8,17 * * * cd /home/ubuntu && ./run_command.sh sync_models >> /var/log/cron/sync_models.log 2>&1
+0 11,20 * * * cd /home/ubuntu && ./run_command.sh sync_metadata >> /var/log/cron/sync_metadata.log 2>&1
+0 14,23 * * * cd /home/ubuntu && ./run_command.sh sync_aggregations >> /var/log/cron/sync_aggregations.log 2>&1
