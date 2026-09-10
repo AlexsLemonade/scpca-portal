@@ -38,6 +38,7 @@ from scpca_portal.test.expected_values.ccdl_dataset_spatial_spatial_spaceranger_
 from scpca_portal.test.expected_values.project_SCPCP999990 import Project_SCPCP999990
 from scpca_portal.test.expected_values.project_SCPCP999991 import Project_SCPCP999991
 from scpca_portal.test.expected_values.project_SCPCP999992 import Project_SCPCP999992
+from scpca_portal.test.expected_values.project_SCPCP999994 import Project_SCPCP999994
 from scpca_portal.test.expected_values.user_dataset_single_cell_experiment import (
     UserDatasetSingleCellExperiment,
 )

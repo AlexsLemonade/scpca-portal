@@ -502,3 +502,127 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(publication)
         self.assertObjectProperties(publication, test_data.Project_SCPCP999992.Publication2.VALUES)
+
+    def test_create_project_SCPCP999994(self):
+        utils.create_data_dirs()
+
+        returned_project = self.create_project(
+            self.load_project_metadata(test_data.Project_SCPCP999994.SCPCA_ID)
+        )
+
+        # CHECK FOR PROJECT EXISTENCE
+        project = Project.objects.filter(scpca_id=test_data.Project_SCPCP999994.SCPCA_ID).first()
+
+        self.assertEqual(project, returned_project)
+
+        # CHECK PROJECT ATTRIBUTE VALUES
+        self.assertObjectProperties(project, test_data.Project_SCPCP999994.VALUES)
+
+        # CHECK SAMPLE VALUES
+        self.assertEqual(project.samples.count(), 2)
+
+        # SCPCS999988
+        sample = project.samples.filter(
+            scpca_id=test_data.Project_SCPCP999994.Sample_SCPCS999988.SCPCA_ID
+        ).first()
+        self.assertIsNotNone(sample)
+        self.assertObjectProperties(sample, test_data.Project_SCPCP999994.Sample_SCPCS999988.VALUES)
+        self.assertDictIsNonEmpty(test_data.Project_SCPCP999994.Sample_SCPCS999988.VALUES)
+
+        # SCPCS999989
+        sample = project.samples.filter(
+            scpca_id=test_data.Project_SCPCP999994.Sample_SCPCS999989.SCPCA_ID
+        ).first()
+        self.assertIsNotNone(sample)
+        self.assertObjectProperties(sample, test_data.Project_SCPCP999994.Sample_SCPCS999989.VALUES)
+        self.assertDictIsNonEmpty(sample.metadata)
+
+        # CHECK LIBRARY VALUES
+        self.assertEqual(project.libraries.count(), 2)
+
+        # "SCPCL999989-SCPCS999988
+        library = project.libraries.filter(
+            scpca_id=test_data.Project_SCPCP999994.Library_SCPCL999989_SCPCS999988.SCPCA_ID
+        ).first()
+        self.assertIsNotNone(library)
+        self.assertObjectProperties(
+            library, test_data.Project_SCPCP999994.Library_SCPCL999989_SCPCS999988.VALUES
+        )
+        # Assert that metadata attribute has been populated and did not default to empty dict
+        self.assertDictIsNonEmpty(library.metadata)
+
+        # SCPCL999989-SCPCS999989
+        library = project.libraries.filter(
+            scpca_id=test_data.Project_SCPCP999994.Library_SCPCL999989_SCPCS999989.SCPCA_ID
+        ).first()
+        self.assertIsNotNone(library)
+
+        self.assertObjectProperties(
+            library, test_data.Project_SCPCP999994.Library_SCPCL999989_SCPCS999989.VALUES
+        )
+        # Assert that metadata attribute has been populated and did not default to empty dict
+        self.assertDictIsNonEmpty(library.metadata)
+
+        # CHECK PROJECT SUMMARIES VALUES
+        self.assertEqual(project.summaries.count(), 1)
+
+        self.assertTrue(
+            project.summaries.filter(**test_data.Project_SCPCP999994.Summary.VALUES).exists(),
+            f"No Project Summary exists for {project.scpca_id} which matches the following values: "
+            f"{test_data.Project_SCPCP999994.Summary.VALUES}",
+        )
+
+        # CHECK CONTACTS
+        self.assertEqual(project.contacts.count(), 2)
+
+        # First contact
+        contact = project.contacts.filter(
+            email=test_data.Project_SCPCP999994.Contact1.EMAIL
+        ).first()
+        self.assertIsNotNone(contact)
+        self.assertObjectProperties(contact, test_data.Project_SCPCP999994.Contact1.VALUES)
+
+        # Second contact
+        contact = project.contacts.filter(
+            email=test_data.Project_SCPCP999994.Contact2.EMAIL
+        ).first()
+        self.assertIsNotNone(contact)
+        self.assertObjectProperties(contact, test_data.Project_SCPCP999994.Contact2.VALUES)
+
+        # CHECK EXTERNAL ACCESSION VALUES
+        self.assertEqual(project.external_accessions.count(), 2)
+
+        # First external accession
+        external_accession = project.external_accessions.filter(
+            accession=test_data.Project_SCPCP999994.ExternalAccession1.ACCESSION
+        ).first()
+        self.assertIsNotNone(external_accession)
+        self.assertObjectProperties(
+            external_accession, test_data.Project_SCPCP999994.ExternalAccession1.VALUES
+        )
+
+        # Second external accession
+        external_accession = project.external_accessions.filter(
+            accession=test_data.Project_SCPCP999994.ExternalAccession2.ACCESSION
+        ).first()
+        self.assertIsNotNone(external_accession)
+        self.assertObjectProperties(
+            external_accession, test_data.Project_SCPCP999994.ExternalAccession2.VALUES
+        )
+
+        # CHECK PUBLICATIONS VALUES
+        self.assertEqual(project.publications.count(), 2)
+
+        # First publication
+        publication = project.publications.filter(
+            doi=test_data.Project_SCPCP999994.Publication1.DOI
+        ).first()
+        self.assertIsNotNone(publication)
+        self.assertObjectProperties(publication, test_data.Project_SCPCP999994.Publication1.VALUES)
+
+        # Second publication
+        publication = project.publications.filter(
+            doi=test_data.Project_SCPCP999994.Publication2.DOI
+        ).first()
+        self.assertIsNotNone(publication)
+        self.assertObjectProperties(publication, test_data.Project_SCPCP999994.Publication2.VALUES)
