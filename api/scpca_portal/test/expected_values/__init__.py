@@ -29,6 +29,9 @@ from scpca_portal.test.expected_values.ccdl_dataset_single_cell_single_cell_expe
 from scpca_portal.test.expected_values.ccdl_dataset_single_cell_single_cell_experiment_SCPCP999990 import (
     CCDLDatasetSingleCellSingleCellExperimentSCPCP999990,
 )
+from scpca_portal.test.expected_values.ccdl_dataset_single_cell_single_cell_experiment_SCPCP999994 import (
+    CCDLDatasetSingleCellSingleCellExperimentSCPCP999994,
+)
 from scpca_portal.test.expected_values.ccdl_dataset_spatial_spatial_spaceranger import (
     CCDLDatasetSpatialSpatialSpaceranger,
 )
