@@ -33,8 +33,10 @@ class Library(TimestampedModel):
         return f"Library {self.scpca_id}"
 
     @classmethod
-    def get_from_dict(cls, data: Dict, project: "Project") -> Self:
-        library_id = data["scpca_library_id"]
+    def get_from_dict(
+        cls, data: Dict, project: "Project", compound_library_id: str | None = None
+    ) -> Self:
+        library_id = compound_library_id or data["scpca_library_id"]
         original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
 
         modality = ""
@@ -69,14 +71,20 @@ class Library(TimestampedModel):
         return library
 
     @classmethod
-    def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample: "Sample") -> None:
+    def bulk_create_from_dicts(
+        cls, library_jsons: List[Dict], sample: "Sample", compound_library_id: str | None = None
+    ) -> None:
         libraries = []
         for library_json in library_jsons:
-            library_id = library_json["scpca_library_id"]
+            library_id = compound_library_id or library_json["scpca_library_id"]
             if existing_library := Library.objects.filter(scpca_id=library_id).first():
                 sample.libraries.add(existing_library)
             else:
-                libraries.append(Library.get_from_dict(library_json, sample.project))
+                libraries.append(
+                    Library.get_from_dict(
+                        library_json, sample.project, compound_library_id=library_id
+                    )
+                )
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
@@ -84,7 +92,7 @@ class Library(TimestampedModel):
     @classmethod
     def load_bulk_metadata(cls, project: "Project") -> None:
         """
-        Parses bulk metadata tsv files and create Library objets for bulk-only samples
+        Parses bulk metadata tsv files and create Library objects for bulk-only samples
         """
         if not project.has_bulk_rna_seq:
             raise Exception("Trying to load bulk libraries for project with no bulk data")
@@ -102,6 +110,8 @@ class Library(TimestampedModel):
         """
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
+        NOTE: GEM-X Flex libraries have a compound ID (i.e., SCPCLXXXXXX-SCPCSXXXXXX) that
+        is stored in DB. However, sample ID suffix is excluded in the generated metadata file.
         """
         libraries_metadata = metadata_parser.load_libraries_metadata(project.scpca_id)
         library_files = OriginalFile.get_input_library_metadata_files(project.scpca_id)
@@ -112,12 +122,31 @@ class Library(TimestampedModel):
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
 
         for library_file in library_files:
-            if lib_metadata := library_metadata_by_id.get(library_file.library_id):
-                #  Multiplexed samples will have multiple sample IDs in lib.sample_ids
-                for sample_id in library_file.sample_ids:
-                    # Only create the library if the sample exists in the project
-                    if sample := sample_by_id.get(sample_id):
-                        Library.bulk_create_from_dicts([lib_metadata], sample)
+            #  Multiplexed samples will have multiple sample IDs in lib.sample_ids
+            for sample_id in library_file.sample_ids:
+                # Only create the library if the sample exists in the project
+                if sample := sample_by_id.get(sample_id):
+                    library_id = library_file.library_id
+                    lib_metadata = library_metadata_by_id.get(library_id)
+                    # Temporarily strip the sample ID suffix as GEM-X Flex libraries S3
+                    # filename contains a compound ID, while the metadata json stores library ID
+                    # and sample ID separately
+                    if library_id.endswith(sample_id):
+                        base_library_id = library_id.removesuffix(f"-{sample_id}")
+                        lib_metadata = next(
+                            (
+                                m
+                                for m in libraries_metadata
+                                if m["scpca_library_id"] == base_library_id
+                                and m["scpca_sample_id"] == sample_id
+                            ),
+                            None,
+                        )
+
+                    if lib_metadata:
+                        Library.bulk_create_from_dicts(
+                            [lib_metadata], sample, compound_library_id=library_id
+                        )
 
         if project.has_bulk_rna_seq:
             Library.load_bulk_metadata(project)
