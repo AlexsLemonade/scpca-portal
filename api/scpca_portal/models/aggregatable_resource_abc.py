@@ -17,22 +17,22 @@ class AggregatableResourceABC(TimestampedModel):
 
     @classmethod
     def sync_aggregations(cls) -> int:
-        aggregating_resources = cls.get_aggregating_resources()
+        needs_aggregation_resources = cls.get_needs_aggregation_resources()
 
-        for aggregating_resource in aggregating_resources:
-            aggregating_resource.update_aggregations()
-            aggregating_resource.aggregation_hash = aggregating_resource.current_aggregation_hash
+        for resource in needs_aggregation_resources:
+            resource.update_aggregations()
+            resource.aggregation_hash = resource.current_aggregation_hash
 
         fields_to_update = [f.name for f in cls._meta.concrete_fields if not f.primary_key]
-        return cls.objects.bulk_update(aggregating_resources, fields=fields_to_update)
+        return cls.objects.bulk_update(needs_aggregation_resources, fields=fields_to_update)
 
     @classmethod
     @abstractmethod
-    def get_aggregating_resources(cls) -> List[Self]:
+    def get_needs_aggregation_resources(cls) -> List[Self]:
         pass
 
     @property
-    def needs_aggregations(self) -> bool:
+    def needs_aggregation(self) -> bool:
         return self.aggregation_hash != self.current_aggregation_hash
 
     @property

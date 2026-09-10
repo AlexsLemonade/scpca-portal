@@ -154,11 +154,11 @@ class Sample(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC)
         Sample.update_aggregate_properties(project)
 
     @classmethod
-    def get_aggregating_resources(cls) -> List[Self]:
+    def get_needs_aggregation_resources(cls) -> List[Self]:
         return [
             sample
             for sample in cls.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
-            if sample.needs_aggregations
+            if sample.needs_aggregation
         ]
 
     @property

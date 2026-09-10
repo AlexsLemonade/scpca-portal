@@ -216,11 +216,11 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
         self.update_project_summaries_aggregate_properties()
 
     @classmethod
-    def get_aggregating_resources(cls) -> List[Self]:
+    def get_needs_aggregation_resources(cls) -> List[Self]:
         return [
             project
             for project in cls.objects.filter(loaded_state=LoadableResourceStates.SYNCED)
-            if project.needs_aggregations
+            if project.needs_aggregation
         ]
 
     @property
