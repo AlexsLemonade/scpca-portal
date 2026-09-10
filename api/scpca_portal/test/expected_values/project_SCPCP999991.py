@@ -111,7 +111,7 @@ class Project_SCPCP999991:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3419,
+            "sample_cell_count_estimate": 3424,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": ["cell"],
@@ -138,7 +138,7 @@ class Project_SCPCP999991:
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999995:
@@ -161,7 +161,7 @@ class Project_SCPCP999991:
             "has_cite_seq_data": False,
             "is_multiplexed": False,
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Summary1:

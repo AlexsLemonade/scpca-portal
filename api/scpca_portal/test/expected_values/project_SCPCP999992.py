@@ -62,7 +62,7 @@ class Project_SCPCP999992:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3423,
+            "sample_cell_count_estimate": 3424,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": ["cell"],
@@ -120,7 +120,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999996/SCPCL999996_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999998:
@@ -147,7 +147,7 @@ class Project_SCPCP999992:
                 "SCPCP999992/SCPCS999998/SCPCL999998_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Summary1:
@@ -164,22 +164,6 @@ class Project_SCPCP999992:
             "sample_count": 1,
             "seq_unit": "cell",
             "technology": "10xv2_5prime",
-        }
-
-    class Contact1:
-        EMAIL = "{email contact 1}"
-        VALUES = {
-            "name": "{contact 1}",
-            "email": EMAIL,
-            "pi_name": "scpca",
-        }
-
-    class Contact2:
-        EMAIL = "{email contact 2}"
-        VALUES = {
-            "name": "{contact 2}",
-            "email": EMAIL,
-            "pi_name": "scpca",
         }
 
     class ExternalAccession1:

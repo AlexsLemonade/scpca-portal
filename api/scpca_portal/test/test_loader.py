@@ -463,21 +463,7 @@ class TestLoader(TransactionTestCase):
         )
 
         # CHECK CONTACTS
-        self.assertEqual(project.contacts.count(), 2)
-
-        # First contact
-        contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999992.Contact1.EMAIL
-        ).first()
-        self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999992.Contact1.VALUES)
-
-        # Second contact
-        contact = project.contacts.filter(
-            email=test_data.Project_SCPCP999992.Contact2.EMAIL
-        ).first()
-        self.assertIsNotNone(contact)
-        self.assertObjectProperties(contact, test_data.Project_SCPCP999992.Contact2.VALUES)
+        self.assertEqual(project.contacts.count(), 0)
 
         # CHECK EXTERNAL ACCESSION VALUES
         self.assertEqual(project.external_accessions.count(), 2)

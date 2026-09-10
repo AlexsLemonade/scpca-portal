@@ -176,7 +176,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999991:
@@ -205,7 +205,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999994:
@@ -217,7 +217,7 @@ class Project_SCPCP999990:
             "modality": Modalities.BULK_RNA_SEQ,
             "original_file_paths": [],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999997:
@@ -241,7 +241,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Summary1:
