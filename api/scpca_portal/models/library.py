@@ -33,6 +33,23 @@ class Library(TimestampedModel):
         return f"Library {self.scpca_id}"
 
     @classmethod
+    def _find_compound_id_metadata(
+        cls, shared_library_id: str, sample_id: str, libraries_metadata: List[Dict]
+    ) -> Dict:
+        """
+        Finds the corresponding metadata for a compound ID combination matching both library
+        ID and sample ID, as the same library ID can be shared across multiple samples.
+        """
+        return next(
+            (
+                m
+                for m in libraries_metadata
+                if m["scpca_library_id"] == shared_library_id and m["scpca_sample_id"] == sample_id
+            ),
+            None,
+        )
+
+    @classmethod
     def get_from_dict(
         cls, data: Dict, project: "Project", compound_library_id: str | None = None
     ) -> Self:
@@ -110,8 +127,8 @@ class Library(TimestampedModel):
         """
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
-        NOTE: GEM-X Flex libraries have a compound ID (i.e., SCPCLXXXXXX-SCPCSXXXXXX) that
-        is stored in DB. However, sample ID suffix is excluded in the generated metadata file.
+        NOTE: Some libraries (e.g., GEM-X Flex) have a compound ID, SCPCLXXXXXX-SCPCSXXXXXX,
+        that is stored in DB. However, sample ID suffix is excluded in the generated metadata file.
         """
         libraries_metadata = metadata_parser.load_libraries_metadata(project.scpca_id)
         library_files = OriginalFile.get_input_library_metadata_files(project.scpca_id)
@@ -128,19 +145,11 @@ class Library(TimestampedModel):
                 if sample := sample_by_id.get(sample_id):
                     library_id = library_file.library_id
                     lib_metadata = library_metadata_by_id.get(library_id)
-                    # Temporarily strip the sample ID suffix as GEM-X Flex libraries S3
-                    # filename contains a compound ID, while the metadata json stores library ID
-                    # and sample ID separately
+                    # This condition is necessary as the S3 filename contains a compound ID,
+                    # while the metadata json stores library ID and sample ID separately
                     if library_id.endswith(sample_id):
-                        base_library_id = library_id.removesuffix(f"-{sample_id}")
-                        lib_metadata = next(
-                            (
-                                m
-                                for m in libraries_metadata
-                                if m["scpca_library_id"] == base_library_id
-                                and m["scpca_sample_id"] == sample_id
-                            ),
-                            None,
+                        lib_metadata = cls._find_compound_id_metadata(
+                            library_id.removesuffix(f"-{sample_id}"), sample_id, libraries_metadata
                         )
 
                     if lib_metadata:
