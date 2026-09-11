@@ -158,6 +158,7 @@ class JobProcessorABC(ABC):
                 step_function()
             except Exception as e:
                 if exception_handler := self._lookup_handler(step, e):
+                    self.on_step_exception(step, e)
                     exception_handler(e)
                 else:
                     self.on_uncaught_exception(step, e)
