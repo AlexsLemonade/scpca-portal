@@ -603,7 +603,6 @@ class TestJob(TestCase):
         job.batch_job_definition = "BATCH_JOB_DEFINITION"
         job.batch_job_queue = "BATCH_JOB_QUEUE"
         job.batch_container_overrides = "BATCH_CONTAINER_OVERRIDES"
-        job.attempt = 1
 
         # After execution, the call should returns a new saved instance for retry
         retry_job = job.create_retry_job()
@@ -611,7 +610,6 @@ class TestJob(TestCase):
         self.assertEqual(retry_job.batch_job_name, job.batch_job_name)
         self.assertEqual(retry_job.batch_job_definition, job.batch_job_definition)
         self.assertEqual(retry_job.batch_job_queue, job.batch_job_queue)
-        self.assertEqual(retry_job.attempt, job.attempt + 1)
 
     def test_create_retry_jobs(self):
         # Set up mock field values for base terminated jobs
@@ -619,7 +617,7 @@ class TestJob(TestCase):
         batch_job_definition = "BATCH_JOB_DEFINITION"
         batch_job_queue = "BATCH_JOB_QUEUE"
         batch_container_overrides = "BATCH_CONTAINER_OVERRIDES"
-        attempt = 1
+
         # Set up 3 base terminated jobs for retry
         terminated_jobs = [
             JobFactory(
@@ -628,7 +626,6 @@ class TestJob(TestCase):
                 batch_job_definition=batch_job_definition,
                 batch_job_queue=batch_job_queue,
                 batch_container_overrides=batch_container_overrides,
-                attempt=attempt,
                 dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING),
             )
             for _ in range(3)
@@ -653,7 +650,6 @@ class TestJob(TestCase):
             self.assertEqual(job.batch_job_definition, batch_job_definition)
             self.assertEqual(job.batch_job_queue, batch_job_queue)
             self.assertEqual(job.batch_container_overrides, batch_container_overrides)
-            self.assertEqual(job.attempt, 2)  # The base's attempt(1) + 1
 
     @patch("scpca_portal.batch.submit_job")
     def test_dynamically_set_dataset_job_pipeline(self, mock_batch_submit_job):
