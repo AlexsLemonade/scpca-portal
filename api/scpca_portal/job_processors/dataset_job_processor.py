@@ -70,6 +70,12 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.save()
 
     def handle_locked_project(self, e: Exception) -> None:
+        """
+        Handle a recoverable dataset error caused by a locked project.
+
+        The job is marked as failed and a retry job is created after
+        the final AWS Batch attempt so it can be submitted later via the cron job.
+        """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
         # Creates a retry job on last retry attempt
@@ -77,6 +83,12 @@ class DatasetJobProcessor(JobProcessorABC):
             self.job.create_retry_job()
 
     def handle_missing_libraries(self, e: Exception) -> None:
+        """
+        Handle an unrecoverable error caused by the dataset mis-configuration.
+
+        The job is marked as failed and is not retired. An error message is
+        sent to notify the user.
+        """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
         if self.job.dataset.email:
@@ -84,6 +96,12 @@ class DatasetJobProcessor(JobProcessorABC):
             notifications.send_dataset_job_error_email(self.job)
 
     def handle_upload_failure(self, e: Exception) -> None:
+        """
+        Handle a recoverable S3 upload error.
+
+        The job is marked as failed and  a retry job is created after
+        the final AWS Batch attempt so it can be submitted later via the cron job.
+        """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
         # Creates a retry job on last retry attempt
@@ -91,6 +109,12 @@ class DatasetJobProcessor(JobProcessorABC):
             self.job.create_retry_job()
 
     def handle_tag_failure(self, e: Exception) -> None:
+        """
+        Handle a recoverable S3 tagging error.
+
+        The job is marked as failed and a Slack notification is sent to the
+        team to tag the file manually.
+        """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         logger.info("Sending Slack notification for manual tagging.")
         notifications.send_slack_notification(self.job)
