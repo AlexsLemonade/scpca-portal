@@ -697,7 +697,7 @@ class TestJob(TestCase):
             state=JobStates.PENDING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
-        for _ in range(common.MAX_JOB_ATTEMPTS):
+        for _ in range(common.MAX_JOB_SUBMISSION_ATTEMPTS):
             self.assertEqual(job.state, JobStates.PENDING)
             job.increment_attempt_or_fail()
 

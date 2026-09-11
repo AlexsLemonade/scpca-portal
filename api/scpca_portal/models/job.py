@@ -108,12 +108,12 @@ class Job(TimestampedModel):
 
     # Maximum retry attempt for the batch job. The value should match retry_strategy defined for
     # Fargate in infrastructure/batch/job_definition.tf
-    MAX_FARGATE_RETRY_STRATEGY = 3
+    MAX_BATCH_JOB_RETRY_ATTEMPTS = 3
 
     @property
     def is_last_batch_attempt(self) -> bool:
         attempt = int(os.environ.get("AWS_BATCH_JOB_ATTEMPT", "1"))
-        return attempt >= self.MAX_FARGATE_RETRY_STRATEGY
+        return attempt >= self.MAX_BATCH_JOB_RETRY_ATTEMPTS
 
     def __str__(self) -> str:
         if self.batch_job_id:
@@ -150,7 +150,6 @@ class Job(TimestampedModel):
     def create_retry_job(self, *, save: bool = True) -> Self:
         """
         Prepares a new PENDING job for retry with:
-        - incremented attempt count
         - batch fields
         - the associated dataset
         By default, saves the new job as PENDING (state, timestamp).
@@ -163,7 +162,6 @@ class Job(TimestampedModel):
             raise JobInvalidRetryStateError(self)
 
         new_job = Job(
-            attempt=self.attempt + 1,
             batch_job_name=self.batch_job_name,
             batch_job_definition=self.batch_job_definition,
             batch_job_queue=self.batch_job_queue,
@@ -380,7 +378,7 @@ class Job(TimestampedModel):
         Increment a job's attempt count.
         If attempts exceed the max allotted job attempts, fail the job.
         """
-        if self.attempt >= common.MAX_JOB_ATTEMPTS:
+        if self.attempt >= common.MAX_JOB_SUBMISSION_ATTEMPTS:
             self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
             self.save()
             return False
