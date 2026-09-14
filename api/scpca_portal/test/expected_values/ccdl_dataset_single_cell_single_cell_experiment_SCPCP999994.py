@@ -3,15 +3,15 @@ from django.conf import settings
 from scpca_portal.enums import CCDLDatasetNames, DatasetFormats, Modalities
 
 
-class CCDLDatasetSingleCellSingleCellExperimentSCPCP999990:
-    PROJECT_ID = "SCPCP999990"
+class CCDLDatasetSingleCellSingleCellExperimentSCPCP999994:
+    PROJECT_ID = "SCPCP999994"
     CCDL_NAME = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
     VALUES = {
         "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
         "data": {
             PROJECT_ID: {
-                "includes_bulk": True,
-                Modalities.SINGLE_CELL.value: ["SCPCS999990", "SCPCS999997"],
+                "includes_bulk": False,
+                Modalities.SINGLE_CELL.value: ["SCPCS999988", "SCPCS999989"],
                 Modalities.SPATIAL.value: [],
             }
         },
@@ -46,30 +46,28 @@ class CCDLDatasetSingleCellSingleCellExperimentSCPCP999990:
     }
     COMPUTED_FILE_LIST = [
         "README.md",
-        "SCPCP999990_bulk/SCPCP999990_bulk_metadata.tsv",
-        "SCPCP999990_bulk/SCPCP999990_bulk_quant.tsv",
-        "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_celltype-report.html",
-        "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_filtered.rds",
-        "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_processed.rds",
-        "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_qc.html",
-        "SCPCP999990_single-cell/SCPCS999990/SCPCL999990_unfiltered.rds",
-        "SCPCP999990_single-cell/SCPCS999997/SCPCL999997_celltype-report.html",
-        "SCPCP999990_single-cell/SCPCS999997/SCPCL999997_filtered.rds",
-        "SCPCP999990_single-cell/SCPCS999997/SCPCL999997_processed.rds",
-        "SCPCP999990_single-cell/SCPCS999997/SCPCL999997_qc.html",
-        "SCPCP999990_single-cell/SCPCS999997/SCPCL999997_unfiltered.rds",
-        "SCPCP999990_single-cell/single-cell_metadata.tsv",
+        "SCPCP999994_single-cell/SCPCS999988/SCPCL999989-SCPCS999988_celltype-report.html",
+        "SCPCP999994_single-cell/SCPCS999988/SCPCL999989-SCPCS999988_filtered.rds",
+        "SCPCP999994_single-cell/SCPCS999988/SCPCL999989-SCPCS999988_processed.rds",
+        "SCPCP999994_single-cell/SCPCS999988/SCPCL999989-SCPCS999988_qc.html",
+        "SCPCP999994_single-cell/SCPCS999988/SCPCL999989-SCPCS999988_unfiltered.rds",
+        "SCPCP999994_single-cell/SCPCS999989/SCPCL999989-SCPCS999989_celltype-report.html",
+        "SCPCP999994_single-cell/SCPCS999989/SCPCL999989-SCPCS999989_filtered.rds",
+        "SCPCP999994_single-cell/SCPCS999989/SCPCL999989-SCPCS999989_processed.rds",
+        "SCPCP999994_single-cell/SCPCS999989/SCPCL999989-SCPCS999989_qc.html",
+        "SCPCP999994_single-cell/SCPCS999989/SCPCL999989-SCPCS999989_unfiltered.rds",
+        "SCPCP999994_single-cell/single-cell_metadata.tsv",
     ]
     COMPUTED_FILE_VALUES = {
         "format": DatasetFormats.SINGLE_CELL_EXPERIMENT.value,
-        "has_bulk_rna_seq": True,
+        "has_bulk_rna_seq": False,
         "has_cite_seq_data": False,
         "has_multiplexed_data": False,
         "includes_merged": False,
         "modality": Modalities.SINGLE_CELL.value,
         "metadata_only": False,
         "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-        "size_in_bytes": 7498,
+        "size_in_bytes": 6759,
         "workflow_version": "v0.10.4",
         "includes_celltype_report": True,
     }
