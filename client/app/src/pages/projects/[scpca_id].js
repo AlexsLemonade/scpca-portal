@@ -79,7 +79,15 @@ const Project = ({ project, ccdlDatasets }) => {
                     },
                     {
                       label: 'Additional Processing',
-                      value: <ProjectAdditionalProcessing project={project} />
+                      value: (
+                        <ProjectAdditionalProcessing
+                          projectId={project.scpca_id}
+                          // TODO: Remove the additionalProcessing assignment once the BE API change is complete
+                          additionalProcessing={
+                            project.additional_processing || 'Metaprograms'
+                          }
+                        />
+                      )
                     },
                     {
                       label: 'Publications',

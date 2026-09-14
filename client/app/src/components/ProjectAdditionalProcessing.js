@@ -4,10 +4,10 @@ import { config } from 'config'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 
-export const ProjectAdditionalProcessing = ({ project }) => {
-  const { scpca_id: projectId, additional_processing: additionalProcessing } =
-    project
-
+export const ProjectAdditionalProcessing = ({
+  projectId,
+  additionalProcessing
+}) => {
   // TODO: Update the link after the Science team update
   const helpLink = `${config.links.help}/${projectId}`
 
