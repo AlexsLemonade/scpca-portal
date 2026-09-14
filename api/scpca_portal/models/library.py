@@ -34,7 +34,7 @@ class Library(TimestampedModel):
 
     @classmethod
     def _find_compound_id_metadata(
-        cls, shared_library_id: str, sample_id: str, libraries_metadata: List[Dict]
+        cls, library_id: str, sample_id: str, libraries_metadata: List[Dict]
     ) -> Dict:
         """
         Finds the corresponding metadata for a compound ID combination matching both library
@@ -42,9 +42,10 @@ class Library(TimestampedModel):
         """
         return next(
             (
-                m
-                for m in libraries_metadata
-                if m["scpca_library_id"] == shared_library_id and m["scpca_sample_id"] == sample_id
+                lib_metadata
+                for lib_metadata in libraries_metadata
+                if lib_metadata["scpca_library_id"] == library_id.removesuffix(f"-{sample_id}")
+                and lib_metadata["scpca_sample_id"] == sample_id
             ),
             None,
         )
@@ -145,11 +146,11 @@ class Library(TimestampedModel):
                 if sample := sample_by_id.get(sample_id):
                     library_id = library_file.library_id
                     lib_metadata = library_metadata_by_id.get(library_id)
-                    # This condition is necessary as the S3 filename contains a compound ID,
+                    # This check is necessary as the S3 filename contains a compound ID,
                     # while the metadata json stores library ID and sample ID separately
                     if library_id.endswith(sample_id):
                         lib_metadata = cls._find_compound_id_metadata(
-                            library_id.removesuffix(f"-{sample_id}"), sample_id, libraries_metadata
+                            library_id, sample_id, libraries_metadata
                         )
 
                     if lib_metadata:
