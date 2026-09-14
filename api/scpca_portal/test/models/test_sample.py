@@ -116,6 +116,10 @@ class TestSample(TestCase):
             "scpca_sample_id": unlocked_synced_sample.scpca_id,
             "age": "8",
         }
+        # combined_hash can't be hardcoded like the tainted sample's below: it's derived from
+        # current_loaded_hash and the incoming metadata, neither of which we know in advance.
+        # Computing it here simulates "this sample was already synced with this exact metadata",
+        # so it matches what sync_model recomputes and the sample resolves to SYNCED, not TAINTED.
         unlocked_synced_sample.combined_hash = unlocked_synced_sample.get_current_combined_hash(
             unlocked_synced_metadata
         )

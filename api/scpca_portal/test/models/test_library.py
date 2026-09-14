@@ -122,6 +122,10 @@ class TestLibrary(TestCase):
             "scpca_library_id": unlocked_synced_library.scpca_id,
             "workflow_version": "1.2.3",
         }
+        # combined_hash can't be hardcoded like the tainted library's below: it's derived from
+        # current_loaded_hash and the incoming metadata, neither of which we know in advance.
+        # Computing it here simulates "this library was already synced with this exact metadata",
+        # so it matches what sync_model recomputes and the library resolves to SYNCED, not TAINTED.
         unlocked_synced_library.combined_hash = unlocked_synced_library.get_current_combined_hash(
             unlocked_synced_metadata
         )

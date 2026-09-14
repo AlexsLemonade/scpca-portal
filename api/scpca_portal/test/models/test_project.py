@@ -123,6 +123,10 @@ class TestProject(TestCase):
             "scpca_project_id": unlocked_synced_project.scpca_id,
             "title": "Unchanged Title",
         }
+        # combined_hash can't be hardcoded like the tainted project's below: it's derived from
+        # current_loaded_hash and the incoming metadata, neither of which we know in advance.
+        # Computing it here simulates "this project was already synced with this exact metadata",
+        # so it matches what sync_model recomputes and the project resolves to SYNCED, not TAINTED.
         unlocked_synced_project.combined_hash = unlocked_synced_project.get_current_combined_hash(
             unlocked_synced_metadata
         )
