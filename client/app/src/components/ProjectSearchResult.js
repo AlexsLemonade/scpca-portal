@@ -50,10 +50,6 @@ export const ProjectSearchResult = ({ project, ccdlDatasets }) => {
       value: <ProjectAbstractDetail abstract={project.abstract} />
     },
     {
-      title: 'Additional Processing',
-      value: <ProjectAdditionalProcessing project={project} />
-    },
-    {
       title: 'Publications',
       value:
         project.publications.length > 0 ? (
