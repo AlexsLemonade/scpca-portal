@@ -104,9 +104,11 @@ class TestLibrary(TestCase):
 
         # LOCKED: its project has a lockfile in the input bucket
         locked_project = LeafProjectFactory()
+        locked_project_sample = SampleFactory(project=locked_project)
         newly_locked_library = LibraryFactory(
             project=locked_project, loaded_state=LoadableResourceStates.SYNCED
         )
+        newly_locked_library.samples.add(locked_project_sample)
         OriginalFileFactory(project_id=locked_project.scpca_id, is_lockfile=True)
 
         # UNLOCKED & SYNCED: was locked, its project's lockfile has since been removed,
@@ -147,7 +149,7 @@ class TestLibrary(TestCase):
             # present so it survives remove_deleted_objects; locking doesn't need its metadata
             newly_locked_library.scpca_id: {
                 "scpca_project_id": locked_project.scpca_id,
-                "scpca_sample_id": "",
+                "scpca_sample_id": locked_project_sample.scpca_id,
                 "scpca_library_id": newly_locked_library.scpca_id,
             },
             unlocked_synced_library.scpca_id: unlocked_synced_metadata,
