@@ -184,7 +184,10 @@ class TestProject(TestCase):
         )
 
     def test_sync_aggregations(self):
-        stale_project = ProjectFactory(aggregation_hash="stale_hash", sample_count=0)
+        # bulk is turned off for now, the bulk path will be tested when actual test data is used
+        stale_project = ProjectFactory(
+            has_bulk_rna_seq=False, aggregation_hash="stale_hash", sample_count=0
+        )
         for sample in stale_project.samples.all():
             sample.metadata_hash = "sample_hash"
             sample.save(update_fields=["metadata_hash"])
@@ -193,7 +196,7 @@ class TestProject(TestCase):
             library.save(update_fields=["metadata_hash"])
 
         # placeholder sample_count proves this project's aggregations are left untouched
-        up_to_date_project = ProjectFactory(sample_count=999)
+        up_to_date_project = ProjectFactory(has_bulk_rna_seq=False, sample_count=999)
         for sample in up_to_date_project.samples.all():
             sample.metadata_hash = "sample_hash_2"
             sample.save(update_fields=["metadata_hash"])
