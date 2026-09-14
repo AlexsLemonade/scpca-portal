@@ -225,11 +225,11 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
 
     @property
     def current_aggregation_hash(self) -> str:
-        samples_metadata_hashes = self.samples.sort_by("scpca_id").values_list(
-            "metadata_hash", flat=True
+        samples_metadata_hashes = list(
+            self.samples.order_by("scpca_id").values_list("metadata_hash", flat=True)
         )
-        libraries_metadata_hashes = self.libraries.sort_by("scpca_id").values_list(
-            "metadata_hash", flat=True
+        libraries_metadata_hashes = list(
+            self.libraries.order_by("scpca_id").values_list("metadata_hash", flat=True)
         )
         return utils.hash_values(samples_metadata_hashes + libraries_metadata_hashes)
 
@@ -262,7 +262,7 @@ class Project(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC
 
     @staticmethod
     def get_lockfile_filter_kwargs(lockfile_project_ids: List) -> Dict:
-        return {"project__scpca_id__in": lockfile_project_ids}
+        return {"scpca_id__in": lockfile_project_ids}
 
     def purge(self, delete_from_s3: bool = False) -> None:
         """Purges project and its related data."""

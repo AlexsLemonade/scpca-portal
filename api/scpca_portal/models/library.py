@@ -5,7 +5,7 @@ from django.contrib.postgres.fields import ArrayField
 from django.db import models
 from django.db.models import QuerySet
 
-from scpca_portal import metadata_parser
+from scpca_portal import common, metadata_parser
 from scpca_portal.enums import FileFormats, Modalities
 from scpca_portal.models.loadable_resource_abc import LoadableResourceABC
 from scpca_portal.models.original_file import OriginalFile
@@ -208,7 +208,7 @@ class Library(LoadableResourceABC):
     def create_new_objects(cls, metadata_dicts_by_ids: Dict[str, Dict]) -> List[Self]:
         existing_library_ids = set(cls.objects.values_list("scpca_id", flat=True))
         new_project_sample_library_id_tuples = set(
-            (library_id, sample_id, project_id)
+            (project_id, sample_id, library_id)
             for project_id, sample_id, library_id in cls.get_metadata_id_tuples(
                 metadata_dicts_by_ids.values()
             )
@@ -226,26 +226,29 @@ class Library(LoadableResourceABC):
             field_name="scpca_id",
         )
 
-        # Resolve Sample via the many-to-many's related_model
-        # to avoid a circular import (Sample already imports Library)
+        # A multiplexed library's metadata lists its associated sample ids as a single
+        # delimited string (e.g. "SCPCS999992,SCPCS999993"), rather than a single sample id.
         Sample = cls._meta.get_field("samples").related_model
         associated_sample_ids = {
             sample_id
             for _, sample_ids, _ in new_project_sample_library_id_tuples
-            for sample_id in sample_ids
+            for sample_id in sample_ids.split(common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER)
         }
         samples_by_id = Sample.objects.in_bulk(associated_sample_ids, field_name="scpca_id")
 
         # Create new libraries
         new_libraries = cls.objects.bulk_create(
-            cls(scpca_id=new_library_id, project=projects_by_id[project_id])
-            for project_id, sample_ids, new_library_id in new_project_sample_library_id_tuples
+            cls(scpca_id=library_id, project=projects_by_id[project_id])
+            for project_id, _, library_id in new_project_sample_library_id_tuples
         )
         libraries_by_id = {library.scpca_id: library for library in new_libraries}
 
         # Estalish many-to-many relationships with related samples
-        for _, sample_ids, library_id in new_project_sample_library_id_tuples:
-            library_samples = [samples_by_id[sample_id] for sample_id in sample_ids]
+        for project_id, sample_ids, library_id in new_project_sample_library_id_tuples:
+            library_samples = [
+                samples_by_id[sample_id]
+                for sample_id in sample_ids.split(common.MULTIPLEXED_SAMPLES_INPUT_DELIMETER)
+            ]
             libraries_by_id[library_id].samples.add(*library_samples)
 
         return new_libraries

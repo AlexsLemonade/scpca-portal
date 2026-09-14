@@ -173,7 +173,7 @@ class Sample(CommonDataAttributes, LoadableResourceABC, AggregatableResourceABC)
     @property
     def current_aggregation_hash(self) -> str:
         return utils.hash_values(
-            self.libraries.sort_by("scpca_id").values_list("metadata_hash", flat=True)
+            self.libraries.order_by("scpca_id").values_list("metadata_hash", flat=True)
         )
 
     def update_aggregations(self) -> None:
