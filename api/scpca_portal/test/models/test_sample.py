@@ -176,6 +176,18 @@ class TestSample(TestCase):
         unlocked_tainted_sample.refresh_from_db()
         self.assertEqual(unlocked_tainted_sample.loaded_state, LoadableResourceStates.TAINTED)
 
+        # re-running sync_model against the same metadata should be a no-op: every resource has
+        # already resolved to its final state, so nothing further should be created, deleted,
+        # unlocked, or tainted. "locked" stays 1 because that count reflects currently-locked
+        # resources rather than new transitions into the locked state.
+        with patch.object(Sample, "get_metadata_dicts_by_id", return_value=metadata_by_id):
+            rerun_output_counts = Sample.sync_model()
+
+        self.assertDictEqual(
+            rerun_output_counts,
+            {"created": 0, "deleted": 0, "locked": 1, "unlocked": 0, "tainted": 0},
+        )
+
     def test_sync_model_no_changes(self):
         with patch.object(Sample, "get_metadata_dicts_by_id", return_value={}):
             output_counts = Sample.sync_model()
