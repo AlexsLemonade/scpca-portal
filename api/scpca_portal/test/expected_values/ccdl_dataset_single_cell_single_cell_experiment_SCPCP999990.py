@@ -69,7 +69,7 @@ class CCDLDatasetSingleCellSingleCellExperimentSCPCP999990:
         "modality": Modalities.SINGLE_CELL.value,
         "metadata_only": False,
         "s3_bucket": settings.AWS_S3_OUTPUT_BUCKET_NAME,
-        "size_in_bytes": 7495,
+        "size_in_bytes": 7692,
         "workflow_version": "v0.8.8",
         "includes_celltype_report": True,
     }

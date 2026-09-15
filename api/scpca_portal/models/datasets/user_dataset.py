@@ -41,6 +41,7 @@ class UserDataset(DatasetABC):
     modality_count_mismatch_projects = ArrayField(models.TextField(), default=list)
     project_sample_counts = models.JSONField(default=dict)
     project_titles = models.JSONField(default=dict)
+    project_additional_processing = models.JSONField(default=dict)
 
     def __str__(self) -> str:
         return f"User Dataset {self.id}"
@@ -61,6 +62,7 @@ class UserDataset(DatasetABC):
         self.modality_count_mismatch_projects = self.get_modality_count_mismatch_projects()
         self.project_sample_counts = self.get_project_sample_counts()
         self.project_titles = self.get_project_titles()
+        self.project_additional_processing = self.get_project_additional_processing()
 
         super().save(*args, **kwargs)
 
@@ -272,6 +274,14 @@ class UserDataset(DatasetABC):
     def get_project_titles(self) -> Dict:
         return {
             scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
+        }
+
+    def get_project_additional_processing(self) -> Dict:
+        return {
+            scpca_id: additional_processing
+            for scpca_id, additional_processing in self.projects.values_list(
+                "scpca_id", "additional_processing"
+            )
         }
 
     def get_modality_count_mismatch_projects(self) -> List[str]:
