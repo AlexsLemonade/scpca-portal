@@ -13,6 +13,7 @@ import { pluralize } from 'helpers/pluralize'
 import { Badge } from 'components/Badge'
 import { Button } from 'components/Button'
 import { Link } from 'components/Link'
+import { ProjectAdditionalProcessing } from 'components/ProjectAdditionalProcessing'
 import { WarningText } from 'components/WarningText'
 
 const Label = ({ label }) => <Text weight="bold">{label}</Text>
@@ -30,6 +31,9 @@ export const DatasetProjectCard = ({
   const { data } = dataset
   const projectData = data[projectId]
   const diagnoses = dataset.project_diagnoses[projectId]
+  // TODO: Remove the additionalProcessing assignment once the BE API change is complete
+  const additionalProcessing =
+    dataset.project_additional_processing?.[projectId] || 'Metaprograms'
   const modalityCount = dataset.project_modality_counts[projectId]
   const title = dataset.project_titles[projectId]
   const downloadableSamples = dataset.project_sample_counts[projectId]
@@ -101,6 +105,13 @@ export const DatasetProjectCard = ({
         <Box margin={{ bottom: '24px' }}>
           <Label label="Diagnosis" />
           {formatDiagnosisCounts(diagnoses).join(', ')}
+        </Box>
+        <Box margin={{ bottom: '24px' }}>
+          <Label label="Additional Processing" />
+          <ProjectAdditionalProcessing
+            projectId={projectId}
+            additionalProcessing={additionalProcessing}
+          />
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
           <Label label="Download Options" />

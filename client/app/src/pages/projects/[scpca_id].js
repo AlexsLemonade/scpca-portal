@@ -16,6 +16,7 @@ import { Link } from 'components/Link'
 import { PageMeta } from 'components/PageMeta'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectAdditionalProcessing } from 'components/ProjectAdditionalProcessing'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
@@ -74,6 +75,18 @@ const Project = ({ project, ccdlDatasets }) => {
                       label: 'Abstract',
                       value: (
                         <ProjectAbstractDetail abstract={project.abstract} />
+                      )
+                    },
+                    {
+                      label: 'Additional Processing',
+                      value: (
+                        <ProjectAdditionalProcessing
+                          projectId={project.scpca_id}
+                          // TODO: Remove the additionalProcessing assignment once the BE API change is complete
+                          additionalProcessing={
+                            project.additional_processing || 'Metaprograms'
+                          }
+                        />
                       )
                     },
                     {
