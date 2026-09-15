@@ -33,7 +33,7 @@ export const DatasetProjectCard = ({
   const diagnoses = dataset.project_diagnoses[projectId]
   // TODO: Remove the additionalProcessing assignment once the BE API change is complete
   const additionalProcessing =
-    dataset.additional_processing?.[projectId] || 'Metaprograms'
+    dataset.project_additional_processing?.[projectId] || 'Metaprograms'
   const modalityCount = dataset.project_modality_counts[projectId]
   const title = dataset.project_titles[projectId]
   const downloadableSamples = dataset.project_sample_counts[projectId]

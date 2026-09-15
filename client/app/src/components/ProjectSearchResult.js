@@ -10,7 +10,6 @@ import { Link } from 'components/Link'
 import { CCDLDatasetDownloadModal } from 'components/CCDLDatasetDownloadModal'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
-import { ProjectAdditionalProcessing } from 'components/ProjectAdditionalProcessing'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
 
