@@ -33,28 +33,7 @@ class Library(TimestampedModel):
         return f"Library {self.scpca_id}"
 
     @classmethod
-    def _find_compound_id_metadata(
-        cls, library_id: str, sample_id: str, libraries_metadata: List[Dict]
-    ) -> Dict:
-        """
-        Finds the corresponding metadata for a compound ID combination matching both library
-        ID and sample ID, as the same library ID can be shared across multiple samples.
-        """
-        return next(
-            (
-                lib_metadata
-                for lib_metadata in libraries_metadata
-                if lib_metadata["scpca_library_id"] == library_id.removesuffix(f"-{sample_id}")
-                and lib_metadata["scpca_sample_id"] == sample_id
-            ),
-            None,
-        )
-
-    @classmethod
-    def get_from_dict(
-        cls, data: Dict, project: "Project", compound_library_id: str | None = None
-    ) -> Self:
-        library_id = compound_library_id or data["scpca_library_id"]
+    def get_from_dict(cls, data: Dict, project: "Project", library_id: str) -> Self:
         original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
 
         modality = ""
@@ -90,19 +69,14 @@ class Library(TimestampedModel):
 
     @classmethod
     def bulk_create_from_dicts(
-        cls, library_jsons: List[Dict], sample: "Sample", compound_library_id: str | None = None
+        cls, library_jsons: List[Dict], sample: "Sample", library_id: str
     ) -> None:
         libraries = []
         for library_json in library_jsons:
-            library_id = compound_library_id or library_json["scpca_library_id"]
             if existing_library := Library.objects.filter(scpca_id=library_id).first():
                 sample.libraries.add(existing_library)
             else:
-                libraries.append(
-                    Library.get_from_dict(
-                        library_json, sample.project, compound_library_id=library_id
-                    )
-                )
+                libraries.append(Library.get_from_dict(library_json, sample.project, library_id))
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
@@ -121,7 +95,9 @@ class Library(TimestampedModel):
 
         for lib_metadata in all_bulk_libraries_metadata:
             if sample := sample_by_id.get(lib_metadata["scpca_sample_id"]):
-                Library.bulk_create_from_dicts([lib_metadata], sample)
+                Library.bulk_create_from_dicts(
+                    [lib_metadata], sample, lib_metadata["scpca_library_id"]
+                )
 
     @classmethod
     def load_metadata(cls, project: "Project") -> None:
@@ -133,10 +109,18 @@ class Library(TimestampedModel):
         """
         libraries_metadata = metadata_parser.load_libraries_metadata(project.scpca_id)
         library_files = OriginalFile.get_input_library_metadata_files(project.scpca_id)
-
-        library_metadata_by_id = {
-            lib_metadata["scpca_library_id"]: lib_metadata for lib_metadata in libraries_metadata
+        # Combine library ID + sample ID before metadata lookup because some libraries use
+        # a compound ID that is not present in the metadata json
+        # NOTE: Libraries withy multiplexed samples are looked up by library ID only
+        library_lookup = {
+            (
+                lmd["scpca_library_id"]
+                if project.has_multiplexed_data
+                else f"{lmd['scpca_library_id']}-{lmd['scpca_sample_id']}"
+            ): lmd
+            for lmd in libraries_metadata
         }
+
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
 
         for library_file in library_files:
@@ -145,17 +129,13 @@ class Library(TimestampedModel):
                 # Only create the library if the sample exists in the project
                 if sample := sample_by_id.get(sample_id):
                     library_id = library_file.library_id
-                    lib_metadata = library_metadata_by_id.get(library_id)
-                    # This check is necessary as the S3 filename contains a compound ID,
-                    # while the metadata json stores library ID and sample ID separately
-                    if library_id.endswith(sample_id):
-                        lib_metadata = cls._find_compound_id_metadata(
-                            library_id, sample_id, libraries_metadata
-                        )
-
-                    if lib_metadata:
+                    # Look up by library ID for multiplexed samples
+                    # Otherwise look up by combined library ID + sample ID
+                    if lib_metadata := library_lookup.get(
+                        f"{library_id}-{sample_id}", library_lookup.get(library_id)
+                    ):
                         Library.bulk_create_from_dicts(
-                            [lib_metadata], sample, compound_library_id=library_id
+                            [lib_metadata], sample, library_id=library_id
                         )
 
         if project.has_bulk_rna_seq:
