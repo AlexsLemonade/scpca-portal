@@ -33,8 +33,7 @@ class Library(TimestampedModel):
         return f"Library {self.scpca_id}"
 
     @classmethod
-    def get_from_dict(cls, data: Dict, project: "Project") -> Self:
-        library_id = data["scpca_library_id"]
+    def get_from_dict(cls, data: Dict, project: "Project", library_id: str) -> Self:
         original_files = OriginalFile.downloadable_objects.filter(library_id=library_id)
 
         modality = ""
@@ -69,14 +68,15 @@ class Library(TimestampedModel):
         return library
 
     @classmethod
-    def bulk_create_from_dicts(cls, library_jsons: List[Dict], sample: "Sample") -> None:
+    def bulk_create_from_dicts(
+        cls, library_jsons: List[Dict], sample: "Sample", library_id: str
+    ) -> None:
         libraries = []
         for library_json in library_jsons:
-            library_id = library_json["scpca_library_id"]
             if existing_library := Library.objects.filter(scpca_id=library_id).first():
                 sample.libraries.add(existing_library)
             else:
-                libraries.append(Library.get_from_dict(library_json, sample.project))
+                libraries.append(Library.get_from_dict(library_json, sample.project, library_id))
 
         Library.objects.bulk_create(libraries)
         sample.libraries.add(*libraries)
@@ -84,7 +84,7 @@ class Library(TimestampedModel):
     @classmethod
     def load_bulk_metadata(cls, project: "Project") -> None:
         """
-        Parses bulk metadata tsv files and create Library objets for bulk-only samples
+        Parses bulk metadata tsv files and create Library objects for bulk-only samples
         """
         if not project.has_bulk_rna_seq:
             raise Exception("Trying to load bulk libraries for project with no bulk data")
@@ -95,29 +95,48 @@ class Library(TimestampedModel):
 
         for lib_metadata in all_bulk_libraries_metadata:
             if sample := sample_by_id.get(lib_metadata["scpca_sample_id"]):
-                Library.bulk_create_from_dicts([lib_metadata], sample)
+                Library.bulk_create_from_dicts(
+                    [lib_metadata], sample, lib_metadata["scpca_library_id"]
+                )
 
     @classmethod
     def load_metadata(cls, project: "Project") -> None:
         """
         Parses library metadata json files and creates Library objects.
         If the project has bulk, loads bulk libraries.
+        NOTE: Some libraries (e.g., GEM-X Flex) have a compound ID, SCPCLXXXXXX-SCPCSXXXXXX,
+        that is stored in DB. However, sample ID suffix is excluded in the generated metadata file.
         """
         libraries_metadata = metadata_parser.load_libraries_metadata(project.scpca_id)
         library_files = OriginalFile.get_input_library_metadata_files(project.scpca_id)
-
-        library_metadata_by_id = {
-            lib_metadata["scpca_library_id"]: lib_metadata for lib_metadata in libraries_metadata
+        # Combine library ID + sample ID before metadata lookup because some libraries use
+        # a compound ID that is not present in the metadata json
+        # NOTE: Libraries withy multiplexed samples are looked up by library ID only
+        library_lookup = {
+            (
+                lmd["scpca_library_id"]
+                if project.has_multiplexed_data
+                else f"{lmd['scpca_library_id']}-{lmd['scpca_sample_id']}"
+            ): lmd
+            for lmd in libraries_metadata
         }
+
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
 
         for library_file in library_files:
-            if lib_metadata := library_metadata_by_id.get(library_file.library_id):
-                #  Multiplexed samples will have multiple sample IDs in lib.sample_ids
-                for sample_id in library_file.sample_ids:
-                    # Only create the library if the sample exists in the project
-                    if sample := sample_by_id.get(sample_id):
-                        Library.bulk_create_from_dicts([lib_metadata], sample)
+            #  Multiplexed samples will have multiple sample IDs in lib.sample_ids
+            for sample_id in library_file.sample_ids:
+                # Only create the library if the sample exists in the project
+                if sample := sample_by_id.get(sample_id):
+                    library_id = library_file.library_id
+                    # Look up by library ID for multiplexed samples
+                    # Otherwise look up by combined library ID + sample ID
+                    if lib_metadata := library_lookup.get(
+                        f"{library_id}-{sample_id}", library_lookup.get(library_id)
+                    ):
+                        Library.bulk_create_from_dicts(
+                            [lib_metadata], sample, library_id=library_id
+                        )
 
         if project.has_bulk_rna_seq:
             Library.load_bulk_metadata(project)
