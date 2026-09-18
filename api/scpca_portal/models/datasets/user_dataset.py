@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models import Count
 from django.utils.timezone import make_aware
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.computed_file import ComputedFile
@@ -41,6 +41,7 @@ class UserDataset(DatasetABC):
     modality_count_mismatch_projects = ArrayField(models.TextField(), default=list)
     project_sample_counts = models.JSONField(default=dict)
     project_titles = models.JSONField(default=dict)
+    project_additional_processing = models.JSONField(default=dict)
 
     def __str__(self) -> str:
         return f"User Dataset {self.id}"
@@ -61,6 +62,7 @@ class UserDataset(DatasetABC):
         self.modality_count_mismatch_projects = self.get_modality_count_mismatch_projects()
         self.project_sample_counts = self.get_project_sample_counts()
         self.project_titles = self.get_project_titles()
+        self.project_additional_processing = self.get_project_additional_processing()
 
         super().save(*args, **kwargs)
 
@@ -272,6 +274,27 @@ class UserDataset(DatasetABC):
     def get_project_titles(self) -> Dict:
         return {
             scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
+        }
+
+    def get_project_additional_processing(self) -> Dict:
+        """
+        Return a list of projects with additional processing.
+        Includes a documentation link if one exits.
+        """
+        projects = self.projects.filter(additional_processing__isnull=False).values(
+            "scpca_id", "additional_processing", "has_additional_documentation"
+        )
+
+        return {
+            project["scpca_id"]: {
+                "additional_processing": project["additional_processing"],
+                "link": (
+                    utils.get_docs_url(project["scpca_id"])
+                    if project["has_additional_documentation"]
+                    else None
+                ),
+            }
+            for project in projects
         }
 
     def get_modality_count_mismatch_projects(self) -> List[str]:

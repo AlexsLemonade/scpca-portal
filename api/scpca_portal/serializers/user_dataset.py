@@ -40,6 +40,7 @@ class UserDatasetSerializer(serializers.ModelSerializer):
             "modality_count_mismatch_projects",
             "project_sample_counts",
             "project_titles",
+            "project_additional_processing",
             "started_at",
             "is_started",
             "is_processing",

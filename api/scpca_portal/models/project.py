@@ -32,6 +32,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = ArrayField(models.TextField(), default=list)
+    additional_processing = models.TextField(blank=True, null=True)
     additional_restrictions = models.TextField(blank=True, null=True)
     diagnoses = ArrayField(models.TextField(), default=list)
     diagnoses_counts = models.JSONField(default=dict)
@@ -39,6 +40,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     downloadable_sample_count = models.IntegerField(default=0)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
+    has_additional_documentation = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
     includes_anndata = models.BooleanField(default=False)
     includes_cell_lines = models.BooleanField(default=False)
@@ -122,6 +124,17 @@ class Project(CommonDataAttributes, TimestampedModel):
     @property
     def url(self) -> str:
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
+
+    @property
+    def additional_processing_details(self) -> Dict | None:
+        if not self.additional_processing:
+            return None
+        return {
+            "additional_processing": self.additional_processing,
+            "link": (
+                utils.get_docs_url(self.scpca_id) if self.has_additional_documentation else None
+            ),
+        }
 
     def get_metadata(self) -> Dict:
         return {
