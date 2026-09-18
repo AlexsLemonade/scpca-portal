@@ -15,8 +15,8 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
         fields = (
             "abstract",
             "additional_metadata_keys",
-            "additional_processing",
             "additional_restrictions",
+            "additional_processing_details",
             "contacts",
             "created_at",
             "diagnoses_counts",

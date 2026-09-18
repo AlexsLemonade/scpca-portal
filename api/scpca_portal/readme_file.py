@@ -62,8 +62,6 @@ PORTAL_CCDL_DATASET_LINKS = {
     ),
 }
 
-ADDITIONAL_PROCESSING_LINK = utils.get_docs_url("{project_id}")
-
 # used in get_content_table_rows and in 2_contents.md
 ContentRow = namedtuple("ContentRow", ["project", "modality", "format", "docs"])
 
@@ -219,9 +217,12 @@ def get_additional_processing_table_rows(
 
 def get_additional_processing_link(project: "Project") -> str | None:
     """
-    Returns the link to the documentation for the project with additional processing.
+    Returns the link to the documentation for the project with additional processing,
+    or static text if none exits.
     """
-    return ADDITIONAL_PROCESSING_LINK.format(project_id=project.scpca_id)
+    if not project.has_additional_documentation:
+        return ""
+    return utils.get_docs_url(f"{project.scpca_id}")
 
 
 def get_content_portal_wide_link(dataset: "CCDLDataset") -> str | None:

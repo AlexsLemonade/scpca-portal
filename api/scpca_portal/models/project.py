@@ -125,6 +125,17 @@ class Project(CommonDataAttributes, TimestampedModel):
     def url(self) -> str:
         return f"https://scpca.alexslemonade.org/projects/{self.scpca_id}"
 
+    @property
+    def additional_processing_details(self) -> Dict | None:
+        if not self.additional_processing:
+            return None
+        return {
+            "additional_processing": self.additional_processing,
+            "link": (
+                utils.get_docs_url(self.scpca_id) if self.has_additional_documentation else None
+            ),
+        }
+
     def get_metadata(self) -> Dict:
         return {
             "scpca_project_id": self.scpca_id,

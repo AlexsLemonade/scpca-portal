@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models import Count
 from django.utils.timezone import make_aware
 
-from scpca_portal import common
+from scpca_portal import common, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.computed_file import ComputedFile
@@ -277,11 +277,24 @@ class UserDataset(DatasetABC):
         }
 
     def get_project_additional_processing(self) -> Dict:
+        """
+        Return a list of projects with additional processing.
+        Includes a documentation link if one exits.
+        """
+        projects = self.projects.filter(additional_processing__isnull=False).values(
+            "scpca_id", "additional_processing", "has_additional_documentation"
+        )
+
         return {
-            scpca_id: additional_processing
-            for scpca_id, additional_processing in self.projects.values_list(
-                "scpca_id", "additional_processing"
-            )
+            project["scpca_id"]: {
+                "additional_processing": project["additional_processing"],
+                "link": (
+                    utils.get_docs_url(project["scpca_id"])
+                    if project["has_additional_documentation"]
+                    else None
+                ),
+            }
+            for project in projects
         }
 
     def get_modality_count_mismatch_projects(self) -> List[str]:
