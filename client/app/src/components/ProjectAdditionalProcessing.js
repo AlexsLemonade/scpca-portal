@@ -1,23 +1,22 @@
 import React from 'react'
 import { Box, Text } from 'grommet'
-import { config } from 'config'
 import { Link } from 'components/Link'
 import { Icon } from 'components/Icon'
 
-export const ProjectAdditionalProcessing = ({
-  projectId,
-  additionalProcessing
-}) => {
-  // TODO: Update the link after the Science team update
-  const helpLink = `${config.links.help}/${projectId}`
+export const ProjectAdditionalProcessing = ({ additionalProcessing }) => {
+  if (!additionalProcessing || !Object.keys(additionalProcessing).length)
+    return <Text italic>Not Specified</Text>
 
-  if (!additionalProcessing) return <Text italic>Not Specified</Text>
+  const { additional_processing: processingName, link } = additionalProcessing
+
   return (
     <Box direction="row" gap="xsmall">
-      <Text>{additionalProcessing}</Text>
-      <Link href={helpLink} newTab>
-        <Icon size="small" name="Help" />
-      </Link>
+      <Text>{processingName}</Text>
+      {link && (
+        <Link href={link} newTab>
+          <Icon size="small" name="Help" />
+        </Link>
+      )}
     </Box>
   )
 }
