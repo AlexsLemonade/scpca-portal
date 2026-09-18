@@ -162,9 +162,6 @@ class Project(CommonDataAttributes, TimestampedModel):
         """
         Sample.load_metadata(self)
 
-        # TODO: Remove this assignment after the Science team update
-        self.additional_processing = "Metaprograms"
-
         # Update project properties based on sample queries after processing all samples
         self.update_project_modality_properties()
         self.update_project_aggregate_properties()
