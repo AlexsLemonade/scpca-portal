@@ -82,8 +82,9 @@ class JobProcessorABC(ABC):
 
     def __init__(self, job: Job):
         self._job = job
+        self._exit_code: int | None = None  # Set on completion or by a exception handler
 
-        # fail if this doesnt work
+        # fail if this doesn't work
         self._steps_functions: List[Callable] = []
         self._init_step_functions()
 
@@ -125,7 +126,18 @@ class JobProcessorABC(ABC):
     def job(self) -> Job:
         return self._job
 
-    # JobProcessorABC.run lIfecycle hooks
+    @property
+    def exit_code(self) -> int:
+        if self._exit_code is None:
+            # When run() never reached to completion
+            # always results in a failure
+            return Job.RETRY_EXIT_CODE
+        return self._exit_code
+
+    def set_exit_code(self, code: int) -> None:
+        self._exit_code = code
+
+    # JobProcessorABC.run lifecycle hooks
     def on_run(self) -> None:
         pass
 
@@ -173,6 +185,7 @@ class JobProcessorABC(ABC):
         self.job.save()
 
         self.on_run_done()
+        self.set_exit_code(0)  # Successful completion
 
     def _lookup_handler(self, step: str, e: Exception) -> Callable | None:
         """ """
