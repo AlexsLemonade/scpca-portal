@@ -8,7 +8,7 @@ from scpca_portal.exceptions import (
     S3UploadError,
 )
 from scpca_portal.job_processors import JobProcessorABC
-from scpca_portal.models import ComputedFile
+from scpca_portal.models import ComputedFile, Job
 
 logger = get_and_configure_logger(__name__)
 
@@ -45,15 +45,23 @@ class DatasetJobProcessor(JobProcessorABC):
         logger.exception(e)
 
     def on_uncaught_exception(self, step: str, e: Exception) -> None:
+        """
+        Handle an uncaught error raised during processing:
+        - Mark the job as FAILED
+        - Send an error email to the users after the final AWS Batch retry attempt
+        """
         logger.info("Encountered uncaught exception.")
         logger.exception(e)
 
-        if self.job.dataset.email:
-            logger.info("Sending dataset job error email.")
-            notifications.send_dataset_job_error_email(self.job)
+        self.set_exit_code(Job.RETRY_EXIT_CODE)
+
+        # Sends an error email to the user on last retry attempt
+        if self.job.is_last_batch_attempt:
+            if self.job.dataset.email:
+                logger.info("Sending dataset job error email.")
+                notifications.send_dataset_job_error_email(self.job)
 
     def on_run_done(self) -> None:
-        self.job.save()
         logger.info("Job completed.")
 
     # Steps
@@ -71,51 +79,66 @@ class DatasetJobProcessor(JobProcessorABC):
 
     def handle_locked_project(self, e: Exception) -> None:
         """
-        Handle a recoverable dataset error caused by a locked project.
-
-        The job is marked as failed and a retry job is created after
-        the final AWS Batch attempt so it can be submitted later via the cron job.
+        Handle a recoverable error caused by a locked project:
+        - Mark the job as FAILED
+        - Create a new retry job for a cron after the final AWS Batch retry attempt
         """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
+
+        self.set_exit_code(Job.RETRY_EXIT_CODE)
+
         # Creates a retry job on last retry attempt
         if self.job.is_last_batch_attempt:
             self.job.create_retry_job()
 
     def handle_missing_libraries(self, e: Exception) -> None:
         """
-        Handle an unrecoverable error caused by the dataset mis-configuration.
-
-        The job is marked as failed and is not retired. An error message is
-        sent to notify the user.
+        Handle an unrecoverable error caused by misconfigured dataset:
+        - Exit AWS Batch without retry attempts
+        - Mark the job as FAILED
+        - Send an error email to the user
         """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
+
+        self.set_exit_code(Job.HALT_EXIT_CODE)
+
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
 
     def handle_upload_failure(self, e: Exception) -> None:
         """
-        Handle a recoverable S3 upload error.
-
-        The job is marked as failed and  a retry job is created after
-        the final AWS Batch attempt so it can be submitted later via the cron job.
+        Handle a recoverable S3 upload error:
+        - Mark the job as FAILED
+        - Create a new retry job for a cron after the final AWS Batch retry attempt
         """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
+
+        self.set_exit_code(Job.RETRY_EXIT_CODE)
+
         # Creates a retry job on last retry attempt
         if self.job.is_last_batch_attempt:
             self.job.create_retry_job()
 
     def handle_tag_failure(self, e: Exception) -> None:
         """
-        Handle a recoverable S3 tagging error.
+        Handle a S3 tagging error that requires manual handling:
+        - Exit AWS Batch without retry attempts
+        - Mark the job as PROCESSING
+        - Send a Slack notification to the team channel
 
-        The job is marked as failed and a Slack notification is sent to the
-        team to tag the file manually.
+        NOTE: The computed file was successfully generated and uploaded
+        to S3 in the previous steps, so no retry is required.
         """
-        self.job.apply_state(JobStates.FAILED, reason=f"{e}")
+        self.job.apply_state(JobStates.PROCESSING)
+        self.job.save()
+
+        self.set_exit_code(Job.HALT_EXIT_CODE)
+
+        # Sends a Slack notification to the team
         logger.info("Sending Slack notification for manual tagging.")
         notifications.send_slack_notification(self.job)
 
