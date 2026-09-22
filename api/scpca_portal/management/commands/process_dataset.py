@@ -1,3 +1,4 @@
+import sys
 from argparse import ArgumentParser
 
 from django.core.management.base import BaseCommand
@@ -26,4 +27,10 @@ class Command(BaseCommand):
     def process_dataset(self, job_id: str, **kwargs) -> None:
         job = Job.objects.get(id=job_id)
         processor = DatasetJobProcessor(job)
-        processor.run()
+
+        try:
+            processor.run()
+        except Exception as e:
+            logger.error(f"Dataset job processing failed: {e}")
+
+        sys.exit(processor.exit_code)
