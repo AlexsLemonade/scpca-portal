@@ -1,23 +1,21 @@
 from pathlib import Path
-from typing import TYPE_CHECKING, Dict, List
+from typing import TYPE_CHECKING
 from zipfile import ZipFile
 
 from django.conf import settings
 from django.db import models
-from django.db.models import QuerySet
 
 from typing_extensions import Self
 
-from scpca_portal import common, metadata_file, readme_file, s3, utils
+from scpca_portal import common, readme_file, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.exceptions import DatasetLockedProjectError, DatasetMissingLibrariesError
 from scpca_portal.models.base import CommonDataAttributes, TimestampedModel
-from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 
 if TYPE_CHECKING:
-    from scpca_portal.models import CCDLDataset, DatasetABC, Project, Sample
+    from scpca_portal.models import CCDLDataset, DatasetABC
 
 
 logger = get_and_configure_logger(__name__)
@@ -53,57 +51,19 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
     includes_merged = models.BooleanField(default=False)
     modality = models.TextField(choices=OutputFileModalities.CHOICES, null=True)
     metadata_only = models.BooleanField(default=False)
-    portal_metadata_only = models.BooleanField(default=False)
     s3_bucket = models.TextField()
     s3_key = models.TextField()
     size_in_bytes = models.BigIntegerField()
     workflow_version = models.TextField()
     includes_celltype_report = models.BooleanField(default=False)
 
-    project = models.ForeignKey(
-        "Project", null=True, on_delete=models.CASCADE, related_name="project_computed_files"
-    )
-    sample = models.ForeignKey(
-        "Sample", null=True, on_delete=models.CASCADE, related_name="sample_computed_files"
-    )
-
     def __str__(self) -> str:
         return (
-            f"'{self.project or self.sample}' "
+            f"'{getattr(self, "ccdldataset", None) or getattr(self, "userdataset", None)}' "
             f"{dict(self.OutputFileModalities.CHOICES).get(self.modality, 'No Modality')} "
             f"{dict(self.OutputFileFormats.CHOICES).get(self.format, 'No Format')} "
             f"computed file ({self.size_in_bytes}B)"
         )
-
-    @staticmethod
-    def get_local_project_metadata_path(project: "Project", download_config: Dict) -> Path:
-        file_name_parts = [project.scpca_id]
-        if not download_config["metadata_only"]:
-            file_name_parts.extend([download_config["modality"], download_config["format"]])
-            if project.has_multiplexed_data and not download_config["excludes_multiplexed"]:
-                file_name_parts.append("MULTIPLEXED")
-        file_name_parts.append("METADATA.tsv")
-
-        return settings.OUTPUT_DATA_PATH / "_".join(file_name_parts)
-
-    @staticmethod
-    def get_local_sample_metadata_path(sample: "Sample", download_config: Dict) -> Path:
-        file_name_parts = sample.multiplexed_ids
-        file_name_parts.extend(
-            [download_config["modality"], download_config["format"], "METADATA.tsv"]
-        )
-        return settings.OUTPUT_DATA_PATH / "_".join(file_name_parts)
-
-    @staticmethod
-    def get_local_portal_metadata_path() -> Path:
-        return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
-
-    @staticmethod
-    def get_local_file_path(download_config: Dict) -> Path:
-        """Takes a download_config dictionary and returns the filepath
-        where the zipfile will be saved locally before upload."""
-        if download_config is common.PORTAL_METADATA_DOWNLOAD_CONFIG:
-            return settings.OUTPUT_DATA_PATH / common.PORTAL_METADATA_COMPUTED_FILE_NAME
 
     @staticmethod
     def get_output_file_parent_dir(
@@ -270,168 +230,6 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
 
         return computed_file
 
-    @classmethod
-    def get_portal_metadata_file(cls, projects: QuerySet["Project"], download_config: Dict) -> Self:
-        """
-        Queries all libraries to aggregate the combined metadata,
-        writes the aggregated combined metadata to a portal metadata file,
-        computes a zip archive with metadata and readme files, and
-        creates a ComputedFile object which it then saves to the db.
-        """
-        libraries = Library.objects.all()
-        # If the query returns empty, then an error occurred, and we should abort early
-        if not libraries.exists():
-            raise ValueError("There are no libraries on the portal!")
-
-        libraries_metadata = utils.filter_dict_list_by_keys(
-            Library.get_libraries_metadata(libraries),
-            common.METADATA_COLUMN_SORT_ORDER,
-        )
-
-        zip_file_path = cls.get_local_file_path(download_config)
-        with ZipFile(zip_file_path, "w") as zip_file:
-            # Readme file
-            zip_file.writestr(
-                readme_file.OUTPUT_NAME,
-                readme_file.get_file_contents(
-                    download_config,
-                    projects,
-                ),
-            )
-            # Metadata file
-            zip_file.writestr(
-                metadata_file.get_file_name(download_config),
-                metadata_file.get_file_contents(libraries_metadata),
-            )
-
-        computed_file = cls(
-            format=download_config.get("format"),
-            modality=download_config.get("modality"),
-            includes_merged=download_config.get("includes_merged"),
-            metadata_only=download_config.get("metadata_only"),
-            portal_metadata_only=download_config.get("portal_metadata_only"),
-            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=common.PORTAL_METADATA_COMPUTED_FILE_NAME,
-            size_in_bytes=zip_file_path.stat().st_size,
-        )
-
-        return computed_file
-
-    @classmethod
-    def get_project_file(cls, project: "Project", download_config: Dict) -> Self:
-        """
-        Queries for a project's libraries according to the given download options configuration,
-        writes the queried libraries to a libraries metadata file,
-        computes a zip archive with library data, metadata and readme files, and
-        creates a ComputedFile object which it then saves to the db.
-        """
-        libraries = project.get_libraries(download_config)
-        # If the query returns empty, then throw an error occurred.
-        if not libraries.exists():
-            raise ValueError("Unable to find libraries for download_config.")
-
-        libraries_metadata = Library.get_libraries_metadata(libraries)
-        original_files = Library.get_libraries_original_files(libraries, download_config)
-        s3.download_files(original_files)
-
-        zip_file_path = settings.OUTPUT_DATA_PATH / project.get_output_file_name(download_config)
-        with ZipFile(zip_file_path, "w") as zip_file:
-            # Readme file
-            zip_file.writestr(
-                readme_file.OUTPUT_NAME,
-                readme_file.get_file_contents(download_config, [project]),
-            )
-
-            # Metadata file
-            zip_file.writestr(
-                metadata_file.get_file_name(download_config),
-                metadata_file.get_file_contents(libraries_metadata),
-            )
-
-            # Original files
-            if not download_config.get("metadata_only", False):
-                for original_file in original_files:
-                    zip_file.write(
-                        original_file.local_file_path,
-                        original_file.get_zip_file_path(download_config),
-                    )
-
-        computed_file = cls(
-            has_bulk_rna_seq=(
-                download_config["modality"] == Modalities.SINGLE_CELL and project.has_bulk_rna_seq
-            ),
-            has_cite_seq_data=project.has_cite_seq_data,
-            has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),
-            format=download_config.get("format"),
-            includes_celltype_report=project.samples.filter(is_cell_line=False).exists(),
-            includes_merged=download_config.get("includes_merged"),
-            modality=download_config.get("modality"),
-            metadata_only=download_config.get("metadata_only"),
-            project=project,
-            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=project.get_output_file_name(download_config),
-            size_in_bytes=zip_file_path.stat().st_size,
-            workflow_version=utils.join_workflow_versions(
-                library.workflow_version for library in libraries
-            ),
-        )
-
-        return computed_file
-
-    @classmethod
-    def get_sample_file(cls, sample: "Sample", download_config: Dict) -> Self:
-        """
-        Queries for a sample's libraries according to the given download options configuration,
-        writes the queried libraries to a libraries metadata file,
-        computes a zip archive with library data, metadata and readme files, and
-        creates a ComputedFile object which it then saves to the db.
-        """
-        libraries = sample.get_libraries(download_config)
-        # If the query returns empty, then throw an error occurred.
-        if not libraries.exists():
-            raise ValueError("Unable to find libraries for download_config.")
-
-        libraries_metadata = Library.get_libraries_metadata(libraries)
-        original_files = Library.get_libraries_original_files(libraries, download_config)
-        s3.download_files(original_files)
-
-        zip_file_path = settings.OUTPUT_DATA_PATH / sample.get_output_file_name(download_config)
-        with ZipFile(zip_file_path, "w") as zip_file:
-            # Readme file
-            zip_file.writestr(
-                readme_file.OUTPUT_NAME,
-                readme_file.get_file_contents(download_config, [sample.project]),
-            )
-            # Metadata file
-            zip_file.writestr(
-                metadata_file.get_file_name(download_config),
-                metadata_file.get_file_contents(libraries_metadata),
-            )
-
-            # Original files
-            for original_file in original_files:
-                zip_file.write(
-                    original_file.local_file_path,
-                    original_file.get_zip_file_path(download_config),
-                )
-
-        computed_file = cls(
-            has_cite_seq_data=sample.has_cite_seq_data,
-            has_multiplexed_data=libraries.filter(is_multiplexed=True).exists(),
-            format=download_config.get("format"),
-            includes_celltype_report=(not sample.is_cell_line),
-            modality=download_config.get("modality"),
-            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME,
-            s3_key=sample.get_output_file_name(download_config),
-            sample=sample,
-            size_in_bytes=zip_file_path.stat().st_size,
-            workflow_version=utils.join_workflow_versions(
-                library.workflow_version for library in libraries
-            ),
-        )
-
-        return computed_file
-
     def get_dataset_download_url(self, download_filename: str) -> str | None:
         """Return the presigned url on the associated dataset according to the passed filename."""
         if not (self.s3_bucket and self.s3_key):
@@ -453,61 +251,8 @@ class ComputedFile(CommonDataAttributes, TimestampedModel):
             return s3.generate_pre_signed_link(self.download_filename, self.s3_key, self.s3_bucket)
 
     @property
-    def is_project_multiplexed_zip(self) -> bool:
-        return (
-            self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
-            and self.has_multiplexed_data
-        )
-
-    @property
-    def is_project_single_cell_zip(self) -> bool:
-        return (
-            self.modality == ComputedFile.OutputFileModalities.SINGLE_CELL
-            and not self.has_multiplexed_data
-        )
-
-    @property
-    def is_project_spatial_zip(self) -> bool:
-        return self.modality == ComputedFile.OutputFileModalities.SPATIAL
-
-    @property
-    def metadata_file_name(self) -> str:
-        if self.is_project_multiplexed_zip or self.is_project_single_cell_zip:
-            return ComputedFile.MetadataFilenames.SINGLE_CELL_METADATA_FILE_NAME
-        if self.is_project_spatial_zip:
-            return ComputedFile.MetadataFilenames.SPATIAL_METADATA_FILE_NAME
-        return ComputedFile.MetadataFilenames.METADATA_ONLY_FILE_NAME
-
-    @property
     def zip_file_path(self) -> Path:
         return settings.OUTPUT_DATA_PATH / self.s3_key
-
-    def get_multiplexed_computed_files(self) -> List[Self]:
-        """
-        Return computed file objects for all associated multiplexed samples.
-        """
-        computed_files = [self]
-        for sample in self.sample.multiplexed_with_samples:
-            sample_computed_file = ComputedFile(
-                format=self.format,
-                includes_merged=self.includes_merged,
-                modality=self.modality,
-                metadata_only=self.metadata_only,
-                portal_metadata_only=self.portal_metadata_only,
-                s3_bucket=self.s3_bucket,
-                s3_key=self.s3_key,
-                size_in_bytes=self.size_in_bytes,
-                workflow_version=self.workflow_version,
-                includes_celltype_report=self.includes_celltype_report,
-                has_bulk_rna_seq=self.has_bulk_rna_seq,
-                has_cite_seq_data=self.has_cite_seq_data,
-                has_multiplexed_data=self.has_multiplexed_data,
-                sample=sample,
-            )
-
-            computed_files.append(sample_computed_file)
-
-        return computed_files
 
     def clean_up_local_computed_file(self) -> None:
         """Delete local computed file."""

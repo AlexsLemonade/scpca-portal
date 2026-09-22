@@ -83,7 +83,7 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
           {row.original.has_multiplexed_data && (
             <Pill
               textSize="small"
-              label={getReadable('has_multiplexed_data')}
+              label={getReadable('has_multiplexed_data', keys)}
               bullet={false}
             />
           )}

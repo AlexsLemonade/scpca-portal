@@ -59,18 +59,3 @@ We have prepared example scripts below to help get started downloading ScPCA Por
 #### Python
 - [Download Project CCDL Dataset in Python](./ccdl-dataset-download-project.py)
 - [Download Portal-Wide CCDL Dataset in Python](./ccdl-dataset-download-portal-wide.py)
-
-### Computed Files *(Deprecated)*
-> [!WARNING]
-> Computed Files are deprecated and will be removed in a future release. Please use CCDL Datasets for ready to download workflows.
-
-> [!NOTE]
-> Computed Files are downloads that managed by the CCDL. These are provided as "ready to download" and configured by modality, file format, merged and bulk options.
-
-#### Bash
-- [Download Project in Bash](./download-project.sh)
-- [Download Sample in Bash](./download-samples.sh)
-
-#### Python
-- [Download Project in Python](./download-project.py)
-- [Download Sample in Python](./download-samples.py)

@@ -7,7 +7,7 @@ from django.test import TestCase
 from django.utils.timezone import make_aware
 
 from scpca_portal.models import UserDataset
-from scpca_portal.test.factories import ProjectComputedFileFactory, UserDatasetFactory
+from scpca_portal.test.factories import DatasetComputedFileFactory, UserDatasetFactory
 
 
 class TestCleanUpExpiredUserDatasets(TestCase):
@@ -21,7 +21,7 @@ class TestCleanUpExpiredUserDatasets(TestCase):
     def test_clean_up_expired_datasets(self, mock_delete_object):
         datasets = [
             UserDatasetFactory(
-                computed_file=ProjectComputedFileFactory(),
+                computed_file=DatasetComputedFileFactory(),
                 expires_at=None,
                 is_succeeded=True,
                 succeeded_at=self.now - timedelta(days=8),
@@ -45,7 +45,7 @@ class TestCleanUpExpiredUserDatasets(TestCase):
     @patch("scpca_portal.s3.aws_s3.delete_object")
     def test_no_clean_up_expired_datasets(self, mock_delete_object):
         dataset = UserDatasetFactory(
-            computed_file=ProjectComputedFileFactory(),
+            computed_file=DatasetComputedFileFactory(),
             expires_at=None,
             is_succeeded=True,
             succeeded_at=self.now + timedelta(days=1),

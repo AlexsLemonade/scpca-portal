@@ -1,7 +1,6 @@
 from rest_framework import serializers
 
 from scpca_portal.models import Sample
-from scpca_portal.serializers.computed_file import ComputedFileSerializer
 
 
 class SampleLeafSerializer(serializers.ModelSerializer):
@@ -11,7 +10,6 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "additional_metadata",
             "age",
             "age_timing",
-            "computed_files",
             "created_at",
             "demux_cell_count_estimate_sum",
             "diagnosis",
@@ -38,9 +36,8 @@ class SampleLeafSerializer(serializers.ModelSerializer):
             "updated_at",
         )
 
-    computed_files = ComputedFileSerializer(read_only=True, many=True)
     project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
 
 
 class SampleSerializer(SampleLeafSerializer):
-    computed_files = ComputedFileSerializer(read_only=True, many=True)
+    pass

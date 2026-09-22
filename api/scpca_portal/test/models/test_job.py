@@ -146,6 +146,11 @@ class TestJob(TestCase):
         self.assertEqual(saved_job.state, JobStates.PROCESSING)
         self.assertIsInstance(saved_job.processing_at, datetime)
 
+        # Make sure that the submitted job is linked to the dataset
+        self.assertTrue(dataset.jobs.exists())
+        self.assertGreaterEqual(dataset.jobs.count(), 1)
+        self.assertIn(job, dataset.jobs.all())
+
     @patch(
         "scpca_portal.models.datasets.ccdl_dataset.CCDLDataset.has_locked_projects",
         new_callable=PropertyMock,

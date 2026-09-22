@@ -264,10 +264,6 @@ If you have a question or comment, please [file an issue on GitHub](https://gith
                 "description": """List and view available samples.""",
             },
             {
-                "name": "computed-files",
-                "description": """List and view available downloadable computed-files.""",
-            },
-            {
                 "name": "project-options",
                 "description": """View a custom object that describes values for project list filtering.""",
             },

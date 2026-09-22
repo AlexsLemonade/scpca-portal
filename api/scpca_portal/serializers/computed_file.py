@@ -15,16 +15,10 @@ class ComputedFileSerializer(serializers.ModelSerializer):
             "id",
             "includes_merged",
             "metadata_only",
-            "portal_metadata_only",
             "modality",
-            "project",
             "s3_bucket",
             "s3_key",
-            "sample",
             "size_in_bytes",
             "updated_at",
             "workflow_version",
         )
-
-    project = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")
-    sample = serializers.SlugRelatedField(read_only=True, slug_field="scpca_id")

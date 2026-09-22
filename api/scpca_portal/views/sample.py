@@ -5,11 +5,10 @@ from rest_framework_extensions.mixins import NestedViewSetMixin
 
 from scpca_portal import filter
 from scpca_portal.models import Sample
-from scpca_portal.serializers import ComputedFileSerializer, ProjectSerializer, SampleSerializer
+from scpca_portal.serializers import ProjectSerializer, SampleSerializer
 
 
 class SampleDetailSerializer(SampleSerializer):
-    computed_files = ComputedFileSerializer(read_only=True, many=True)
     project = ProjectSerializer(read_only=True)
 
 

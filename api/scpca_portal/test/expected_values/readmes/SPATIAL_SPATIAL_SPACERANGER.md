@@ -6,7 +6,11 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This is a portal-wide download you can find more information about your download [in ScPCA docs.](https://scpca.readthedocs.io/en/development/download_files.html#portal-wide-downloads)
+This is a portal-wide download you can find more information about your download [in ScPCA docs.](https://scpca.readthedocs.io/en/development/download_files.html#spatial-portal-wide-download-structure)
+
+|Project ID|Modality|Format|Link to Documentation|
+|:---------|:-------|:-----|:--------------------|
+|[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|Spatial Data|Spatial Spaceranger|https://scpca.readthedocs.io/en/development/processing_information.html#spatial-transcriptomics|
 
 ## CHANGELOG
 
@@ -29,8 +33,6 @@ For more information, please see [the How to Cite section of our documentation](
 To cite data from a specific project please find the project abstract and publication information on the project page.
 
 - [SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)
-- [SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)
-- [SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)
 
 ### Citing the ScPCA Portal
 
@@ -47,5 +49,3 @@ In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade
 |Project ID|Data Usage Restrictions|
 |:---------|:----------------------|
 |[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|Research or academic purposes only|
-|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|Research or academic purposes only|
-|[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)|Research or academic purposes only|

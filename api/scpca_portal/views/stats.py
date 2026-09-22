@@ -5,7 +5,7 @@ from rest_framework.response import Response
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
-from scpca_portal.models import Project, Sample
+from scpca_portal.models import OriginalFile, Project, Sample
 
 NON_CANCER_TYPES = ["Non-cancerous", "Normal margin"]
 
@@ -45,8 +45,12 @@ class StatsViewSet(viewsets.ViewSet):
                 "cancer_types_count": cancer_types_queryset.count(),
                 "labs_count": Project.objects.values("pi_name").distinct().count(),
                 "projects_count": Project.objects.count(),
-                "samples_count": Sample.objects.filter(sample_computed_files__isnull=False)
-                .distinct()
-                .count(),
+                "samples_count": len(
+                    set().union(
+                        *OriginalFile.downloadable_objects.order_by().values_list(
+                            "sample_ids", flat=True
+                        )
+                    )
+                ),
             }
         )

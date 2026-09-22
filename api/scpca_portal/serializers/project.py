@@ -2,7 +2,6 @@ from rest_framework import serializers
 
 from scpca_portal.enums.dataset_formats import DatasetFormats
 from scpca_portal.models import CCDLDataset, Project
-from scpca_portal.serializers.computed_file import ComputedFileSerializer
 from scpca_portal.serializers.contact import ContactSerializer
 from scpca_portal.serializers.external_accession import ExternalAccessionSerializer
 from scpca_portal.serializers.project_summary import ProjectSummarySerializer
@@ -17,7 +16,6 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
             "abstract",
             "additional_metadata_keys",
             "additional_restrictions",
-            "computed_files",
             "contacts",
             "created_at",
             "diagnoses_counts",
@@ -57,7 +55,6 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
 
     # This breaks the general pattern of not using sub-serializers,
     # but we want these to always be included.
-    computed_files = ComputedFileSerializer(read_only=True, many=True)
     contacts = ContactSerializer(read_only=True, many=True)
     metadata_dataset_id = serializers.SerializerMethodField(read_only=True, default=None)
     external_accessions = ExternalAccessionSerializer(read_only=True, many=True)
@@ -75,7 +72,7 @@ class ProjectLeafSerializer(serializers.ModelSerializer):
 
 
 class ProjectSerializer(ProjectLeafSerializer):
-    computed_files = ComputedFileSerializer(read_only=True, many=True)
+    pass
 
 
 class ProjectDetailSerializer(ProjectSerializer):

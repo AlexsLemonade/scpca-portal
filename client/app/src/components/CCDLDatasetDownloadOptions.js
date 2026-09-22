@@ -8,6 +8,7 @@ import { CCDLDatasetCheckBoxExcludeMultiplexed } from 'components/CCDLDatasetChe
 import { CCDLDatasetDownloadOption } from 'components/CCDLDatasetDownloadOption'
 import { FormField } from 'components/FormField'
 import { HelpLink } from 'components/HelpLink'
+import { WarningProjectOptionsUnavailable } from 'components/WarningProjectOptionsUnavailable'
 
 export const CCDLDatasetDownloadOptions = () => {
   const {
@@ -17,6 +18,7 @@ export const CCDLDatasetDownloadOptions = () => {
     setFormat,
     selectedDataset,
     isMultiplexedAvailable,
+    isDeepLinkError,
     modalityOptions,
     formatOptions
   } = useCCDLDatasetDownloadModalContext()
@@ -26,6 +28,7 @@ export const CCDLDatasetDownloadOptions = () => {
 
   return (
     <Grid columns={['auto']} pad={{ bottom: 'medium' }}>
+      {isDeepLinkError && <WarningProjectOptionsUnavailable />}
       <Heading level="3" size="small">
         Download Options
       </Heading>
