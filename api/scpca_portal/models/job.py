@@ -107,8 +107,14 @@ class Job(TimestampedModel):
     MAX_FARGATE_SIZE_IN_BYTES = 100 * common.GB_IN_BYTES
 
     # Maximum retry attempt for the batch job. The value should match retry_strategy defined for
-    # Fargate in infrastructure/batch/job_definition.tf
+    # Fargate in infrastructure/batch/job_definition
     MAX_BATCH_JOB_RETRY_ATTEMPTS = 3
+
+    # Exit codes for Batch evaluateOnExit rules defined in infrastructure/batch/job_definition:
+    # Recoverable failure: The batch job is retired until retry attempts are exhausted
+    RETRY_EXIT_CODE = 1
+    # Unrecoverable failure: The batch job immediately exits without retry.
+    HALT_EXIT_CODE = 3
 
     @property
     def is_last_batch_attempt(self) -> bool:
