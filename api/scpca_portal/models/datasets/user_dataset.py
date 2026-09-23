@@ -7,7 +7,7 @@ from django.db import models
 from django.db.models import Count
 from django.utils.timezone import make_aware
 
-from scpca_portal import common, utils
+from scpca_portal import common
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import DatasetFormats, Modalities
 from scpca_portal.models.computed_file import ComputedFile
@@ -278,8 +278,7 @@ class UserDataset(DatasetABC):
 
     def get_project_additional_processing(self) -> Dict:
         """
-        Return a list of projects with additional processing.
-        Includes a documentation link if one exits.
+        Return a list of projects with additional processing details.
         """
         projects = self.projects.filter(additional_processing__isnull=False).values(
             "scpca_id", "additional_processing", "has_additional_documentation"
@@ -288,11 +287,7 @@ class UserDataset(DatasetABC):
         return {
             project["scpca_id"]: {
                 "additional_processing": project["additional_processing"],
-                "link": (
-                    utils.get_docs_url(project["scpca_id"])
-                    if project["has_additional_documentation"]
-                    else None
-                ),
+                "has_additional_documentation": project["has_additional_documentation"],
             }
             for project in projects
         }
