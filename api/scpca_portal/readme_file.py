@@ -222,7 +222,7 @@ def get_additional_processing_link(project: "Project") -> str | None:
     """
     if not project.has_additional_documentation:
         return ""
-    return utils.get_docs_url(f"{project.scpca_id}")
+    return utils.get_docs_url(f"{project.scpca_id}.html")
 
 
 def get_content_portal_wide_link(dataset: "CCDLDataset") -> str | None:
