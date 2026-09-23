@@ -70,7 +70,7 @@ export const config = {
       'https://scpca.readthedocs.io/en/stable/processing_information.html#multiplexed-libraries',
     donate: 'https://www.ccdatalab.org/donate-link',
     grants_program: 'https://www.alexslemonade.org/researchers-reviewers',
-    help: 'https://scpca.readthedocs.io',
+    help: 'https://scpca.readthedocs.io/en/stable/',
     contribute_pdf: 'contributing-guidelines.pdf',
     contribute_hsform: 'https://share.hsforms.com/1V1loS-_hTMi3-_Lz107AcA336z0',
     contribute_interest_hsform:

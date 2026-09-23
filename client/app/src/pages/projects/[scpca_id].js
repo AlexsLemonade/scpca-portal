@@ -16,6 +16,7 @@ import { Link } from 'components/Link'
 import { PageMeta } from 'components/PageMeta'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectAdditionalProcessing } from 'components/ProjectAdditionalProcessing'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
@@ -38,6 +39,13 @@ const Project = ({ project, ccdlDatasets }) => {
   const ccdlMetadataDatasets = ccdlDatasets.filter(
     (d) => d.format === 'METADATA'
   )
+
+  const additionalProcessingDetails = project.additional_processing
+    ? {
+        additional_processing: project.additional_processing,
+        has_additional_documentation: project.has_additional_documentation
+      }
+    : {}
 
   // Disable DatasetAddSamplesModal if all samples are added
   useEffect(() => {
@@ -74,6 +82,17 @@ const Project = ({ project, ccdlDatasets }) => {
                       label: 'Abstract',
                       value: (
                         <ProjectAbstractDetail abstract={project.abstract} />
+                      )
+                    },
+                    {
+                      label: 'Additional Processing',
+                      value: (
+                        <ProjectAdditionalProcessing
+                          projectId={project.scpca_id}
+                          additionalProcessingDetails={
+                            additionalProcessingDetails
+                          }
+                        />
                       )
                     },
                     {
