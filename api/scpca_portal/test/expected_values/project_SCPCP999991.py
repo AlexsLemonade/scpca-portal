@@ -35,7 +35,7 @@ class Project_SCPCP999991:
         "sample_count": 3,
         "scpca_id": SCPCA_ID,
         "seq_units": ["cell", "nucleus"],
-        "technologies": ["10Xv3", "10Xv3.1"],
+        "technologies": ["10xv3", "10xv3.1"],
         "title": "Title2",
         "unavailable_samples_count": 0,
     }
@@ -62,7 +62,7 @@ class Project_SCPCP999991:
             "sex": "M",
             "seq_units": ["nucleus"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3.1"],
+            "technologies": ["10xv3.1"],
             "tissue_location": "tissue3",
             "treatment": "",
         }
@@ -89,7 +89,7 @@ class Project_SCPCP999991:
             "sex": "M",
             "seq_units": ["nucleus"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3.1"],
+            "technologies": ["10xv3.1"],
             "tissue_location": "tissue4",
             "treatment": "",
         }
@@ -111,12 +111,12 @@ class Project_SCPCP999991:
             "is_cell_line": False,
             "is_xenograft": False,
             "multiplexed_with": [],
-            "sample_cell_count_estimate": 3419,
+            "sample_cell_count_estimate": 3424,
             "scpca_id": SCPCA_ID,
             "sex": "M",
             "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3"],
+            "technologies": ["10xv3"],
             "tissue_location": "tissue6",
             "treatment": "",
         }
@@ -138,7 +138,7 @@ class Project_SCPCP999991:
                 "SCPCP999991/SCPCS999992,SCPCS999993/SCPCL999992_unfiltered.rds",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999995:
@@ -161,7 +161,7 @@ class Project_SCPCP999991:
             "has_cite_seq_data": False,
             "is_multiplexed": False,
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Summary1:
@@ -169,7 +169,7 @@ class Project_SCPCP999991:
             "diagnosis": "diagnosis4",
             "sample_count": 1,
             "seq_unit": "nucleus",
-            "technology": "10Xv3.1",
+            "technology": "10xv3.1",
         }
 
     class Summary2:
@@ -177,7 +177,7 @@ class Project_SCPCP999991:
             "diagnosis": "diagnosis3",
             "sample_count": 1,
             "seq_unit": "nucleus",
-            "technology": "10Xv3.1",
+            "technology": "10xv3.1",
         }
 
     class Summary3:
@@ -185,7 +185,7 @@ class Project_SCPCP999991:
             "diagnosis": "diagnosis6",
             "sample_count": 1,
             "seq_unit": "cell",
-            "technology": "10Xv3",
+            "technology": "10xv3",
         }
 
     class Contact1:
