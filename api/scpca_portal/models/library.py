@@ -111,14 +111,11 @@ class Library(TimestampedModel):
         library_files = OriginalFile.get_input_library_metadata_files(project.scpca_id)
         # Combine library ID + sample ID before metadata lookup because some libraries use
         # a compound ID that is not present in the metadata json
-        # NOTE: Libraries withy multiplexed samples are looked up by library ID only
         library_lookup = {
-            (
-                lmd["scpca_library_id"]
-                if project.has_multiplexed_data
-                else f"{lmd['scpca_library_id']}-{lmd['scpca_sample_id']}"
-            ): lmd
+            f"{lmd['scpca_library_id']}-{s}": lmd
             for lmd in libraries_metadata
+            for sid in lmd.get("scpca_sample_id", "").split(",")  # For multiplexed samples
+            if (s := sid.strip())
         }
 
         sample_by_id = {sample.scpca_id: sample for sample in project.samples.all()}
@@ -129,14 +126,11 @@ class Library(TimestampedModel):
                 # Only create the library if the sample exists in the project
                 if sample := sample_by_id.get(sample_id):
                     library_id = library_file.library_id
-                    # Look up by library ID for multiplexed samples
-                    # Otherwise look up by combined library ID + sample ID
+                    # Look up by combined library ID + sample ID
                     if lib_metadata := library_lookup.get(
                         f"{library_id}-{sample_id}", library_lookup.get(library_id)
                     ):
-                        Library.bulk_create_from_dicts(
-                            [lib_metadata], sample, library_id=library_id
-                        )
+                        Library.bulk_create_from_dicts([lib_metadata], sample, library_id)
 
         if project.has_bulk_rna_seq:
             Library.load_bulk_metadata(project)
