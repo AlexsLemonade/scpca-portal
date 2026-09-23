@@ -108,7 +108,8 @@ export const DatasetProjectCard = ({
         <Box margin={{ bottom: '24px' }}>
           <Label label="Additional Processing" />
           <ProjectAdditionalProcessing
-            additionalProcessing={additionalProcessing}
+            projectId={projectId}
+            additionalProcessingDetails={additionalProcessing}
           />
         </Box>
         <Box margin={{ bottom: 'xsmall' }}>
