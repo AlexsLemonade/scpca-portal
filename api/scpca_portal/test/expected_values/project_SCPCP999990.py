@@ -8,6 +8,7 @@ class Project_SCPCP999990:
     VALUES = {
         "abstract": "Abstract1",
         "additional_restrictions": "Research or academic purposes only",
+        # "additional_processing": "metaprograms",
         "diagnoses": ["diagnosis1", "diagnosis2", "diagnosis5"],
         "diagnoses_counts": {"diagnosis1": 1, "diagnosis2": 1, "diagnosis5": 2},
         "disease_timings": ["Initial diagnosis"],
@@ -17,6 +18,7 @@ class Project_SCPCP999990:
         "has_multiplexed_data": False,
         "has_single_cell_data": True,
         "has_spatial_data": True,
+        # "has_additional_documentation": True,
         "human_readable_pi_name": "PI1",
         "includes_anndata": True,
         "includes_cell_lines": False,
