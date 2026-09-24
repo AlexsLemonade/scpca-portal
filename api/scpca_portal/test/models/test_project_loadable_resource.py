@@ -236,6 +236,66 @@ class TestProjectLoadableResource(TransactionTestCase):
         project.refresh_from_db()
         self.assertEqual(project.loaded_state, LoadableResourceStates.LOCKED)
 
+    def test_sync_model_unlock_synced_projects(self):
+        project_ids = ["SCPCP999990", "SCPCP999991", "SCPCP999992"]
+        with patch(
+            "scpca_portal.models.OriginalFile.get_syncable_files",
+            side_effect=filter_original_files_by_projects_wrapper(project_ids),
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        with patch(
+            "scpca_portal.metadata_parser.load_all_projects_metadata",
+            side_effect=filter_metadata_by_projects_wrapper(project_ids),
+        ):
+            Project.sync_model()
+            Project.sync_metadata()
+
+        OriginalFileFactory(project_id="SCPCP999990", is_lockfile=True)
+        OriginalFileFactory(project_id="SCPCP999991", is_lockfile=True)
+        OriginalFileFactory(project_id="SCPCP999992", is_lockfile=True)
+        with patch(
+            "scpca_portal.metadata_parser.load_all_projects_metadata",
+            side_effect=filter_metadata_by_projects_wrapper(project_ids),
+        ):
+            output_counts = Project.sync_model()
+
+        self.assertEqual(output_counts["locked"], 3)
+        non_tainted_project = Project.objects.get(scpca_id="SCPCP999990")
+        tainted_original_files_project = Project.objects.get(scpca_id="SCPCP999991")
+        tainted_metadata_project = Project.objects.get(scpca_id="SCPCP999992")
+        self.assertEqual(non_tainted_project.loaded_state, LoadableResourceStates.LOCKED)
+        self.assertEqual(tainted_original_files_project.loaded_state, LoadableResourceStates.LOCKED)
+        self.assertEqual(tainted_metadata_project.loaded_state, LoadableResourceStates.LOCKED)
+
+        mutated_file = OriginalFile.objects.filter(
+            project_id="SCPCP999991", is_lockfile=False
+        ).first()
+        mutated_file.hash = "mutated_hash_value"
+        mutated_file.save(update_fields=["hash"])
+
+        OriginalFile.objects.filter(project_id="SCPCP999990", is_lockfile=True).delete()
+        OriginalFile.objects.filter(project_id="SCPCP999991", is_lockfile=True).delete()
+        OriginalFile.objects.filter(project_id="SCPCP999992", is_lockfile=True).delete()
+        with patch(
+            "scpca_portal.metadata_parser.load_all_projects_metadata",
+            side_effect=filter_metadata_by_projects_wrapper(
+                project_ids, modified_project_id="SCPCP999992"
+            ),
+        ):
+            output_counts = Project.sync_model()
+
+        non_tainted_project.refresh_from_db()
+        tainted_original_files_project.refresh_from_db()
+        tainted_metadata_project.refresh_from_db()
+        self.assertEqual(non_tainted_project.loaded_state, LoadableResourceStates.SYNCED)
+        self.assertEqual(
+            tainted_original_files_project.loaded_state, LoadableResourceStates.TAINTED
+        )
+        self.assertEqual(tainted_metadata_project.loaded_state, LoadableResourceStates.TAINTED)
+        self.assertEqual(output_counts["locked"], 0)
+        self.assertEqual(output_counts["unlocked"], 1)
+        self.assertEqual(output_counts["tainted"], 2)
+
     # SYNC_METADATA TESTS
     def test_sync_metadata(self):
         pass
