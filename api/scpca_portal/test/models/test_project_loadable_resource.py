@@ -296,6 +296,65 @@ class TestProjectLoadableResource(TransactionTestCase):
         self.assertEqual(output_counts["unlocked"], 1)
         self.assertEqual(output_counts["tainted"], 2)
 
+    def test_sync_model_purge_deleted_project(self):
+        project_ids = ["SCPCP999992"]
+        with patch(
+            "scpca_portal.models.OriginalFile.get_syncable_files",
+            side_effect=filter_original_files_by_projects_wrapper(project_ids),
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        with patch(
+            "scpca_portal.metadata_parser.load_all_projects_metadata",
+            side_effect=filter_metadata_by_projects_wrapper(project_ids),
+        ):
+            Project.sync_model()
+        self.assertTrue(Project.objects.filter(scpca_id="SCPCP999992").exists())
+
+        # Assert OF deletion with project still in metadata preserves object in db
+        with patch(
+            "scpca_portal.models.OriginalFile.get_syncable_files",
+            side_effect=filter_original_files_by_projects_wrapper([]),
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        with patch(
+            "scpca_portal.metadata_parser.load_all_projects_metadata",
+            side_effect=filter_metadata_by_projects_wrapper(project_ids),
+        ):
+            output_counts = Project.sync_model()
+
+        self.assertEqual(output_counts["deleted"], 0)
+        self.assertTrue(Project.objects.filter(scpca_id="SCPCP999992").exists())
+
+        # Assert deletion in metadata but lack of OF deletion preserves object in db
+        with patch(
+            "scpca_portal.models.OriginalFile.get_syncable_files",
+            side_effect=filter_original_files_by_projects_wrapper(project_ids),
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        with patch(
+            "scpca_portal.metadata_parser.load_all_projects_metadata",
+            side_effect=filter_metadata_by_projects_wrapper([]),
+        ):
+            output_counts = Project.sync_model()
+
+        self.assertEqual(output_counts["deleted"], 0)
+        self.assertTrue(Project.objects.filter(scpca_id="SCPCP999992").exists())
+
+        # Assert satisfaction of both conditions yields purged object from db
+        with patch(
+            "scpca_portal.models.OriginalFile.get_syncable_files",
+            side_effect=filter_original_files_by_projects_wrapper([]),
+        ):
+            call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
+        with patch(
+            "scpca_portal.metadata_parser.load_all_projects_metadata",
+            side_effect=filter_metadata_by_projects_wrapper([]),
+        ):
+            output_counts = Project.sync_model()
+
+        self.assertEqual(output_counts["deleted"], 1)
+        self.assertFalse(Project.objects.filter(scpca_id="SCPCP999992").exists())
+
     # SYNC_METADATA TESTS
     def test_sync_metadata(self):
         pass
