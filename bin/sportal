@@ -146,6 +146,9 @@ run_api = run + ["api"]
 run_postgres = run + ["postgres", "psql", "-h", "postgres", "-U", "postgres"]
 manage = run_api + ["python3", "manage.py"]
 
+# Everything under the CCDI federation node.
+CCDI_TESTS = "scpca_portal.test.federation"
+
 command_descriptions = {
     # print envars available in this shell
     "debug:env": "Show status of envars that are passed to commands.",
@@ -155,6 +158,7 @@ command_descriptions = {
     "api:run": "Start local API.",
     "api:manage": "Run local API management command. Requires manage command name as argument.",
     "api:test": "Run API tests.",
+    "api:test:ccdi": ("Run just the CCDI federation node's tests. Same runner as api:test."),
     "api:graphmodels": "Update the models.dot file.",
     "api:lint:black": "Lint API python code with black.",
     "deploy:up": "Spin up a dev stack. Requires successful debug:env.",
@@ -193,6 +197,7 @@ commands = {
     "api:run": run_api,
     "api:manage": manage,
     "api:test": run_api + ["bash", "./run_tests.sh"],
+    "api:test:ccdi": run_api + ["bash", "./run_tests.sh", CCDI_TESTS],
     "api:graphmodels": manage + ["graph_models", "scpca_portal", ">", "models.dot"],
     "api:lint:black": ["black", "--line-length=100", "--exclude=volumes_postgres", "."],
     "deploy:up": deploy,
