@@ -53,11 +53,12 @@ class TestDatasetJobProcessor(TestCase):
         processor = DatasetJobProcessor(job)
         exception = DatasetLockedProjectError()
 
+        processor.set_exit_code(Job.RETRY_EXIT_CODE)
         processor.handle_locked_project(exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
-        self.assertEqual(processor.exit_code, Job.RETRY_EXIT_CODE)
+        self.assertEqual(processor.exit_code, Job.RETRY_EXIT_CODE)  # Should remain 1
 
         # Should create a new retry job
         if processor.job.is_last_batch_attempt:
@@ -72,11 +73,12 @@ class TestDatasetJobProcessor(TestCase):
         processor = DatasetJobProcessor(job)
         exception = DatasetMissingLibrariesError()
 
+        processor.set_exit_code(Job.RETRY_EXIT_CODE)
         processor.handle_missing_libraries(exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
-        self.assertEqual(processor.exit_code, Job.HALT_EXIT_CODE)
+        self.assertEqual(processor.exit_code, Job.HALT_EXIT_CODE)  # Should update to 3
 
         # Should send the error email notification
         mock_send_email.assert_called_once_with(job)
@@ -89,11 +91,12 @@ class TestDatasetJobProcessor(TestCase):
         processor = DatasetJobProcessor(job)
         exception = S3UploadError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
+        processor.set_exit_code(Job.RETRY_EXIT_CODE)
         processor.handle_upload_failure(exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
-        self.assertEqual(processor.exit_code, Job.RETRY_EXIT_CODE)
+        self.assertEqual(processor.exit_code, Job.RETRY_EXIT_CODE)  # Should remain 1
 
         # Should create a new retry job
         if processor.job.is_last_batch_attempt:
@@ -108,13 +111,17 @@ class TestDatasetJobProcessor(TestCase):
         processor = DatasetJobProcessor(job)
         exception = S3TaggingError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
-        processor.handle_tag_failure(exception)
+        processor.set_exit_code(Job.RETRY_EXIT_CODE)
+        should_continue = processor.handle_tag_failure(exception)
 
+        self.assertFalse(should_continue)  # Should retry until attempts exhausted
         self.assertEqual(job.state, JobStates.PROCESSING)  # Should remain PROCESSING
-        self.assertEqual(processor.exit_code, Job.HALT_EXIT_CODE)
+        self.assertEqual(processor.exit_code, Job.RETRY_EXIT_CODE)  # Should remain 1
 
-        # Should send the slack notification for manual tagging
-        mock_mock_send_slack.assert_called_once_with(job)
+        if job.is_last_batch_attempt:
+            self.assertTrue(should_continue)  # Should continue processing
+            # Should send the slack notification for manual tagging
+            mock_mock_send_slack.assert_called_once_with(job)
 
     @patch("scpca_portal.notifications.send_dataset_job_error_email")
     def test_handle_uncaught_error(self, mock_send_email):
@@ -125,10 +132,11 @@ class TestDatasetJobProcessor(TestCase):
         processor = DatasetJobProcessor(job)
         exception = Exception("Uncaught error")
 
+        processor.set_exit_code(Job.RETRY_EXIT_CODE)
         processor.on_uncaught_exception("MOCK_STEP", exception)
 
         self.assertEqual(job.state, JobStates.PROCESSING)  # Should remain PROCESSING
-        self.assertEqual(processor.exit_code, Job.RETRY_EXIT_CODE)
+        self.assertEqual(processor.exit_code, Job.RETRY_EXIT_CODE)  # Should remain 1
 
         # Should send the error email notification
         if processor.job.is_last_batch_attempt:

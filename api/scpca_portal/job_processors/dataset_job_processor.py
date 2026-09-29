@@ -47,15 +47,12 @@ class DatasetJobProcessor(JobProcessorABC):
     def on_uncaught_exception(self, step: str, e: Exception) -> None:
         """
         Handle an uncaught error raised during processing:
-        - Mark the job as FAILED
-        - Send an error email to the users after the final AWS Batch retry attempt
+        - Mark the job/dataset as FAILED
+        - Send an error email to the users on the last AWS Batch attempt
         """
         logger.info("Encountered uncaught exception.")
         logger.exception(e)
 
-        self.set_exit_code(Job.RETRY_EXIT_CODE)
-
-        # Sends an error email to the user on last retry attempt
         if self.job.is_last_batch_attempt:
             if self.job.dataset.email:
                 logger.info("Sending dataset job error email.")
@@ -81,14 +78,12 @@ class DatasetJobProcessor(JobProcessorABC):
         """
         Handle a recoverable error caused by a locked project:
         - Mark the job as FAILED
-        - Create a new retry job for a cron after the final AWS Batch retry attempt
+        - Create a new retry job for a cron on the last AWS Batch attempt
+        - Map the dataset with the latest job, PROCESSING
         """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
 
-        self.set_exit_code(Job.RETRY_EXIT_CODE)
-
-        # Creates a retry job on last retry attempt
         if self.job.is_last_batch_attempt:
             self.job.create_retry_job()
 
@@ -96,7 +91,7 @@ class DatasetJobProcessor(JobProcessorABC):
         """
         Handle an unrecoverable error caused by misconfigured dataset:
         - Exit AWS Batch without retry attempts
-        - Mark the job as FAILED
+        - Mark the job/dataset as FAILED
         - Send an error email to the user
         """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
@@ -112,23 +107,20 @@ class DatasetJobProcessor(JobProcessorABC):
         """
         Handle a recoverable S3 upload error:
         - Mark the job as FAILED
-        - Create a new retry job for a cron after the final AWS Batch retry attempt
+        - Create a new retry job for a cron on the last AWS Batch attempt
         """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
 
-        self.set_exit_code(Job.RETRY_EXIT_CODE)
-
-        # Creates a retry job on last retry attempt
         if self.job.is_last_batch_attempt:
             self.job.create_retry_job()
 
-    def handle_tag_failure(self, e: Exception) -> None:
+    def handle_tag_failure(self, e: Exception) -> bool:
         """
         Handle a S3 tagging error that requires manual handling:
-        - Exit AWS Batch without retry attempts
         - Mark the job as PROCESSING
-        - Send a Slack notification to the team channel
+        - Send a Slack notification to the team channel on the last AWS Batch attempt
+        - Return True to continue processing when all attempts are exhausted
 
         NOTE: The computed file was successfully generated and uploaded
         to S3 in the previous steps, so no retry is required.
@@ -136,11 +128,12 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.apply_state(JobStates.PROCESSING)
         self.job.save()
 
-        self.set_exit_code(Job.HALT_EXIT_CODE)
+        if self.job.is_last_batch_attempt:
+            logger.info("Sending Slack notification for manual tagging.")
+            notifications.send_slack_notification(self.job)
+            return True  # Continue to next step
 
-        # Sends a Slack notification to the team
-        logger.info("Sending Slack notification for manual tagging.")
-        notifications.send_slack_notification(self.job)
+        return False  # Retry Batch job
 
     def upload_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key
