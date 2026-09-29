@@ -26,7 +26,7 @@ class JobProcessorABC(ABC):
       methods (as strings) that should be executed when the corresponding
       exception is raised in the given step.
 
-    Step functions take no arguements.
+    Step functions take no arguments.
     Exception handler functions take the error as an argument.
 
     The base class handles the plumbing:
@@ -82,7 +82,7 @@ class JobProcessorABC(ABC):
 
     def __init__(self, job: Job):
         self._job = job
-        self._exit_code: int | None = None  # Set on completion or by a exception handler
+        self._exit_code = 0
 
         # fail if this doesn't work
         self._steps_functions: List[Callable] = []
@@ -128,10 +128,6 @@ class JobProcessorABC(ABC):
 
     @property
     def exit_code(self) -> int:
-        if self._exit_code is None:
-            # When run() never reached to completion
-            # always results in a failure
-            return Job.RETRY_EXIT_CODE
         return self._exit_code
 
     def set_exit_code(self, code: int) -> None:
@@ -169,9 +165,12 @@ class JobProcessorABC(ABC):
                 self.on_step_start(step)
                 step_function()
             except Exception as e:
+                self.set_exit_code(Job.RETRY_EXIT_CODE)  # Retry an exception by default
                 if exception_handler := self._lookup_handler(step, e):
                     self.on_step_exception(step, e)
-                    exception_handler(e)
+                    # Continue processing when the handler returns True
+                    if exception_handler(e):
+                        continue
                 else:
                     self.on_uncaught_exception(step, e)
 
@@ -185,7 +184,6 @@ class JobProcessorABC(ABC):
         self.job.save()
 
         self.on_run_done()
-        self.set_exit_code(0)  # Successful completion
 
     def _lookup_handler(self, step: str, e: Exception) -> Callable | None:
         """ """
