@@ -3,7 +3,7 @@
 from importlib import reload
 
 from django.test import SimpleTestCase, override_settings
-from django.urls import clear_url_caches
+from django.urls import clear_url_caches, resolve
 from rest_framework import status
 
 import scpca_portal.urls
@@ -54,10 +54,12 @@ class CCDIToggleTests(SimpleTestCase):
 
 class CCDISurfaceTests(SimpleTestCase):
     def test_all_endpoints_are_routed(self):
+        # Resolved rather than requested: an implemented endpoint answers 404 for
+        # a record it does not hold, which says nothing about whether its route
+        # is mounted. `resolve` raises only when no route matches at all.
         for url in ALL_ENDPOINTS:
             with self.subTest(url=url):
-                response = self.client.get(url)
-                self.assertNotEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+                self.assertIsNotNone(resolve(url).func)
 
 
 class CCDIRootRedirectTests(SimpleTestCase):
