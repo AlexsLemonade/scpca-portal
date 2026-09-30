@@ -4,7 +4,6 @@ from django.template.loader import render_to_string
 import boto3
 
 from scpca_portal.config.logging import get_and_configure_logger
-from scpca_portal.models import Job
 
 logger = get_and_configure_logger(__name__)
 
@@ -21,14 +20,14 @@ def send_email(
     subject: str,
     body_text: str,
     body_html: str,
+    *,
+    bcc_addresses: list[str] | None = None,
     sender: str = settings.EMAIL_SENDER,
 ) -> None:
-    ses = boto3.client("ses", region_name=settings.AWS_REGION)
-
-    bcc_addresses = [settings.SLACK_NOTIFICATIONS_EMAIL]
-    # dont double send emails to slack
-    if settings.SLACK_NOTIFICATIONS_EMAIL is recipient:
+    if bcc_addresses is None:
         bcc_addresses = []
+
+    ses = boto3.client("ses", region_name=settings.AWS_REGION)
 
     ses.send_email(
         Source=sender,
@@ -43,51 +42,21 @@ def send_email(
     )
 
 
-def send_dataset_job_success_email(job: Job) -> None:
-    subject = "Your ScPCA dataset is ready!"
+def send_templated_email(
+    recipient: str,
+    subject: str,
+    context: dict,
+    text_template: str,
+    html_template: str,
+) -> None:
+    context = {**context, **SHARED_TEMPLATE_CONTEXT}
+    body_text = render_to_string(TEMPLATE_ROOT / text_template, context=context)
+    body_html = render_to_string(TEMPLATE_ROOT / html_template, context=context)
 
-    text_template = TEMPLATE_ROOT / "dataset_job_success.txt"
-    body_text = render_to_string(
-        text_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
+    send_email(
+        recipient, subject, body_text, body_html, bcc_addresses=[settings.SLACK_NOTIFICATIONS_EMAIL]
     )
 
-    html_template = TEMPLATE_ROOT / "dataset_job_success.html"
-    body_html = render_to_string(
-        html_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
-    )
 
-    return send_email(job.dataset.email, subject, body_text, body_html)
-
-
-def send_dataset_job_error_email(job: Job) -> None:
-    subject = "We were unable to process your dataset"
-
-    text_template = TEMPLATE_ROOT / "dataset_job_error.txt"
-    body_text = render_to_string(
-        text_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
-    )
-
-    html_template = TEMPLATE_ROOT / "dataset_job_error.html"
-    body_html = render_to_string(
-        html_template, context={"dataset": job.dataset, **SHARED_TEMPLATE_CONTEXT}
-    )
-
-    return send_email(job.dataset.email, subject, body_text, body_html)
-
-
-def send_computed_file_tagging_error_email(job: Job) -> None:
-    subject = f"Failed to tag the computed file on S3 for {job.dataset.id}"
-    body_text = (
-        f"Tagging failure on the computed file {job.dataset.computed_file.s3_key} "
-        f"on bucket {job.dataset.computed_file.s3_bucket} for the dataset {job.dataset.id}"
-    )
-
-    return send_email(settings.SLACK_NOTIFICATIONS_EMAIL, subject, body_text, body_text)
-
-
-# TODO: Remove this is just for computed files
-def send_project_files_completed_email(project_id: str) -> None:
-    subject = f"All files generated for {project_id}"
-    body_text = f"All files have been generated for project {project_id}"
-
-    return send_email(settings.SLACK_NOTIFICATIONS_EMAIL, subject, body_text, body_text)
+def send_slack_notification(subject: str, body: str) -> None:
+    send_email(settings.SLACK_NOTIFICATIONS_EMAIL, subject, body, body)
