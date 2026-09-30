@@ -19,7 +19,12 @@ from scpca_portal.exceptions import (
     JobTerminationFailedError,
 )
 from scpca_portal.models import CCDLDataset, Job, Project, UserDataset
-from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory, UserDatasetFactory
+from scpca_portal.test.factories import (
+    CCDLDatasetFactory,
+    JobFactory,
+    LeafComputedFileFactory,
+    UserDatasetFactory,
+)
 
 
 class TestJob(TestCase):
@@ -764,3 +769,59 @@ class TestJob(TestCase):
             job.increment_attempt_or_fail()
 
         self.assertEqual(job.state, JobStates.FAILED)
+
+    @patch("scpca_portal.notifications.send_templated_email")
+    def test_send_success_email(self, mock_send_templated_email):
+        dataset_id = "b369f67f-69c8-46a9-8fcf-746f35fc7e74"
+        job = JobFactory(
+            state=JobStates.SUCCEEDED,
+            dataset=CCDLDatasetFactory(id=dataset_id, email="user@example.com"),
+        )
+
+        job.send_success_email()
+
+        mock_send_templated_email.assert_called_once_with(
+            recipient="user@example.com",
+            subject="Your ScPCA dataset is ready!",
+            context={"dataset": job.dataset},
+            text_template="dataset_job_success.txt",
+            html_template="dataset_job_success.html",
+        )
+
+    @patch("scpca_portal.notifications.send_templated_email")
+    def test_send_error_email(self, mock_send_templated_email):
+        dataset_id = "b369f67f-69c8-46a9-8fcf-746f35fc7e74"
+        job = JobFactory(
+            state=JobStates.FAILED,
+            dataset=CCDLDatasetFactory(id=dataset_id, email="user@example.com"),
+        )
+
+        job.send_error_email()
+
+        mock_send_templated_email.assert_called_once_with(
+            recipient="user@example.com",
+            subject="We were unable to process your dataset",
+            body_context={"dataset": job.dataset},
+            text_template="dataset_job_error.txt",
+            html_template="dataset_job_error.html",
+        )
+
+    @patch("scpca_portal.notifications.send_slack_notification")
+    def test_send_tagging_error_notification(self, mock_send_slack_notification):
+        dataset_id = "b369f67f-69c8-46a9-8fcf-746f35fc7e74"
+        job = JobFactory(state=JobStates.FAILED, dataset=CCDLDatasetFactory(id=dataset_id))
+        job.dataset.computed_file = LeafComputedFileFactory(
+            s3_bucket=settings.AWS_S3_OUTPUT_BUCKET_NAME, s3_key="SCPCP000001.zip"
+        )
+        job.dataset.save()
+
+        job.send_tagging_error_notification()
+
+        mock_send_slack_notification.assert_called_once_with(
+            subject=f"Failed to tag the computed file on S3 for {job.dataset.id}",
+            body=(
+                f"Tagging failure on the computed file {job.dataset.computed_file.s3_key} "
+                f"on bucket {job.dataset.computed_file.s3_bucket} ",
+                f"for the dataset {job.dataset.id}",
+            ),
+        )

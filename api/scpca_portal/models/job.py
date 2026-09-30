@@ -11,7 +11,7 @@ from django.utils.timezone import make_aware
 
 from typing_extensions import Self
 
-from scpca_portal import batch, common
+from scpca_portal import batch, common, notifications
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
@@ -506,3 +506,32 @@ class Job(TimestampedModel):
             logger.info(f"{len(failed_jobs)} jobs failed to terminate.")
 
         return terminated_jobs
+
+    # API NOTIFICATION LOGIC
+    def send_success_email(self) -> None:
+        notifications.send_templated_email(
+            recipient=self.dataset.email,
+            subject="Your ScPCA dataset is ready!",
+            context={"dataset": self.dataset},
+            text_template="dataset_job_success.txt",
+            html_template="dataset_job_success.html",
+        )
+
+    def send_error_email(self) -> None:
+        notifications.send_templated_email(
+            recipient=self.dataset.email,
+            subject="We were unable to process your dataset",
+            body_context={"dataset": self.dataset},
+            text_template="dataset_job_error.txt",
+            html_template="dataset_job_error.html",
+        )
+
+    def send_tagging_error_notification(self) -> None:
+        notifications.send_slack_notification(
+            subject=f"Failed to tag the computed file on S3 for {self.dataset.id}",
+            body=(
+                f"Tagging failure on the computed file {self.dataset.computed_file.s3_key} "
+                f"on bucket {self.dataset.computed_file.s3_bucket} ",
+                f"for the dataset {self.dataset.id}",
+            ),
+        )
