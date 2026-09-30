@@ -129,8 +129,15 @@ export const ProjectSamplesTable = ({ stickies = 3, children }) => {
     {
       header: 'Technology',
       accessorKey: 'technologies',
-      cell: ({ row }) => <Text>{row.original.technologies.join(', ')}</Text>
+      cell: ({ row }) => {
+        // Make sure the value of technology is human-readable
+        const updatedRow = row.original.technologies.map((technology) =>
+          getReadable(technology)
+        )
+        return <Text>{updatedRow.join(',')}</Text>
+      }
     },
+
     {
       header: 'Multiplexed with',
       accessorKey: 'multiplexed_with',
