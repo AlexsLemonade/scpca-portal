@@ -521,7 +521,7 @@ class Job(TimestampedModel):
         notifications.send_templated_email(
             recipient=self.dataset.email,
             subject="We were unable to process your dataset",
-            body_context={"dataset": self.dataset},
+            context={"dataset": self.dataset},
             text_template="dataset_job_error.txt",
             html_template="dataset_job_error.html",
         )
@@ -531,7 +531,7 @@ class Job(TimestampedModel):
             subject=f"Failed to tag the computed file on S3 for {self.dataset.id}",
             body=(
                 f"Tagging failure on the computed file {self.dataset.computed_file.s3_key} "
-                f"on bucket {self.dataset.computed_file.s3_bucket} ",
-                f"for the dataset {self.dataset.id}",
+                f"on bucket {self.dataset.computed_file.s3_bucket} "
+                f"for the dataset {self.dataset.id}"
             ),
         )

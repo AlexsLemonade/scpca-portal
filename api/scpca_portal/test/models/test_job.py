@@ -801,7 +801,7 @@ class TestJob(TestCase):
         mock_send_templated_email.assert_called_once_with(
             recipient="user@example.com",
             subject="We were unable to process your dataset",
-            body_context={"dataset": job.dataset},
+            context={"dataset": job.dataset},
             text_template="dataset_job_error.txt",
             html_template="dataset_job_error.html",
         )
@@ -821,7 +821,7 @@ class TestJob(TestCase):
             subject=f"Failed to tag the computed file on S3 for {job.dataset.id}",
             body=(
                 f"Tagging failure on the computed file {job.dataset.computed_file.s3_key} "
-                f"on bucket {job.dataset.computed_file.s3_bucket} ",
-                f"for the dataset {job.dataset.id}",
+                f"on bucket {job.dataset.computed_file.s3_bucket} "
+                f"for the dataset {job.dataset.id}"
             ),
         )
