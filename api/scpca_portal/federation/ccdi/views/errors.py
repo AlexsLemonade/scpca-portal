@@ -53,8 +53,7 @@ class InvalidRoute(NodeError):
 
     404 rather than 405 for a wrong method, which is what the spec asks for:
     `InvalidRoute` is documented as covering "all routes for which the path
-    exists, but the HTTP method is not supported for that path", and the
-    reference implementation answers all of them `404`.
+    exists, but the HTTP method is not supported for that path".
     """
 
     kind = "InvalidRoute"
@@ -82,7 +81,7 @@ class InvalidParameters(NodeError):
 
 
 def _named(parameters: list[str] | None) -> str:
-    """`'page' and 'per_page'`, joined the way the reference implementation does."""
+    """`'page' and 'per_page'`, as the spec's own examples read."""
     if not parameters:
         return "the parameters provided"
 
@@ -103,10 +102,9 @@ def node_exception_handler(exc, context):
     """
     Render the node's failures as `responses.Errors`.
 
-    DRF raises `MethodNotAllowed` itself, before any of our code runs, so it is
-    translated here rather than at a call site. Anything else the node does not
-    name a kind for falls through to DRF — today that is only the 501 the
-    unimplemented endpoints answer, which the spec does not document either way.
+    DRF raises `MethodNotAllowed` itself, before any view code runs, so it is
+    translated here rather than at a call site. A failure the node names no kind
+    for falls through to DRF.
     """
     if isinstance(exc, MethodNotAllowed):
         request = context["request"]
@@ -128,9 +126,8 @@ def invalid_route(request, *args, **kwargs):
     involved. Plain Django rather than DRF, so it answers JSON whatever the
     request will accept.
 
-    Exempt from CSRF because every DRF view already is, and this stands in for
-    them; a plain view does not get that for free. There is nothing to protect:
-    the node is read-only and unauthenticated, and this path does not exist.
-    Without it, `POST` to an unrouted path answers Django's 403 HTML page.
+    Exempt from CSRF because DRF views already are and a plain view is not:
+    without it an unsafe method here answers Django's 403 HTML page. There is
+    nothing to protect — the node is read-only, and this path does not exist.
     """
     return JsonResponse(as_body(InvalidRoute(request.method, request.path)), status=404)

@@ -8,13 +8,8 @@ ninth in the list. Referring to that number would keep working, silently, while
 meaning something else the next time the spec inserts or reorders a variant.
 
 So nothing here names a numbered class. Each variant is looked up by the
-discriminator value the spec itself declares, which makes a renumbering a no-op,
+discriminator value the spec itself declares, which makes a renumbering a no-op
 and a variant the spec no longer offers a loud error naming what it does offer.
-The unpleasant `typing` introspection is confined to this module.
-
-"Variant" is the upstream term: the spec is generated from Rust, where these are
-`#[serde(tag = "kind")]` enum variants. It is unrelated to "dataset variant",
-which is a CCDL configuration.
 """
 
 import types
@@ -84,11 +79,10 @@ def build(variants: dict[str, type], kind: str, label: str, discriminator: str =
     """
     Build one variant by its discriminator value.
 
-    The discriminator is set from the variant that was resolved rather than
-    passed in, so a variant cannot end up declaring a kind other than the one it
-    was looked up by. A field the variant does not declare raises rather than
-    being dropped: pydantic would ignore it, and an error body quietly missing
-    the field that explains it is worse than no body at all.
+    The discriminator comes from the variant that was resolved, not the caller,
+    so a variant cannot declare a kind other than the one it was looked up by.
+    An undeclared field raises rather than being dropped — pydantic ignores it
+    silently, leaving a body missing the field that explains it.
     """
     variant = variants.get(kind)
 

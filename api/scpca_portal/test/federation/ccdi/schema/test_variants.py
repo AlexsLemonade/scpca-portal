@@ -39,12 +39,10 @@ class VariantsOfTests(SimpleTestCase):
 
     def test_no_numbered_generated_class_is_named_anywhere_in_the_node(self):
         """
-        The reason this module exists.
-
         `ResponsesErrorKind9` is `NotFound` only because it is ninth in the
         spec's `oneOf`. Naming it would keep working, silently, while meaning
         something else after the spec inserts or reorders a variant — so the
-        whole node is scanned, not just this module.
+        whole node is scanned, not just the module that resolves them.
         """
         numbered = re.compile(r"^(?:Models|Responses)[A-Za-z]+\d+$")
         node = Path(schema.__file__).parent.parent
@@ -75,15 +73,11 @@ class BuildTests(SimpleTestCase):
         """
         `build` sets the discriminator from the variant it resolved.
 
-        Asserting `built.kind == "NotFound"` on a well-formed call proves
-        nothing — the generated model pins `kind` to a `Literal`. And a
-        conflicting `kind=` cannot even be passed to `error_kind`, since the
-        signature captures it.
-
-        The case that can actually go wrong is a union discriminated by
-        something other than `kind` — the spec has one on `status`. There the
+        Reaching that through `error_kind` is impossible — its signature
+        captures `kind`. The case that can go wrong is a union discriminated by
+        something else, which the spec has one of on `status`: there the
         discriminator is a declared field, so it survives the undeclared-field
-        check and `**fields` would silently win.
+        check and would otherwise win.
         """
 
         class Open(pydantic.BaseModel):

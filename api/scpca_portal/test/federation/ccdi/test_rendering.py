@@ -48,15 +48,12 @@ class RenderingTests(SimpleTestCase):
 
     def test_every_view_that_returns_a_response_also_calls_the_renderer(self):
         """
-        The positive direction, as a relationship rather than a list of
-        filenames — a list would need editing whenever a view is added, which
-        is noise rather than signal.
-
         A module that builds a response without ever calling `schema.dump` has
-        gone around it, however the body was assembled. Matched on the call
-        itself rather than on source text, so `HttpResponse` — which the schema
-        view returns, and which carries a document rather than a spec type —
-        is not mistaken for one.
+        gone around it, however the body was assembled.
+
+        Matched on the call rather than on source text, so `HttpResponse` — which
+        the schema view returns, carrying a document rather than a spec type — is
+        not mistaken for one.
         """
         offenders = []
 
@@ -83,9 +80,8 @@ class RenderingTests(SimpleTestCase):
         A body built as a literal has gone around the renderer, so nothing
         applies `exclude_unset` to it.
 
-        Both the positional and the `data=` spellings are checked: `data` is
-        `Response`'s own first parameter, so the keyword form is the natural
-        way to write it and was missed by an earlier version of this test.
+        Both spellings are checked: `data` is `Response`'s own first parameter,
+        so the keyword form is as natural to write as the positional one.
         """
         offenders = []
         literal = (ast.Dict, ast.List, ast.DictComp, ast.ListComp)
