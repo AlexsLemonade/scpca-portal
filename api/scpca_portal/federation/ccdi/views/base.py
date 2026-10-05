@@ -6,6 +6,9 @@ from django.core.paginator import Paginator
 from rest_framework import status, viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import AllowAny
+from rest_framework.renderers import JSONRenderer
+
+from scpca_portal.federation.ccdi.views.errors import InvalidParameters, node_exception_handler
 
 # The spec lets each server pick its own default, and names 100 as the community
 # convention where nothing else is more reasonable.
@@ -22,6 +25,9 @@ MAX_PER_PAGE = 1000
 # field names are the server's own.
 UNHARMONIZED_FILTER_PREFIX = "metadata.unharmonized."
 
+# Named on an InvalidParameters error so a client knows which to correct.
+PAGE_PARAMETERS = ["page", "per_page"]
+
 
 class EndpointNotImplemented(APIException):
     """Raised by endpoints that are routed but whose response isn't built yet."""
@@ -29,14 +35,6 @@ class EndpointNotImplemented(APIException):
     status_code = status.HTTP_501_NOT_IMPLEMENTED
     default_detail = "This CCDI node endpoint is not implemented yet."
     default_code = "not_implemented"
-
-
-class InvalidParameters(APIException):
-    """Raised for pagination parameters no offset can be calculated from."""
-
-    status_code = status.HTTP_422_UNPROCESSABLE_ENTITY
-    default_detail = "Invalid value for parameters 'page' and 'per_page'."
-    default_code = "invalid_parameters"
 
 
 @dataclass(frozen=True)
@@ -58,11 +56,11 @@ def requested_page(request) -> tuple[int, int]:
         number = int(request.query_params.get("page", 1))
         per_page = int(request.query_params.get("per_page", DEFAULT_PER_PAGE))
     except (TypeError, ValueError):
-        raise InvalidParameters("Parameters 'page' and 'per_page' must be integers.")
+        raise InvalidParameters("Both must be integers.", PAGE_PARAMETERS)
 
     if number < 1 or per_page < 1:
         raise InvalidParameters(
-            "Parameters 'page' and 'per_page' must be 1 or greater: unable to calculate offset."
+            "Unable to calculate offset; both must be 1 or greater.", PAGE_PARAMETERS
         )
 
     return number, min(per_page, MAX_PER_PAGE)
@@ -153,6 +151,14 @@ class CCDINodeViewMixin:
 
     authentication_classes: list = []
     permission_classes = [AllowAny]
+    renderer_classes = [JSONRenderer]
+
+    def get_exception_handler(self):
+        """
+        Render failures as the spec's `responses.Errors` rather than DRF's
+        `{"detail": …}`. Returned per view, so v1 keeps DRF's default.
+        """
+        return node_exception_handler
 
 
 class EntityViewSet(CCDINodeViewMixin, viewsets.ViewSet):
