@@ -138,6 +138,29 @@ class InvalidParametersTests(TestCase):
         self.assertTrue(reason.endswith("."), reason)
 
 
+class ContentTypeTests(TestCase):
+    """
+    The spec declares `application/json` for every response it documents and no
+    other media type, so the node's API views are pinned to it. Without that,
+    a browser gets DRF's browsable-API page instead of the error body.
+    """
+
+    BROWSER = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+
+    def test_a_browser_gets_the_error_body_rather_than_the_browsable_api(self):
+        response = self.client.get(f"{NODE}/organization/nope", HTTP_ACCEPT=self.BROWSER)
+
+        self.assertEqual(response["content-type"], "application/json")
+        self.assertEqual(only_error(response)["kind"], "NotFound")
+
+    def test_the_docs_route_still_serves_a_client_that_wants_html(self):
+        # The docs routes are ours, not the spec's, so HTML there is legitimate
+        # and must not be answered with a 406.
+        response = self.client.get("/federation/ccdi/docs/schema", HTTP_ACCEPT="text/html")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+
+
 class ScopeTests(TestCase):
     """The handler is scoped by inheritance, so v1 must be untouched."""
 

@@ -6,6 +6,7 @@ from django.core.paginator import Paginator
 from rest_framework import status, viewsets
 from rest_framework.exceptions import APIException
 from rest_framework.permissions import AllowAny
+from rest_framework.renderers import JSONRenderer
 
 from scpca_portal.federation.ccdi.views.errors import InvalidParameters, node_exception_handler
 
@@ -150,6 +151,7 @@ class CCDINodeViewMixin:
 
     authentication_classes: list = []
     permission_classes = [AllowAny]
+    renderer_classes = [JSONRenderer]
 
     def get_exception_handler(self):
         """
