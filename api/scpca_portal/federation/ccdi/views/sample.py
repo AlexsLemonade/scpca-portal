@@ -9,7 +9,6 @@ See: https://cbiit.github.io/ccdi-federation-api/entities/primary/sample.html
 """
 
 from django.db.models import Q
-from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from scpca_portal.federation.ccdi import config, schema
@@ -22,6 +21,7 @@ from scpca_portal.federation.ccdi.views.base import (
     paginate,
     requested_filters,
 )
+from scpca_portal.federation.ccdi.views.errors import NotFound
 from scpca_portal.models import Sample as ScPCASample
 
 # The filters the spec declares on `GET /sample`, verbatim. Every one names a
@@ -139,12 +139,12 @@ class SampleViewSet(EntityViewSet):
         identifier = config.NAMESPACE["id"]
 
         if organization != identifier["organization"] or namespace != identifier["name"]:
-            raise NotFound()
+            raise NotFound(f"Sample in namespace '{organization}/{namespace}'")
 
         row = find_pair(name)
 
         if row is None:
-            raise NotFound()
+            raise NotFound(f"Sample with namespace '{organization}/{namespace}' and name '{name}'")
 
         # `responses.Sample` is `models.Sample` with nothing added, so the built
         # entity is already the response body.
