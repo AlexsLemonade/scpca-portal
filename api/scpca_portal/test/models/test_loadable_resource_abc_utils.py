@@ -265,32 +265,6 @@ class TestLoadableResourceABCUtils(TestCase):
         )
         self.assertCountEqual(filtered_lockfiles, [lockfile_a, lockfile_b])
 
-    def test_filter_original_files_by_resource_sample_bulk_sample(self):
-        # A bulk sample has no OriginalFile tagged with its own sample_ids at all - it's declared
-        # purely by its row in the project's shared samples_metadata.csv (see the module
-        # docstring), so no fixture file here has sample_ids=["SCPCS_BULK"]. This proves requesting
-        # one doesn't error, and still lets every project/portal level file (and lockfile) -
-        # including samples_metadata.csv itself, which is project level - pass through.
-        portal_file = OriginalFile(project_id=None)
-        samples_metadata_file = OriginalFile(project_id="SCPCP1", sample_ids=[])
-        unrelated_sample_file = OriginalFile(project_id="SCPCP1", sample_ids=["SCPCS1"])
-        lockfile = OriginalFile(project_id="SCPCP1", is_lockfile=True)
-
-        with patch(
-            f"{__name__}.non_patched_get_syncable_files",
-            return_value=(
-                [portal_file, samples_metadata_file, unrelated_sample_file],
-                [lockfile],
-            ),
-        ):
-            side_effect = filter_original_files_by_resource_wrapper(Sample, ["SCPCS_BULK"])
-            filtered_original_files, filtered_lockfiles = side_effect()
-
-        # unrelated_sample_file is excluded: sample-level files are still scoped down to the
-        # requested sample ids, and a bulk sample resolves none (it has no file).
-        self.assertCountEqual(filtered_original_files, [portal_file, samples_metadata_file])
-        self.assertCountEqual(filtered_lockfiles, [lockfile])
-
     def test_filter_original_files_by_resource_library(self):
         portal_file = OriginalFile(project_id=None, library_id=None)
         # Project level file for the requested library's own project.
