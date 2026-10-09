@@ -3,97 +3,29 @@ sync_model and sync_metadata coverage for the Sample class' derivation
 of the LoadableResourceABC base class.
 
 For sync_model coverage, each test runs the real sync_original_files -> Sample.sync_model()
-sequence against the actual test S3 bucket, narrowed to just the sample ids the scenario needs
-via two side_effect wrappers, filter_original_files_by_samples and filter_metadata_by_samples.
-Both follow the same pattern of delegating to the real implementation,
-then narrow its result to the given sample ids.
+sequence against the actual test S3 bucket, narrowed to just the sample ids the scenario needs via
+filter_original_files_by_resource_wrapper and filter_metadata_by_resource_wrapper, both generic
+across Project/Sample/Library and defined once in test_loadable_resource_abc_utils.py rather than
+copy-pasted here - see that file's module docstring for exactly how each resolves scope.
 
 Project.sync_model() is called before every Sample.sync_model() because Sample.create_new_objects
 resolves each new sample's project FK out of the db, so the project rows must already exist.
 Projects are left unnarrowed - the extra rows are inert FK targets for sample level assertions.
 """
 
-from typing import List
 from unittest.mock import patch
 
 from django.conf import settings
 from django.core.management import call_command
 from django.test import TransactionTestCase
 
-from scpca_portal import metadata_parser
 from scpca_portal.enums import LoadableResourceStates
 from scpca_portal.models import OriginalFile, Project, Sample
 from scpca_portal.test.factories import OriginalFileFactory
-
-# Capture the real (bound) functions before any patching occurs.
-# Must run at import time. Capturing while a patch is active would
-# grab the mocked function instead, causing infinite recursion.
-non_patched_get_syncable_files = OriginalFile.get_syncable_files
-non_patched_load_all_samples_metadata = metadata_parser.load_all_samples_metadata
-
-
-def filter_original_files_by_samples_wrapper(sample_ids: List[str]):
-    """
-    Build a side_effect for patching OriginalFile.get_syncable_files.
-    Returns a replacement that delegates to the real implementation, then narrows the resulting
-    original files to the given sample IDs - except files with no sample ids (project level files,
-    e.g. the samples_metadata.csv that sample metadata is itself parsed out of, and lockfiles),
-    which are kept so that the metadata wrapper below stays the only thing scoping sample metadata.
-    Lockfiles are returned unnarrowed for the same reason - they are project level, not sample
-    level.
-    """
-
-    def filter_original_files_by_samples(*args, **kwargs):
-        # Run the real classmethod with the original args (*args, **kwargs) to ensure whatever
-        # arguments the command originally passed (bucket_objects, bucket, sync_timestamp) are used.
-        original_files, lockfiles = non_patched_get_syncable_files(*args, **kwargs)
-
-        filtered_original_files = [
-            of
-            for of in original_files
-            if not of.sample_ids or any(sid in sample_ids for sid in of.sample_ids)
-        ]
-
-        return filtered_original_files, lockfiles
-
-    return filter_original_files_by_samples
-
-
-def filter_metadata_by_samples_wrapper(
-    sample_ids: List[str], *, add_new_sample: bool = False, modified_sample_id: str | None = None
-):
-    """
-    Build a side_effect for patching metadata_parser.load_all_samples_metadata.
-    Returns a replacement that delegates to the real implementation, then narrows the resulting
-    list of sample metadata dicts down to the given sample IDs.
-    """
-
-    def filter_metadata_by_samples(*args, **kwargs):
-        # Run the real function with the original args (*args, **kwargs) to ensure whatever
-        # arguments the caller originally passed (samples_metadata_files, filter_on_ids) are used.
-        samples_metadata = non_patched_load_all_samples_metadata(*args, **kwargs)
-        filtered_metadata = [
-            md for md in samples_metadata if md[Sample.SCPCA_RESOURCE_METADATA_ID_KEY] in sample_ids
-        ]
-
-        if add_new_sample:
-            # Unlike a new project, a new sample must name its project,
-            # which create_new_objects resolves the FK from.
-            filtered_metadata.append(
-                {"scpca_sample_id": "SCPCS999999", "scpca_project_id": "SCPCP999990"}
-            )
-
-        if modified_sample_id:
-            modified_sample_metadata = next(
-                (md for md in filtered_metadata if md["scpca_sample_id"] == modified_sample_id),
-                None,
-            )
-            if modified_sample_metadata:
-                modified_sample_metadata["diagnosis"] = "Mutated diagnosis"
-
-        return filtered_metadata
-
-    return filter_metadata_by_samples
+from scpca_portal.test.models.test_loadable_resource_abc_utils import (
+    filter_metadata_by_resource_wrapper,
+    filter_original_files_by_resource_wrapper,
+)
 
 
 class TestSampleLoadableResource(TransactionTestCase):
@@ -102,13 +34,13 @@ class TestSampleLoadableResource(TransactionTestCase):
         sample_ids = ["SCPCS999990", "SCPCS999995", "SCPCS999996"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper(sample_ids),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, sample_ids),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         Project.sync_model()
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
 
@@ -122,9 +54,12 @@ class TestSampleLoadableResource(TransactionTestCase):
 
         # Assert that a sample can also be created by just adding it to the metadata file
         # without any Original Files
+        new_sample_metadata = {"scpca_sample_id": "SCPCS999999", "scpca_project_id": "SCPCP999990"}
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids, add_new_sample=True),
+            side_effect=filter_metadata_by_resource_wrapper(
+                Sample, sample_ids, add_new_metadata=new_sample_metadata
+            ),
         ):
             output_counts = Sample.sync_model()
 
@@ -141,7 +76,7 @@ class TestSampleLoadableResource(TransactionTestCase):
         # As such, no new samples should be created.
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper([]),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, []),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         Project.sync_model()
@@ -154,14 +89,14 @@ class TestSampleLoadableResource(TransactionTestCase):
         sample_ids = ["SCPCS999990", "SCPCS999991", "SCPCS999997"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper(sample_ids),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, sample_ids),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
 
         OriginalFileFactory(project_id="SCPCP999990", is_lockfile=True)
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
 
@@ -178,7 +113,7 @@ class TestSampleLoadableResource(TransactionTestCase):
         sample_ids = ["SCPCS999990", "SCPCS999991", "SCPCS999997"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper(sample_ids),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, sample_ids),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         Project.sync_model()
@@ -186,7 +121,7 @@ class TestSampleLoadableResource(TransactionTestCase):
         OriginalFileFactory(project_id="SCPCP999990", is_lockfile=True)
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
         self.assertDictEqual(
@@ -199,7 +134,7 @@ class TestSampleLoadableResource(TransactionTestCase):
         OriginalFile.objects.filter(project_id="SCPCP999990", is_lockfile=True).delete()
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
         self.assertDictEqual(
@@ -215,13 +150,13 @@ class TestSampleLoadableResource(TransactionTestCase):
         sample_ids = ["SCPCS999990", "SCPCS999991", "SCPCS999997"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper(sample_ids),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, sample_ids),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         Project.sync_model()
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
             Sample.sync_metadata()  # This is necessary to move the samples into a SYNCED state
@@ -237,7 +172,7 @@ class TestSampleLoadableResource(TransactionTestCase):
         OriginalFileFactory(project_id="SCPCP999990", is_lockfile=True)
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
         self.assertDictEqual(
@@ -255,13 +190,13 @@ class TestSampleLoadableResource(TransactionTestCase):
         sample_ids = ["SCPCS999990", "SCPCS999991", "SCPCS999997"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper(sample_ids),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, sample_ids),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         Project.sync_model()
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             Sample.sync_model()
             Sample.sync_metadata()
@@ -269,7 +204,7 @@ class TestSampleLoadableResource(TransactionTestCase):
         OriginalFileFactory(project_id="SCPCP999990", is_lockfile=True)
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
 
@@ -288,8 +223,12 @@ class TestSampleLoadableResource(TransactionTestCase):
         OriginalFile.objects.filter(project_id="SCPCP999990", is_lockfile=True).delete()
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(
-                sample_ids, modified_sample_id="SCPCS999997"
+            side_effect=filter_metadata_by_resource_wrapper(
+                Sample,
+                sample_ids,
+                modified_resource_id="SCPCS999997",
+                mutated_field="diagnosis",
+                mutated_value="Mutated diagnosis",
             ),
         ):
             output_counts = Sample.sync_model()
@@ -308,13 +247,13 @@ class TestSampleLoadableResource(TransactionTestCase):
         sample_ids = ["SCPCS999996"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper(sample_ids),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, sample_ids),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         Project.sync_model()
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             Sample.sync_model()
         self.assertTrue(Sample.objects.filter(scpca_id="SCPCS999996").exists())
@@ -322,12 +261,12 @@ class TestSampleLoadableResource(TransactionTestCase):
         # Assert OF deletion with sample still in metadata preserves object in db
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper([]),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, []),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper(sample_ids),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, sample_ids),
         ):
             output_counts = Sample.sync_model()
 
@@ -337,12 +276,12 @@ class TestSampleLoadableResource(TransactionTestCase):
         # Assert deletion in metadata but lack of OF deletion preserves object in db
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper(sample_ids),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, sample_ids),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper([]),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, []),
         ):
             output_counts = Sample.sync_model()
 
@@ -352,12 +291,12 @@ class TestSampleLoadableResource(TransactionTestCase):
         # Assert satisfaction of both conditions yields purged object from db
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
-            side_effect=filter_original_files_by_samples_wrapper([]),
+            side_effect=filter_original_files_by_resource_wrapper(Sample, []),
         ):
             call_command("sync_original_files", bucket=settings.AWS_S3_INPUT_BUCKET_NAME)
         with patch(
             "scpca_portal.metadata_parser.load_all_samples_metadata",
-            side_effect=filter_metadata_by_samples_wrapper([]),
+            side_effect=filter_metadata_by_resource_wrapper(Sample, []),
         ):
             output_counts = Sample.sync_model()
 
