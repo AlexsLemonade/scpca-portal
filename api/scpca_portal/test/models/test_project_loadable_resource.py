@@ -6,7 +6,7 @@ For sync_model coverage, each test runs the real sync_original_files -> Project.
 sequence against the actual test S3 bucket, narrowed to just the project ids the scenario needs via
 filter_original_files_by_resource_wrapper and filter_metadata_by_resource_wrapper, both generic
 across Project/Sample/Library and defined once in test_loadable_resource_abc_utils.py rather than
-copy-pasted here - see that file's module docstring for exactly how each resolves scope.
+copy-pasted here.
 """
 
 from unittest.mock import patch

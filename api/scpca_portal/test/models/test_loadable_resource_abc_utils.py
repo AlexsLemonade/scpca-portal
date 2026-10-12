@@ -1,45 +1,16 @@
 """
-Generic, single-location versions of the filter_original_files_by_* and filter_metadata_by_*
-side_effect wrappers duplicated across test_project_loadable_resource.py,
-test_sample_loadable_resource.py and test_library_loadable_resource.py. Each wrapper here is
-parameterized by resource_cls (Project, Sample or Library) instead of being copy-pasted per model.
+Shared utilities for the test_*_loadable_resource.py files, which run the real reload pipeline
+against the test S3 bucket.
 
-filter_original_files_by_resource_wrapper resolves each resource_cls's scope independently -
-Project keeps every file (any level) and every lockfile belonging to the given project ids, no
-further narrowing, since requesting a project means everything in it.
+A scenario only needs a few resources, not the whole bucket. Each wrapper here builds a side_effect
+that a test patches over a real function: it calls the real function, then narrows the output to
+the requested ids of a given resource_cls (Project, Sample or Library).
+- filter_original_files_by_resource_wrapper patches OriginalFile.get_syncable_files, scoping which
+  files sync_original_files syncs.
+- filter_metadata_by_resource_wrapper patches the metadata_parser load_all_* functions, scoping
+  which metadata sync_model reads. It can also add or modify a row to simulate bucket changes.
 
-Sample and Library both narrow only their own tier's files (sample-level / library-level,
-respectively, matched directly against the requested ids) - neither narrows project-level files or
-lockfiles down to a resolved project. This isn't an oversight: OriginalFile only records literal
-files that exist in the bucket, but a resource's real existence is declared by its metadata row, not
-by having a file of its own - a bulk sample gets a row in the project's shared samples_metadata.csv
-exactly like every regular sample does, and a bulk library gets a row in the project's shared bulk
-tsv (see Library.new_load_metadata), yet neither one has any OriginalFile carrying its own id. The
-original-files layer exists to support metadata parsing (e.g. ensuring samples_metadata.csv itself
-gets synced), not to independently corroborate which resources exist - so trying to resolve "which
-project does this sample/library id belong to" from file-level id matching would silently return
-nothing for a bulk resource, and the project-level metadata file it's actually declared in would
-never get synced as a result. Project-level files and lockfiles are therefore always kept for every
-resource_cls, exactly like Project's own "everything in scope" behavior; only each resource_cls's
-own tier of files is actually scoped down to the requested ids. A Sample/Library request whose ids
-match no file for that tier simply narrows to nothing at that tier - it never falls back to
-"every sample" or "every library" the way a plain per-file membership check would.
-
-filter_metadata_by_resource_wrapper takes resource_cls the same way the original files wrapper
-does - the caller just passes the class and resource_ids, never a metadata_parser function or id
-key directly. Internally it switches on resource_cls to pick which of this file's own
-non_patched_load_all_*_metadata functions to delegate to and which SCPCA_RESOURCE_METADATA_ID_KEY
-to filter on, since underneath every metadata source is just a list of dicts narrowed down to the
-ones whose id key is in resource_ids - one generic filtering body covers all of them once the
-right source function is picked. Library is the only resource_cls with two independent metadata
-sources (one metadata.json per regular library, and one project level bulk tsv shared by every
-project's bulk library); the keyword-only `bulk` flag picks between them, so a caller scoping
-Library still makes two separate calls to this same function (once with bulk=False, once with
-bulk=True) rather than getting a dict of side_effects back - every call still returns the same
-shape: a single side_effect function.
-
-These wrappers aren't wired into the three files above yet - this file only establishes and tests
-them in isolation, via TestLoadableResourceABCUtils below.
+TestLoadableResourceABCUtils at the bottom checks the wrappers in isolation against mocked inputs.
 """
 
 from typing import Dict, List
@@ -62,11 +33,13 @@ non_patched_load_all_bulk_libraries_metadata = metadata_parser.load_all_bulk_lib
 
 def filter_original_files_by_resource_wrapper(resource_cls: type, resource_ids: List[str]):
     """
-    Build a side_effect for patching OriginalFile.get_syncable_files, generic across Project,
-    Sample and Library. Returns a replacement that delegates to the real implementation, then
-    narrows the result to the given resource_ids - project ids, sample ids or library ids,
-    according to resource_cls. See the module docstring above for how scope is resolved for
-    Sample/Library.
+    Build a side_effect for patching OriginalFile.get_syncable_files. It delegates to the real
+    implementation, then narrows the result to resource_ids.
+
+    Project keeps every file and lockfile in the requested projects. Sample and Library narrow only
+    their own tier of files and always keep project-level files and lockfiles. A bulk resource has
+    no file carrying its id, only a row in a project-level metadata file, so that file must always
+    sync.
     """
 
     if resource_cls not in (Project, Sample, Library):
@@ -89,9 +62,8 @@ def filter_original_files_by_resource_wrapper(resource_cls: type, resource_ids: 
 
         if resource_cls == Sample:
             sample_ids = set(resource_ids)
-            # Project-level files (and lockfiles) always pass through - see the module docstring
-            # for why a bulk sample makes that necessary, not just permissive. Only sample-level
-            # files are actually narrowed, directly against the requested sample ids.
+            # Project-level files and lockfiles always pass through.
+            # Only sample-level files are narrowed, directly against the requested sample ids.
             filtered_original_files = [
                 of
                 for of in original_files
@@ -227,9 +199,8 @@ class TestLoadableResourceABCUtils(TestCase):
         out_of_scope_sample_file = OriginalFile(project_id="SCPCP1", sample_ids=["SCPCS2"])
         # Multiplexed library file naming more than one sample - in scope if any id matches.
         multiplexed_file = OriginalFile(project_id="SCPCP1", sample_ids=["SCPCS1", "SCPCS3"])
-        # A second, uninvolved project - its project level file and lockfile are still kept: a
-        # bulk sample (see the module docstring) has no file of its own to resolve a project
-        # from, so project-level files and lockfiles are never narrowed down for Sample requests.
+        # A second, uninvolved project - its project level file and lockfile are still kept,
+        # since project-level files are never narrowed for Sample requests.
         other_project_level_file = OriginalFile(project_id="SCPCP2", sample_ids=[])
         other_project_sample_file = OriginalFile(project_id="SCPCP2", sample_ids=["SCPCS4"])
         lockfile_a = OriginalFile(project_id="SCPCP1", is_lockfile=True)
@@ -283,9 +254,8 @@ class TestLoadableResourceABCUtils(TestCase):
         out_of_scope_library_file = OriginalFile(
             project_id="SCPCP1", sample_ids=["SCPCS2"], library_id="SCPCL2"
         )
-        # A second, uninvolved project - its project level file and lockfile are still kept: a
-        # bulk library (see the module docstring) has no file of its own to resolve a project
-        # from, so project-level files and lockfiles are never narrowed down for Library requests.
+        # A second, uninvolved project - its project level file and lockfile are still kept,
+        # since project-level files are never narrowed for Library requests.
         other_project_level_file = OriginalFile(project_id="SCPCP2", sample_ids=[], library_id=None)
         lockfile_a = OriginalFile(project_id="SCPCP1", is_lockfile=True)
         lockfile_b = OriginalFile(project_id="SCPCP2", is_lockfile=True)
@@ -322,7 +292,7 @@ class TestLoadableResourceABCUtils(TestCase):
 
     def test_filter_original_files_by_resource_library_bulk_library(self):
         # A bulk library has no OriginalFile tagged with its own library_id at all (it's parsed
-        # from a project level bulk tsv instead - see the module docstring), so no fixture file
+        # from a project level bulk tsv instead), so no fixture file
         # here has library_id="SCPCL_BULK". This proves that requesting one doesn't error, and
         # still lets every project/portal level file (and lockfile) - including the bulk tsv file
         # itself, which is project level - pass through, even though nothing can be resolved from
