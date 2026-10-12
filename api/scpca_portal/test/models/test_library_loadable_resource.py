@@ -152,7 +152,8 @@ class TestLibraryLoadableResource(TransactionTestCase):
         pass
 
     def test_sync_model_lock_synced_libraries(self):
-        library_ids = ["SCPCL999990", "SCPCL999994", "SCPCL999997"]
+        # Both normal "SCPCL999990" and bulk "SCPCL999994" libraries are tested here
+        library_ids = ["SCPCL999990", "SCPCL999994"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
             side_effect=filter_original_files_by_resource_wrapper(Library, library_ids),
@@ -171,12 +172,12 @@ class TestLibraryLoadableResource(TransactionTestCase):
             ),
         ):
             output_counts = Library.sync_model()
-            Library.sync_metadata()  # This is necessary to move the libraries into a SYNCED state
         self.assertDictEqual(
             output_counts,
-            {"created": 3, "deleted": 0, "locked": 0, "unlocked": 0, "tainted": 0},
+            {"created": 2, "deleted": 0, "locked": 0, "unlocked": 0, "tainted": 0},
         )
-
+        # Now the new libraries should be moved to a SYNCED state
+        Library.sync_metadata()
         for library_id in library_ids:
             library = Library.objects.get(scpca_id=library_id)
             self.assertEqual(library.loaded_state, LoadableResourceStates.SYNCED)
@@ -195,7 +196,7 @@ class TestLibraryLoadableResource(TransactionTestCase):
             output_counts = Library.sync_model()
         self.assertDictEqual(
             output_counts,
-            {"created": 0, "deleted": 0, "locked": 3, "unlocked": 0, "tainted": 0},
+            {"created": 0, "deleted": 0, "locked": 2, "unlocked": 0, "tainted": 0},
         )
 
         for library_id in library_ids:
@@ -203,11 +204,7 @@ class TestLibraryLoadableResource(TransactionTestCase):
             self.assertEqual(library.loaded_state, LoadableResourceStates.LOCKED)
 
     def test_sync_model_unlock_synced_libraries(self):
-        # All three libraries belong to SCPCP999990, since a lockfile is project level -
-        # one lockfile locks and unlocks all of them together. SCPCL999994 is SCPCP999990's bulk
-        # library - it has no original file of its own (see the module docstring), so it's used as
-        # the non-tainted control here, isolating the file-hash and metadata taint paths to the
-        # other two.
+        # CREATE THE LIBRARIES
         library_ids = ["SCPCL999990", "SCPCL999994", "SCPCL999997"]
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
@@ -227,8 +224,11 @@ class TestLibraryLoadableResource(TransactionTestCase):
             ),
         ):
             Library.sync_model()
-            Library.sync_metadata()
 
+        # SYNC THE LIBRARIES
+        Library.sync_metadata()
+
+        # LOCK THE LIBRARIES
         OriginalFileFactory(project_id="SCPCP999990", is_lockfile=True)
         with (
             patch(
@@ -243,6 +243,10 @@ class TestLibraryLoadableResource(TransactionTestCase):
             output_counts = Library.sync_model()
 
         self.assertEqual(output_counts["locked"], 3)
+
+        # UNLOCK THE LIBRARIES
+        # NOTE: there is no "UNLOCKED" state:
+        # untouched libraries are reverted to SYNCED and touched one become TAINTED
         non_tainted_library = Library.objects.get(scpca_id="SCPCL999994")
         tainted_original_files_library = Library.objects.get(scpca_id="SCPCL999990")
         tainted_metadata_library = Library.objects.get(scpca_id="SCPCL999997")
@@ -300,6 +304,7 @@ class TestLibraryLoadableResource(TransactionTestCase):
         bulk_library_id = "SCPCL999994"
         library_ids = [regular_library_id]
         bulk_library_ids = [bulk_library_id]
+
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
             side_effect=filter_original_files_by_resource_wrapper(Library, library_ids),
@@ -314,9 +319,7 @@ class TestLibraryLoadableResource(TransactionTestCase):
             ),
             patch(
                 "scpca_portal.metadata_parser.load_all_bulk_libraries_metadata",
-                side_effect=filter_metadata_by_resource_wrapper(
-                    Library, bulk_library_ids, bulk=True
-                ),
+                side_effect=filter_metadata_by_resource_wrapper(Library, library_ids, bulk=True),
             ),
         ):
             output_counts = Library.sync_model()
