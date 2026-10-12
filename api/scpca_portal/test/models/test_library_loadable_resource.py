@@ -21,11 +21,15 @@ Once concatenated though, sync_model never differentiates a bulk library from a 
 created/deleted/locked/unlocked/tainted counts are a single unified total either way. SCPCL999994
 (SCPCP999990's only bulk library in the real test bucket) is deliberately mixed in alongside
 regular libraries in test_sync_model_new_libraries and test_sync_model_purge_deleted_library to
-prove that counts stay unified rather than split by source. A bulk library also has no
-OriginalFile of its own, which is why filter_original_files_by_resource_wrapper never narrows
-project-level files (or lockfiles) down to a resolved project for Library requests the way it does
-for Sample - there would be nothing to resolve a project from when the requested id is a bulk
-library's.
+prove that counts stay unified rather than split by source.
+
+A bulk library's files do exist, but they're the project level bulk/ tsvs, never tagged with its
+library id. So, like a project or sample row in a shared metadata file, its existence rests only on
+its metadata row: dropping that row purges it even while the bulk files remain, which
+test_sync_model_purge_deleted_library asserts alongside a regular library. This is also why
+filter_original_files_by_resource_wrapper never narrows project-level files (or lockfiles) down to
+a resolved project for Library requests the way it does for Sample - there would be nothing to
+resolve a project from when the requested id is a bulk library's.
 
 Project.sync_model() and Sample.sync_model() are both called unnarrowed before every
 Library.sync_model() in this file, since Library.create_new_objects resolves each new library's
@@ -292,18 +296,14 @@ class TestLibraryLoadableResource(TransactionTestCase):
         self.assertEqual(output_counts["tainted"], 2)
 
     def test_sync_model_purge_deleted_library(self):
-        # SCPCL999996 is a regular library (its own metadata.json); SCPCL999994 is SCPCP999990's
-        # bulk library (parsed from the project's shared bulk tsv, no OriginalFile of its own - see
-        # the module docstring). Both are created and purged together here, to prove sync_model's
-        # deleted count is a single unified total that doesn't differentiate bulk from regular
-        # libraries - it's kept separate from library_ids below only because a bulk library has no
-        # OriginalFile to independently lose, so it can't follow the same OF-vs-metadata staged
-        # narrative regular_library_id does; it instead stays in scope throughout and is only
-        # dropped at the final, "both conditions satisfied" step, alongside regular_library_id.
+        # A library is purged once nothing references its id: no OriginalFile tagged with it and
+        # no metadata row for it. A regular library is referenced by both its own files and its
+        # metadata.json. A bulk library's files (the project level bulk/ tsvs) are never tagged
+        # with its id, so only its row in the bulk tsv keeps it alive, like a project or sample
+        # row in a shared metadata file. Both types go through every stage below together.
         regular_library_id = "SCPCL999996"
         bulk_library_id = "SCPCL999994"
-        library_ids = [regular_library_id]
-        bulk_library_ids = [bulk_library_id]
+        library_ids = [regular_library_id, bulk_library_id]
 
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
@@ -324,16 +324,10 @@ class TestLibraryLoadableResource(TransactionTestCase):
         ):
             output_counts = Library.sync_model()
         self.assertEqual(output_counts["created"], 2)
-        self.assertTrue(Library.objects.filter(scpca_id=regular_library_id).exists())
-        self.assertTrue(Library.objects.filter(scpca_id=bulk_library_id).exists())
 
-        # Unlike Project/Sample - whose metadata comes from one shared, always present file - a
-        # library's own metadata.json IS its sole metadata source. Once its Original File is gone,
-        # the real load_all_libraries_metadata can no longer read it at all, so there's nothing to
-        # narrow down to. "OF deletion with library still in metadata" is instead simulated by
-        # re-adding the library's metadata dict synthetically via add_new_metadata. This only
-        # applies to the regular library - bulk_library_ids stays untouched (still in scope)
-        # through this and the next stage, since a bulk library never has an OriginalFile to lose.
+        # Assert OF deletion but lack of deletion in metadata preserves both objects in db.
+        # A regular library's metadata.json goes with its files, so its row is re-added
+        # synthetically. The bulk tsv is project level, so the bulk row is still read for real.
         deleted_library_metadata = {
             "scpca_project_id": "SCPCP999992",
             "scpca_sample_id": "SCPCS999996",
@@ -353,9 +347,7 @@ class TestLibraryLoadableResource(TransactionTestCase):
             ),
             patch(
                 "scpca_portal.metadata_parser.load_all_bulk_libraries_metadata",
-                side_effect=filter_metadata_by_resource_wrapper(
-                    Library, bulk_library_ids, bulk=True
-                ),
+                side_effect=filter_metadata_by_resource_wrapper(Library, library_ids, bulk=True),
             ),
         ):
             output_counts = Library.sync_model()
@@ -364,7 +356,8 @@ class TestLibraryLoadableResource(TransactionTestCase):
         self.assertTrue(Library.objects.filter(scpca_id=regular_library_id).exists())
         self.assertTrue(Library.objects.filter(scpca_id=bulk_library_id).exists())
 
-        # Assert deletion in metadata but lack of OF deletion preserves object in db
+        # Assert deletion in metadata but lack of OF deletion preserves only the regular library.
+        # The bulk library's files remain, but none carry its id, so dropping its row purges it.
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
             side_effect=filter_original_files_by_resource_wrapper(Library, library_ids),
@@ -377,19 +370,17 @@ class TestLibraryLoadableResource(TransactionTestCase):
             ),
             patch(
                 "scpca_portal.metadata_parser.load_all_bulk_libraries_metadata",
-                side_effect=filter_metadata_by_resource_wrapper(
-                    Library, bulk_library_ids, bulk=True
-                ),
+                side_effect=filter_metadata_by_resource_wrapper(Library, [], bulk=True),
             ),
         ):
             output_counts = Library.sync_model()
 
-        self.assertEqual(output_counts["deleted"], 0)
+        # Library row plus its samples m2m through-row
+        self.assertEqual(output_counts["deleted"], 2)
         self.assertTrue(Library.objects.filter(scpca_id=regular_library_id).exists())
-        self.assertTrue(Library.objects.filter(scpca_id=bulk_library_id).exists())
+        self.assertFalse(Library.objects.filter(scpca_id=bulk_library_id).exists())
 
-        # Assert satisfaction of both conditions yields purged object from db - for the regular
-        # and the bulk library alike, counted together in one unified "deleted" total.
+        # Assert satisfaction of both conditions purges the regular library too
         with patch(
             "scpca_portal.models.OriginalFile.get_syncable_files",
             side_effect=filter_original_files_by_resource_wrapper(Library, []),
@@ -407,12 +398,8 @@ class TestLibraryLoadableResource(TransactionTestCase):
         ):
             output_counts = Library.sync_model()
 
-        # >=2 rather than an exact number: deleting a Library also deletes its samples m2m
-        # through-rows, so the total reflects those join rows being removed alongside the two
-        # Library rows themselves, not just the Library rows.
-        self.assertGreaterEqual(output_counts["deleted"], 2)
+        self.assertEqual(output_counts["deleted"], 2)
         self.assertFalse(Library.objects.filter(scpca_id=regular_library_id).exists())
-        self.assertFalse(Library.objects.filter(scpca_id=bulk_library_id).exists())
 
     # SYNC_METADATA TESTS
     def test_sync_metadata(self):
