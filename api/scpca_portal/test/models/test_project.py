@@ -202,7 +202,10 @@ class TestProject(TestCase):
     def test_sync_aggregations(self):
         # bulk is turned off for now, the bulk path will be tested when actual test data is used
         stale_project = ProjectFactory(
-            has_bulk_rna_seq=False, aggregation_hash="stale_hash", sample_count=0
+            loaded_state=LoadableResourceStates.SYNCED,
+            has_bulk_rna_seq=False,
+            aggregation_hash="stale_hash",
+            sample_count=0,
         )
         for sample in stale_project.samples.all():
             sample.metadata_hash = "sample_hash"
@@ -212,7 +215,9 @@ class TestProject(TestCase):
             library.save(update_fields=["metadata_hash"])
 
         # placeholder sample_count proves this project's aggregations are left untouched
-        up_to_date_project = ProjectFactory(has_bulk_rna_seq=False, sample_count=999)
+        up_to_date_project = ProjectFactory(
+            loaded_state=LoadableResourceStates.SYNCED, has_bulk_rna_seq=False, sample_count=999
+        )
         for sample in up_to_date_project.samples.all():
             sample.metadata_hash = "sample_hash_2"
             sample.save(update_fields=["metadata_hash"])
@@ -222,8 +227,8 @@ class TestProject(TestCase):
         up_to_date_project.aggregation_hash = up_to_date_project.current_aggregation_hash
         up_to_date_project.save(update_fields=["aggregation_hash"])
 
-        resources = Project.objects.filter(id__in=[stale_project.id, up_to_date_project.id])
-        Project.sync_aggregations(resources)
+        aggregated_count = Project.sync_aggregations()
+        self.assertEqual(aggregated_count, 1)
 
         stale_project.refresh_from_db()
         up_to_date_project.refresh_from_db()
@@ -236,11 +241,12 @@ class TestProject(TestCase):
         self.assertEqual(up_to_date_project.sample_count, 999)
 
     def test_sync_aggregations_no_changes(self):
-        project = LeafProjectFactory(sample_count=999)
+        project = LeafProjectFactory(loaded_state=LoadableResourceStates.SYNCED, sample_count=999)
         project.aggregation_hash = project.current_aggregation_hash
         project.save(update_fields=["aggregation_hash"])
 
-        Project.sync_aggregations(Project.objects.filter(id=project.id))
+        aggregated_count = Project.sync_aggregations()
+        self.assertEqual(aggregated_count, 0)
 
         project.refresh_from_db()
         self.assertEqual(project.sample_count, 999)
