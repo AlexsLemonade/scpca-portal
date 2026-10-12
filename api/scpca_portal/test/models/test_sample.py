@@ -206,20 +206,25 @@ class TestSample(TestCase):
         project = LeafProjectFactory(has_bulk_rna_seq=False)
 
         stale_sample = SampleFactory(
-            project=project, aggregation_hash="stale_hash", seq_units=["placeholder"]
+            project=project,
+            loaded_state=LoadableResourceStates.SYNCED,
+            aggregation_hash="stale_hash",
+            seq_units=["placeholder"],
         )
         stale_library = LibraryFactory(project=project, metadata_hash="library_hash")
         stale_sample.libraries.add(stale_library)
 
         # placeholder seq_units proves this sample's aggregations are left untouched
-        up_to_date_sample = SampleFactory(project=project, seq_units=["placeholder"])
+        up_to_date_sample = SampleFactory(
+            project=project, loaded_state=LoadableResourceStates.SYNCED, seq_units=["placeholder"]
+        )
         up_to_date_library = LibraryFactory(project=project, metadata_hash="library_hash_2")
         up_to_date_sample.libraries.add(up_to_date_library)
         up_to_date_sample.aggregation_hash = up_to_date_sample.current_aggregation_hash
         up_to_date_sample.save(update_fields=["aggregation_hash"])
 
-        resources = Sample.objects.filter(id__in=[stale_sample.id, up_to_date_sample.id])
-        Sample.sync_aggregations(resources)
+        aggregated_count = Sample.sync_aggregations()
+        self.assertEqual(aggregated_count, 1)
 
         stale_sample.refresh_from_db()
         up_to_date_sample.refresh_from_db()
@@ -233,11 +238,14 @@ class TestSample(TestCase):
 
     def test_sync_aggregations_no_changes(self):
         project = LeafProjectFactory(has_bulk_rna_seq=False)
-        sample = SampleFactory(project=project, seq_units=["placeholder"])
+        sample = SampleFactory(
+            project=project, loaded_state=LoadableResourceStates.SYNCED, seq_units=["placeholder"]
+        )
         sample.aggregation_hash = sample.current_aggregation_hash
         sample.save(update_fields=["aggregation_hash"])
 
-        Sample.sync_aggregations(Sample.objects.filter(id=sample.id))
+        aggregated_count = Sample.sync_aggregations()
+        self.assertEqual(aggregated_count, 0)
 
         sample.refresh_from_db()
         self.assertEqual(sample.seq_units, ["placeholder"])
