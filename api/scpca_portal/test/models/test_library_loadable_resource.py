@@ -8,39 +8,12 @@ filter_original_files_by_resource_wrapper and filter_metadata_by_resource_wrappe
 across Project/Sample/Library and defined once in test_loadable_resource_abc_utils.py rather than
 copy-pasted here - see that file's module docstring for exactly how each resolves scope.
 
-Library.new_load_metadata reads libraries from two independent sources and concatenates them -
-metadata_parser.load_all_libraries_metadata (one metadata.json file per regular library) and
-metadata_parser.load_all_bulk_libraries_metadata (one shared, project level bulk tsv, since a
-project's bulk library has no file of its own) - so both must be patched/scoped together any time
-library metadata needs narrowing, unlike Project/Sample which each only have one source to patch.
-filter_metadata_by_resource_wrapper's keyword-only bulk flag picks between the two - bulk=False
-(the default) for the regular source, bulk=True for the bulk one - so scoping a test's library
-metadata still means two separate patch calls, one per source, same as always.
+Library metadata has two sources, regular (one metadata.json per library) and bulk (one tsv per
+project), so both are patched whenever library metadata is narrowed. Project and Sample are synced
+unnarrowed first, since new libraries resolve their project FK and samples M2M from the db.
 
-Once concatenated though, sync_model never differentiates a bulk library from a regular one - its
-created/deleted/locked/unlocked/tainted counts are a single unified total either way. SCPCL999994
-(SCPCP999990's only bulk library in the real test bucket) is deliberately mixed in alongside
-regular libraries in test_sync_model_new_libraries and test_sync_model_purge_deleted_library to
-prove that counts stay unified rather than split by source.
-
-A bulk library's files do exist, but they're the project level bulk/ tsvs, never tagged with its
-library id. So, like a project or sample row in a shared metadata file, its existence rests only on
-its metadata row: dropping that row purges it even while the bulk files remain, which
-test_sync_model_purge_deleted_library asserts alongside a regular library. This is also why
-filter_original_files_by_resource_wrapper never narrows project-level files (or lockfiles) down to
-a resolved project for Library requests the way it does for Sample - there would be nothing to
-resolve a project from when the requested id is a bulk library's.
-
-Project.sync_model() and Sample.sync_model() are both called unnarrowed before every
-Library.sync_model() in this file, since Library.create_new_objects resolves each new library's
-project FK and samples M2M out of the db, so project and sample rows must already exist. Project
-and Sample rows are left unnarrowed - the extra rows are inert FK targets for library level
-assertions.
-
-KNOWN BUG, routed around throughout this file: SCPCP999990's spatial library (SCPCL999991) has no
-"project_id" key in its real metadata.json, and Library.create_new_objects has no fallback for
-that, so Library.sync_model() raises KeyError if that library's metadata is ever in scope. None of
-this file's scenarios include SCPCL999991 in their library_ids for that reason.
+KNOWN BUG: SCPCL999991's metadata.json has no "project_id", which makes Library.sync_model() raise
+KeyError, so no test includes it.
 """
 
 from unittest.mock import patch
@@ -61,8 +34,7 @@ from scpca_portal.test.models.test_loadable_resource_abc_utils import (
 class TestLibraryLoadableResource(TransactionTestCase):
     # SYNC_MODEL TESTS
     def test_sync_model_new_libraries(self):
-        # One library per project, plus SCPCP999990's bulk library (SCPCL999994 - parsed from the
-        # project's shared bulk tsv rather than its own metadata.json, see the module docstring).
+        # One library per project, plus SCPCP999990's bulk library "SCPCL999994"
         # sync_model's created count doesn't differentiate bulk from regular libraries, so it's
         # included right alongside the rest to prove that. SCPCL999992 is a multiplexed library
         # (two samples).

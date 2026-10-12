@@ -8,9 +8,7 @@ filter_original_files_by_resource_wrapper and filter_metadata_by_resource_wrappe
 across Project/Sample/Library and defined once in test_loadable_resource_abc_utils.py rather than
 copy-pasted here - see that file's module docstring for exactly how each resolves scope.
 
-Project.sync_model() is called before every Sample.sync_model() because Sample.create_new_objects
-resolves each new sample's project FK out of the db, so the project rows must already exist.
-Projects are left unnarrowed - the extra rows are inert FK targets for sample level assertions.
+Project is synced unnarrowed first, since new samples resolve their project FK from the db.
 """
 
 from unittest.mock import patch
