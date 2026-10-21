@@ -8,7 +8,7 @@ class Project_SCPCP999992:
     VALUES = {
         "abstract": "Abstract3",
         "additional_restrictions": "Research or academic purposes only",
-        "additional_processing": None,
+        "additional_processing": "NA",
         "diagnoses": ["diagnosis7"],
         "diagnoses_counts": {"diagnosis7": 2},
         "disease_timings": ["Initial diagnosis"],

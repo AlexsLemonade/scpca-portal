@@ -10,6 +10,7 @@ class Project_SCPCP999994:
     VALUES = {
         "abstract": "Abstract5",
         "additional_restrictions": "Research or academic purposes only",
+        "additional_processing": "NA",
         "diagnoses": ["diagnosis9"],
         "diagnoses_counts": {"diagnosis8": 2},
         "disease_timings": ["Initial diagnosis"],
@@ -19,6 +20,7 @@ class Project_SCPCP999994:
         "has_multiplexed_data": False,
         "has_single_cell_data": True,
         "has_spatial_data": False,
+        "has_additional_documentation": False,
         "human_readable_pi_name": "PI5",
         "includes_anndata": True,
         "includes_cell_lines": False,
