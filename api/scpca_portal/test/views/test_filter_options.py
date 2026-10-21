@@ -13,7 +13,7 @@ class FilterOptionsTestCase(APITestCase):
             diagnosis="different",
             project=ProjectFactory(),
             seq_units=["cell", "bulk"],
-            technologies=["10Xv4", "10Xv5"],
+            technologies=["10xv4", "10xv5"],
         )
         sample.project.update_project_aggregate_properties()
 

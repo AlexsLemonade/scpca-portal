@@ -16,7 +16,7 @@ class StatsTestCase(APITestCase):
             diagnosis="different",
             project=ProjectFactory(),
             seq_units=["cell", "bulk"],
-            technologies=["10Xv4", "10Xv5"],
+            technologies=["10xv4", "10xv5"],
         )
         OriginalFileFactory(
             is_downloadable=True, sample_ids=list(Sample.objects.values_list("scpca_id", flat=True))

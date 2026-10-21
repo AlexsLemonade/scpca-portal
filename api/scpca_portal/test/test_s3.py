@@ -125,7 +125,7 @@ class TestS3(TestCase):
         actual_objects = s3.list_bucket_objects(bucket)
 
         # assert total number of files
-        TOTAL_OBJECTS = 99
+        TOTAL_OBJECTS = 118
         TOTAL_DIRECTORIES = 17
         TOTAL_FILES = TOTAL_OBJECTS - TOTAL_DIRECTORIES
         self.assertEqual(len(actual_objects), TOTAL_FILES)
