@@ -55,3 +55,14 @@ export const projectLinks = {
 
 export const modalityOrder = ['SINGLE_CELL', 'SPATIAL']
 export const formatOrder = ['SINGLE_CELL_EXPERIMENT', 'ANN_DATA']
+
+// Mirrors api/scpca_portal/enums/ccdl_dataset_names.py
+// NOTE: Metadata is excluded
+export const ccdlNames = [
+  'SINGLE_CELL_SINGLE_CELL_EXPERIMENT',
+  'SINGLE_CELL_SINGLE_CELL_EXPERIMENT_NO_MULTIPLEXED',
+  'SINGLE_CELL_SINGLE_CELL_EXPERIMENT_MERGED',
+  'SINGLE_CELL_ANN_DATA',
+  'SINGLE_CELL_ANN_DATA_MERGED',
+  'SPATIAL_SPATIAL_SPACERANGER'
+]
