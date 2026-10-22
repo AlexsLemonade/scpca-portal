@@ -133,6 +133,10 @@ resource "aws_batch_job_definition" "scpca_portal_fargate" {
 
   retry_strategy {
     attempts = 3
+    evaluate_on_exit {
+      action       = "EXIT"
+      on_exit_code = "3"
+    }
   }
 
   propagate_tags = true
@@ -157,6 +161,10 @@ resource "aws_batch_job_definition" "scpca_portal_ec2" {
 
   retry_strategy {
     attempts = 3
+    evaluate_on_exit {
+      action       = "EXIT"
+      on_exit_code = "3"
+    }
   }
 
   propagate_tags = true
