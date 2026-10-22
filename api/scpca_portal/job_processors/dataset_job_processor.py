@@ -74,7 +74,7 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.computed_file.save()
         self.job.dataset.save()
 
-    def handle_locked_project(self, e: Exception) -> None:
+    def handle_locked_project(self, e: Exception) -> bool:
         """
         Handle a recoverable error caused by a locked project:
         - Mark the job as FAILED
@@ -87,7 +87,9 @@ class DatasetJobProcessor(JobProcessorABC):
         if self.job.is_last_batch_attempt:
             self.job.create_retry_job()
 
-    def handle_missing_libraries(self, e: Exception) -> None:
+        return False
+
+    def handle_missing_libraries(self, e: Exception) -> bool:
         """
         Handle an unrecoverable error caused by misconfigured dataset:
         - Exit AWS Batch without retry attempts
@@ -103,7 +105,9 @@ class DatasetJobProcessor(JobProcessorABC):
             logger.info("Sending dataset job error email.")
             notifications.send_dataset_job_error_email(self.job)
 
-    def handle_upload_failure(self, e: Exception) -> None:
+        return False
+
+    def handle_upload_failure(self, e: Exception) -> bool:
         """
         Handle a recoverable S3 upload error:
         - Mark the job as FAILED
@@ -115,25 +119,22 @@ class DatasetJobProcessor(JobProcessorABC):
         if self.job.is_last_batch_attempt:
             self.job.create_retry_job()
 
+        return False
+
     def handle_tag_failure(self, e: Exception) -> bool:
         """
         Handle a S3 tagging error that requires manual handling:
         - Mark the job as PROCESSING
-        - Send a Slack notification to the team channel on the last AWS Batch attempt
-        - Return True to continue processing when all attempts are exhausted
-
-        NOTE: The computed file was successfully generated and uploaded
-        to S3 in the previous steps, so no retry is required.
+        - Send a Slack notification to the team channel
+        - Return True to proceed to the next step
         """
         self.job.apply_state(JobStates.PROCESSING)
         self.job.save()
 
-        if self.job.is_last_batch_attempt:
-            logger.info("Sending Slack notification for manual tagging.")
-            notifications.send_slack_notification(self.job)
-            return True  # Continue to next step
+        logger.info("Sending Slack notification for manual tagging.")
+        notifications.send_slack_notification(self.job)
 
-        return False  # Retry Batch job
+        return True
 
     def upload_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key

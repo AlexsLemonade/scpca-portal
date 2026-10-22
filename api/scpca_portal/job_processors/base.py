@@ -168,9 +168,8 @@ class JobProcessorABC(ABC):
                 self.set_exit_code(Job.RETRY_EXIT_CODE)  # Retry an exception by default
                 if exception_handler := self._lookup_handler(step, e):
                     self.on_step_exception(step, e)
-                    # Continue processing when the handler returns True
                     if exception_handler(e):
-                        continue
+                        continue  # Proceed to the next step
                 else:
                     self.on_uncaught_exception(step, e)
 
