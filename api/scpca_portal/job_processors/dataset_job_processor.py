@@ -92,8 +92,8 @@ class DatasetJobProcessor(JobProcessorABC):
     def handle_missing_libraries(self, e: Exception) -> bool:
         """
         Handle an unrecoverable error caused by misconfigured dataset:
-        - Exit AWS Batch without retry attempts
         - Mark the job/dataset as FAILED
+        - Exit AWS Batch without retry attempts
         - Send an error email to the user
         """
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
@@ -125,11 +125,14 @@ class DatasetJobProcessor(JobProcessorABC):
         """
         Handle a S3 tagging error that requires manual handling:
         - Mark the job as PROCESSING
+        - Exit AWS Batch without retry attempts
         - Send a Slack notification to the team channel
         - Return True to proceed to the next step
         """
         self.job.apply_state(JobStates.PROCESSING)
         self.job.save()
+
+        self.set_exit_code(Job.HALT_EXIT_CODE)
 
         logger.info("Sending Slack notification for manual tagging.")
         notifications.send_slack_notification(self.job)
@@ -146,6 +149,7 @@ class DatasetJobProcessor(JobProcessorABC):
         key = self.job.dataset.computed_file.s3_key
         bucket_name = self.job.dataset.computed_file.s3_bucket
         tags = self.job.dataset.s3_upload_tags
+        raise S3TaggingError(key, bucket_name, tags)
 
         if not tags:
             return
