@@ -383,7 +383,7 @@ class Job(TimestampedModel):
     def increment_attempt_or_fail(self) -> bool:
         """
         Increment a job's attempt count.
-        If attempts exceed the max allotted job attempts, fail the job and send Slack notification.
+        If dispatch attempts exceed the max attempts, fail the job and send Slack notification.
         """
         if self.attempt >= common.MAX_JOB_ATTEMPTS:
             self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
@@ -547,6 +547,6 @@ class Job(TimestampedModel):
             subject=f"Failed to dispatch a job for {self.dataset.id}",
             body=(
                 f"Job dispatch failure for {self.dataset.id} after the maximum attempt. "
-                f"Job {self.id} - {self.batch_job_id} has been permanently marked as FAILED."
+                f"Job {self.id} has been marked as {JobStates.FAILED}."
             ),
         )

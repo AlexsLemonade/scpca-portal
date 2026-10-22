@@ -761,7 +761,8 @@ class TestJob(TestCase):
                 dataset_job.batch_job_definition, settings.AWS_BATCH_EC2_JOB_DEFINITION_NAME
             )
 
-    def test_increment_attempt_or_fail(self):
+    @patch("scpca_portal.notifications.send_slack_notification")
+    def test_increment_attempt_or_fail(self, mock_send_slack_notification):
         job = JobFactory(state=JobStates.PENDING, dataset=CCDLDatasetFactory(is_processing=False))
 
         for _ in range(common.MAX_JOB_ATTEMPTS):
@@ -769,6 +770,8 @@ class TestJob(TestCase):
             job.increment_attempt_or_fail()
 
         self.assertEqual(job.state, JobStates.FAILED)
+
+        mock_send_slack_notification.assert_called_once()
 
     @patch("scpca_portal.notifications.send_templated_email")
     def test_send_success_email(self, mock_send_templated_email):
