@@ -200,6 +200,25 @@ For end-to-end example scripts that demonstrate querying projects, authenticatin
 - Python: [`dataset-download-with-merged-objects.py`](../api-examples/dataset-download-with-merged-objects.py), [`dataset-download-with-samples-by-diagnosis.py`](../api-examples/dataset-download-with-samples-by-diagnosis.py)
 
 
+## CCDI Federation Node
+
+The `scpca_portal.federation.ccdi` module exposes ScPCA data as a CCDI
+Federation API node under `/federation/ccdi/`.
+
+### Regenerating the response types
+
+The node's Pydantic response types (`federation/ccdi/schema/_models.py`) are
+generated from the vendored, pinned spec (`federation/ccdi/swagger.yml`).
+Regenerate them whenever the vendored spec changes:
+
+```
+sportal api:manage generate_ccdi_types
+```
+
+The generated file is committed and excluded from the linters. The
+`test_models_up_to_date` test fails if the committed models fall out of sync
+with the spec, prompting a regenerate.
+
 ## Cloud Data Management
 
 ### Processing Options
