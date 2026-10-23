@@ -5,12 +5,12 @@ See: https://cbiit.github.io/ccdi-federation-api/entities/supporting/namespace.h
 """
 
 from rest_framework import viewsets
-from rest_framework.exceptions import NotFound
 from rest_framework.response import Response
 
 from scpca_portal.federation.ccdi import config, schema
 from scpca_portal.federation.ccdi.schema import NamespaceResponse, NamespacesResponse
 from scpca_portal.federation.ccdi.views.base import CCDINodeViewMixin
+from scpca_portal.federation.ccdi.views.errors import NotFound
 
 
 class NamespaceViewSet(CCDINodeViewMixin, viewsets.ViewSet):
@@ -23,6 +23,6 @@ class NamespaceViewSet(CCDINodeViewMixin, viewsets.ViewSet):
     def retrieve(self, request, organization=None, namespace=None):
         identifier = config.NAMESPACE["id"]
         if organization != identifier["organization"] or namespace != identifier["name"]:
-            raise NotFound()
+            raise NotFound(f"Namespace '{organization}/{namespace}'")
         found = NamespaceResponse.model_validate(config.NAMESPACE)
         return Response(schema.dump(found))

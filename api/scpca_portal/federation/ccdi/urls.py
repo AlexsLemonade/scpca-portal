@@ -10,12 +10,13 @@ routes are declared before the greedy 3-segment `{organization}/{namespace}/{nam
 detail route so they are not shadowed by it.
 """
 
-from django.urls import include, path, reverse_lazy
+from django.urls import include, path, re_path, reverse_lazy
 from django.views.generic.base import RedirectView
 
 from drf_spectacular.views import SpectacularRedocView, SpectacularSwaggerView
 
 from scpca_portal.federation.ccdi import views
+from scpca_portal.federation.ccdi.views.errors import invalid_route
 
 app_name = "ccdi"
 
@@ -161,4 +162,8 @@ urlpatterns = (
     [path("", docs_redirect), path("v1/", docs_redirect)]
     + docs_urls
     + [path("v1/", include(api_urls))]
+    # Last: anything under this prefix matching no endpoint above answers the
+    # spec's `InvalidRoute` rather than Django's HTML 404. Scoped by being in
+    # the node's own URLconf, so the rest of the portal is untouched.
+    + [re_path(r"^.*$", invalid_route, name="invalid-route")]
 )

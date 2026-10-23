@@ -46,17 +46,59 @@ class RenderingTests(SimpleTestCase):
 
         self.assertEqual(offenders, [], "these render around `schema.dump`")
 
-    def test_every_view_that_builds_a_response_body_uses_dump(self):
-        # The other direction: a module that returns a Response built from a
-        # spec type should be calling the renderer, not hand-rolling a dict.
-        rendering = []
+    def test_every_view_that_returns_a_response_also_calls_the_renderer(self):
+        """
+        A module that builds a response without ever calling `schema.dump` has
+        gone around it, however the body was assembled.
+
+        Matched on the call rather than on source text, so `HttpResponse` — which
+        the schema view returns, carrying a document rather than a spec type — is
+        not mistaken for one.
+        """
+        offenders = []
 
         for path in self.view_modules():
-            source = path.read_text()
-            if "Response(" in source and "schema.dump(" in source:
-                rendering.append(path.name)
+            tree = ast.parse(path.read_text())
+            calls = {
+                node.func.id
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+            }
+            renders = {
+                node.func.attr
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute)
+            }
 
-        self.assertEqual(
-            sorted(rendering),
-            ["info.py", "metadata_fields.py", "namespace.py", "organization.py", "sample.py"],
-        )
+            if calls & {"Response", "JsonResponse"} and "dump" not in renders:
+                offenders.append(path.name)
+
+        self.assertEqual(offenders, [], "these return a response without `schema.dump`")
+
+    def test_no_view_hand_rolls_a_response_body(self):
+        """
+        A body built as a literal has gone around the renderer, so nothing
+        applies `exclude_unset` to it.
+
+        Both spellings are checked: `data` is `Response`'s own first parameter,
+        so the keyword form is as natural to write as the positional one.
+        """
+        offenders = []
+        literal = (ast.Dict, ast.List, ast.DictComp, ast.ListComp)
+
+        for path in self.view_modules():
+            for node in ast.walk(ast.parse(path.read_text())):
+                if not (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)):
+                    continue
+
+                if node.func.id not in ("Response", "JsonResponse"):
+                    continue
+
+                given = list(node.args) + [
+                    keyword.value for keyword in node.keywords if keyword.arg == "data"
+                ]
+
+                if any(isinstance(value, literal) for value in given):
+                    offenders.append(f"{path.name}:{node.lineno}")
+
+        self.assertEqual(offenders, [], "these build a response body without `schema.dump`")

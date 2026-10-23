@@ -6,10 +6,10 @@ The generated models live in `_models.py` (regenerate with
 names here as endpoints are implemented.
 
 Only types the spec names are aliased here. The spec also expresses some types as
-anonymous `oneOf` variants — gateways, links, error kinds — and the generator
-numbers those positionally, so they have no stable name to import. Nothing needs
-them yet; whatever does will have to resolve them by discriminator rather than by
-number.
+anonymous `oneOf` variants — error kinds, gateways, links — and the generator
+numbers those positionally, so they have no stable name to import. `_variants`
+resolves them by their discriminator instead; `error_kind` is the one such
+factory anything needs today.
 
 `dump` is how every view turns one of these into a response body.
 """
@@ -32,6 +32,7 @@ from scpca_portal.federation.ccdi.schema._models import (
     ModelsSubjectMetadata as SubjectMetadata,
     ResponsesEntityCounts as EntityCounts,
     ResponsesEntitySummary as EntitySummary,
+    ResponsesErrors as ErrorsResponse,
     ResponsesInformation as InfoResponse,
     ResponsesMetadataFieldDescriptions as MetadataFieldsResponse,
     ResponsesNamespace as NamespaceResponse,
@@ -40,6 +41,7 @@ from scpca_portal.federation.ccdi.schema._models import (
     ResponsesOrganizations as OrganizationsResponse,
     ResponsesSamples as SamplesResponse,
 )
+from scpca_portal.federation.ccdi.schema._variants import error_kind
 
 
 def dump(built: Any) -> dict:
