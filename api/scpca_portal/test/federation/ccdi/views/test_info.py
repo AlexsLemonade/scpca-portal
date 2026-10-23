@@ -1,17 +1,16 @@
-"""Response tests for the /info endpoint (burndown until implemented)."""
-
-from unittest import expectedFailure
+"""Response tests for the /info endpoint."""
 
 from django.test import SimpleTestCase
 from rest_framework import status
+
+from scpca_portal.federation.ccdi.schema import InfoResponse
 
 ENDPOINTS = ("/federation/ccdi/v1/info",)
 
 
 class InfoViewTests(SimpleTestCase):
-    @expectedFailure
-    def test_endpoints_implemented(self):
-        # Expected-fails (501) until the endpoint returns a real response;
-        # convert to real content assertions once implemented.
-        for url in ENDPOINTS:
-            self.assertEqual(self.client.get(url).status_code, status.HTTP_200_OK)
+    def test_info_returns_a_valid_response(self):
+        response = self.client.get(ENDPOINTS[0])
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Round-trips into the generated response type → schema-valid.
+        InfoResponse.model_validate(response.json())
