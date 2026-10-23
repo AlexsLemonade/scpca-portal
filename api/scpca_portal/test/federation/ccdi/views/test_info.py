@@ -5,7 +5,7 @@ from unittest import expectedFailure
 from django.test import SimpleTestCase
 from rest_framework import status
 
-ENDPOINTS = ("/federation/ccdi/info",)
+ENDPOINTS = ("/federation/ccdi/v1/info",)
 
 
 class InfoViewTests(SimpleTestCase):
