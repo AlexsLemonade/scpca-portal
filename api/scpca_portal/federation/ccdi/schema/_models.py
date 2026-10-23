@@ -260,7 +260,8 @@ class ModelsMetadataFieldDescriptionUnharmonized(BaseModel):
         ),
     ] = None
     description: Annotated[
-        str | None, Field(description='A plain-text description of what the field represents.')
+        str | None,
+        Field(description='A plain-text description of what the field represents.'),
     ] = None
     path: Annotated[
         str,
@@ -337,7 +338,11 @@ class ResponsesEntityCounts(BaseModel):
         ),
     ]
     all: Annotated[
-        int, Field(description='The number of entities across all pages in the result set.', ge=0)
+        int,
+        Field(
+            description='The number of entities across all pages in the result set.',
+            ge=0,
+        ),
     ]
 
 
@@ -359,7 +364,8 @@ class ResponsesErrorKind2(BaseModel):
         ),
     ] = None
     reason: Annotated[
-        str, Field(description='A plain-text reason describing why the parameters are invalid.')
+        str,
+        Field(description='A plain-text reason describing why the parameters are invalid.'),
     ]
     kind: Literal['InvalidParameters']
 
@@ -417,7 +423,10 @@ class ResponsesErrorKind11(ResponsesErrorKind5, ResponsesErrorKind6):
 class ResponsesInfoApiInformation(BaseModel):
     api_version: Annotated[
         str,
-        Field(description='The version of the API that this server supports.', examples=['v1.3.0']),
+        Field(
+            description='The version of the API that this server supports.',
+            examples=['v1.3.0'],
+        ),
     ]
     documentation_url: Annotated[
         str,
@@ -566,7 +575,7 @@ class ModelsGatewayAnonymousOrReference1(BaseModel):
 
 class ModelsMetadataCommonMetadata(BaseModel):
     depositions: Annotated[
-        list[ModelsMetadataCommonDepositionAccession],
+        list[ModelsMetadataCommonDepositionAccession] | None,
         Field(
             description='Statements of deposition to public repositories for a given entity.\n\n**NOTE**: when you declare that a dataset has been deposited to a public\nrepository such as dbGaP or EGA, you should also include a gateway and\nlink pointing to where that entity can be found in the public\nrepository.'
         ),
@@ -740,7 +749,8 @@ class FieldOwnedField(BaseModel):
     details: ModelsMetadataFieldDetails | None = None
     comment: Annotated[str | None, Field(description='A free-text comment field.')] = None
     owned: Annotated[
-        bool | None, Field(description='Whether or not the field is owned by the source server.')
+        bool | None,
+        Field(description='Whether or not the field is owned by the source server.'),
     ] = None
 
 
@@ -16066,26 +16076,27 @@ class ModelsFileIdentifier(BaseModel):
 
 
 class ModelsFileMetadata(ModelsMetadataCommonMetadata):
-    type: FieldUnownedFileType
-    size: FieldUnownedFileSize
-    checksums: FieldUnownedFileChecksums
-    description: FieldUnownedFileDescription
+    type: Annotated[FieldUnownedFileType | None, Field(...)]
+    size: Annotated[FieldUnownedFileSize | None, Field(...)]
+    checksums: Annotated[FieldUnownedFileChecksums | None, Field(...)]
+    description: Annotated[FieldUnownedFileDescription | None, Field(...)]
     unharmonized: FieldsUnharmonized | None = None
 
 
 class ModelsNamespaceMetadata(ModelsMetadataCommonMetadata):
-    study_short_title: FieldUnownedNamespaceStudyShortTitle
-    study_name: FieldUnownedNamespaceStudyName
+    study_short_title: Annotated[FieldUnownedNamespaceStudyShortTitle | None, Field(...)]
+    study_name: Annotated[FieldUnownedNamespaceStudyName | None, Field(...)]
     study_funding_id: Annotated[
-        list[FieldUnownedNamespaceStudyFundingId], Field(description='The study funding id.')
+        list[FieldUnownedNamespaceStudyFundingId] | None,
+        Field(description='The study funding id.'),
     ]
-    study_id: FieldUnownedNamespaceStudyId
+    study_id: Annotated[FieldUnownedNamespaceStudyId | None, Field(...)]
     unharmonized: FieldsUnharmonized | None = None
 
 
 class ModelsOrganizationMetadata(ModelsMetadataCommonMetadata):
     institution: Annotated[
-        list[FieldUnownedOrganizationInstitution],
+        list[FieldUnownedOrganizationInstitution] | None,
         Field(
             description='Institutions associated with an organization.\n\n**NOTE:** in this design, an organization in not always a single\ninstitution—it may also represent a consortium of institutions, for\ninstance. This is necessary, since a namespace can be tied to one and\nonly one organization in the API specification. As such, if the above is\nnot true, there is no way to make a namespace where data is contributed\nfrom multiple institutions.'
         ),
@@ -16094,23 +16105,25 @@ class ModelsOrganizationMetadata(ModelsMetadataCommonMetadata):
 
 
 class ModelsSampleMetadata(ModelsMetadataCommonMetadata):
-    age_at_diagnosis: FieldUnownedSampleAgeAtDiagnosis
-    anatomical_sites: FieldUnownedSampleAnatomicalSite
-    diagnosis: FieldUnownedSampleDiagnosis
-    diagnosis_category: FieldUnownedSampleDiagnosisCategory
-    disease_phase: FieldUnownedSampleDiseasePhase
-    library_selection_method: FieldUnownedSampleLibrarySelectionMethod
-    tissue_type: FieldUnownedSampleTissueType
-    tumor_classification: FieldUnownedSampleTumorClassification
-    tumor_tissue_morphology: FieldUnownedSampleTumorTissueMorphology
-    age_at_collection: FieldUnownedSampleAgeAtCollection
-    library_strategy: FieldUnownedSampleLibraryStrategy
-    library_source_material: FieldUnownedSampleLibrarySourceMaterial
-    preservation_method: FieldUnownedSamplePreservationMethod
-    tumor_grade: FieldUnownedSampleTumorGrade
-    specimen_molecular_analyte_type: FieldUnownedSampleSpecimenMolecularAnalyteType
+    age_at_diagnosis: Annotated[FieldUnownedSampleAgeAtDiagnosis | None, Field(...)]
+    anatomical_sites: Annotated[FieldUnownedSampleAnatomicalSite | None, Field(...)]
+    diagnosis: Annotated[FieldUnownedSampleDiagnosis | None, Field(...)]
+    diagnosis_category: Annotated[FieldUnownedSampleDiagnosisCategory | None, Field(...)]
+    disease_phase: Annotated[FieldUnownedSampleDiseasePhase | None, Field(...)]
+    library_selection_method: Annotated[FieldUnownedSampleLibrarySelectionMethod | None, Field(...)]
+    tissue_type: Annotated[FieldUnownedSampleTissueType | None, Field(...)]
+    tumor_classification: Annotated[FieldUnownedSampleTumorClassification | None, Field(...)]
+    tumor_tissue_morphology: Annotated[FieldUnownedSampleTumorTissueMorphology | None, Field(...)]
+    age_at_collection: Annotated[FieldUnownedSampleAgeAtCollection | None, Field(...)]
+    library_strategy: Annotated[FieldUnownedSampleLibraryStrategy | None, Field(...)]
+    library_source_material: Annotated[FieldUnownedSampleLibrarySourceMaterial | None, Field(...)]
+    preservation_method: Annotated[FieldUnownedSamplePreservationMethod | None, Field(...)]
+    tumor_grade: Annotated[FieldUnownedSampleTumorGrade | None, Field(...)]
+    specimen_molecular_analyte_type: Annotated[
+        FieldUnownedSampleSpecimenMolecularAnalyteType | None, Field(...)
+    ]
     identifiers: Annotated[
-        list[FieldUnownedSampleIdentifier],
+        list[FieldUnownedSampleIdentifier] | None,
         Field(
             description='The alternate identifiers for the sample.\n\nNote that this list of identifiers *must* include the main identifier\nfor the [`Sample`].'
         ),
@@ -16119,23 +16132,26 @@ class ModelsSampleMetadata(ModelsMetadataCommonMetadata):
 
 
 class ModelsSubjectMetadata(ModelsMetadataCommonMetadata):
-    sex: FieldUnownedSubjectSex
-    race: Annotated[list[FieldUnownedSubjectRace], Field(description='The race(s) of the subject.')]
-    ethnicity: FieldUnownedSubjectEthnicity
+    sex: Annotated[FieldUnownedSubjectSex | None, Field(...)]
+    race: Annotated[
+        list[FieldUnownedSubjectRace] | None,
+        Field(description='The race(s) of the subject.'),
+    ]
+    ethnicity: Annotated[FieldUnownedSubjectEthnicity | None, Field(...)]
     identifiers: Annotated[
-        list[FieldUnownedSubjectIdentifier],
+        list[FieldUnownedSubjectIdentifier] | None,
         Field(
             description='The alternate identifiers for the subject.\n\nNote that this list of identifiers *must* include the main identifier\nfor the [`Subject`].'
         ),
     ]
-    vital_status: FieldUnownedSubjectVitalStatus
-    age_at_vital_status: FieldUnownedSubjectAgeAtVitalStatus
+    vital_status: Annotated[FieldUnownedSubjectVitalStatus | None, Field(...)]
+    age_at_vital_status: Annotated[FieldUnownedSubjectAgeAtVitalStatus | None, Field(...)]
     associated_diagnoses: Annotated[
-        list[FieldUnownedSubjectAssociatedDiagnoses],
+        list[FieldUnownedSubjectAssociatedDiagnoses] | None,
         Field(description='The associated diagnoses for the subject.'),
     ]
     associated_diagnosis_categories: Annotated[
-        list[FieldUnownedSubjectAssociatedDiagnosisCategories],
+        list[FieldUnownedSubjectAssociatedDiagnosisCategories] | None,
         Field(description='The associated diagnoses categories for the subject.'),
     ]
     unharmonized: FieldsUnharmonized | None = None
@@ -16275,7 +16291,8 @@ class ResponsesNamespace(RootModel[ModelsNamespace]):
 
 class ResponsesNamespaces(RootModel[list[ModelsNamespace]]):
     root: Annotated[
-        list[ModelsNamespace], Field(description='A response for describing namespaces.')
+        list[ModelsNamespace],
+        Field(description='A response for describing namespaces.'),
     ]
 
 
@@ -16285,7 +16302,8 @@ class ResponsesOrganization(RootModel[ModelsOrganization]):
 
 class ResponsesOrganizations(RootModel[list[ModelsOrganization]]):
     root: Annotated[
-        list[ModelsOrganization], Field(description='A response for describing organizations.')
+        list[ModelsOrganization],
+        Field(description='A response for describing organizations.'),
     ]
 
 

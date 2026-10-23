@@ -22,11 +22,22 @@ class MetadataFieldsViewTests(SimpleTestCase):
                 self.assertEqual(response.status_code, status.HTTP_200_OK)
                 MetadataFieldsResponse.model_validate(response.json())
 
+    def describe(self, entity):
+        url = f"/federation/ccdi/v1/metadata/fields/{entity}"
+
+        return MetadataFieldsResponse.model_validate(self.client.get(url).json()).fields
+
+    # One per entity rather than a loop: a shared tripwire would only flip once
+    # all three were mapped, so the first entity's mappings would land with
+    # nothing asserting them.
     @expectedFailure
-    def test_endpoints_describe_fields(self):
-        # Empty until the metadata mapping populates field descriptions; this
-        # flips to an unexpected success once it does, prompting a real assertion.
-        for url in ENDPOINTS:
-            with self.subTest(url=url):
-                fields = MetadataFieldsResponse.model_validate(self.client.get(url).json()).fields
-                self.assertNotEqual(fields, [])
+    def test_subject_fields_are_described(self):
+        self.assertNotEqual(self.describe("subject"), [])
+
+    @expectedFailure
+    def test_sample_fields_are_described(self):
+        self.assertNotEqual(self.describe("sample"), [])
+
+    @expectedFailure
+    def test_file_fields_are_described(self):
+        self.assertNotEqual(self.describe("file"), [])
