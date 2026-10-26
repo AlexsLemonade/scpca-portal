@@ -3,14 +3,14 @@ sync_model and sync_metadata coverage for the Library class' derivation
 of the LoadableResourceABC base class.
 
 For sync_model coverage, each test runs the real sync_original_files -> Library.sync_model()
-sequence against the actual test S3 bucket, narrowed to just the library ids the scenario needs via
+sequence against the actual test S3 bucket, filtered to just the library ids the test needs via
 filter_original_files_by_resource_wrapper and filter_metadata_by_resource_wrapper, both generic
 across Project/Sample/Library and defined once in test_loadable_resource_abc_utils.py rather than
 copy-pasted here.
 
 Library metadata has two sources, regular (one metadata.json per library) and bulk (one tsv per
-project), so both are patched whenever library metadata is narrowed. Project and Sample are synced
-unnarrowed first, since new libraries resolve their project FK and samples M2M from the db.
+project), so both are patched whenever library metadata is filtered. Project and Sample are synced
+unfiltered first, since new libraries resolve their project FK and samples M2M from the db.
 
 KNOWN BUG: SCPCL999991's metadata.json has no "project_id", which makes Library.sync_model() raise
 KeyError, so no test includes it.

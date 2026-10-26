@@ -2,7 +2,7 @@
 Shared utilities for the test_*_loadable_resource.py files, which run the real reload pipeline
 against the test S3 bucket.
 
-A scenario only needs a few resources, not the whole bucket. Each wrapper here builds a side_effect
+A test only needs a few resources, not the whole bucket. Each wrapper here builds a side_effect
 that a test patches over a real function: it calls the real function, then narrows the output to
 the requested ids of a given resource_cls (Project, Sample or Library).
 - filter_original_files_by_resource_wrapper patches OriginalFile.get_syncable_files, scoping which
