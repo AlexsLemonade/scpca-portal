@@ -144,8 +144,10 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
           "s3:ListBucket",
           "s3:GetBucketLocation"
         ]
+        # TODO: remove the old scpca-portal-input bucket after the cutover
         Resource = [
-          "arn:aws:s3:::scpca-portal-input"
+          "arn:aws:s3:::scpca-portal-input",
+          aws_s3_bucket.scpca_portal_input_bucket.arn
         ]
       },
       {
@@ -154,7 +156,8 @@ resource "aws_iam_policy" "input_bucket_access_policy" {
           "s3:GetObject"
         ]
         Resource = [
-          "arn:aws:s3:::scpca-portal-input/*"
+          "arn:aws:s3:::scpca-portal-input/*",
+          "${aws_s3_bucket.scpca_portal_input_bucket.arn}/*"
         ]
       },
       {
