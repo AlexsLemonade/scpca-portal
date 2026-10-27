@@ -5,9 +5,9 @@ from rest_framework.response import Response
 
 from drf_spectacular.utils import OpenApiResponse, extend_schema
 
-from scpca_portal.models import OriginalFile, Project, Sample
+from scpca_portal.models import OriginalFile, Project
 
-NON_CANCER_TYPES = ["Non-cancerous", "Normal margin"]
+NON_CANCER_TYPES = ["Non-cancerous", "Normal margin", "Other"]
 
 
 class StatsResponseSerializer(serializers.Serializer):
@@ -28,21 +28,21 @@ class StatsViewSet(viewsets.ViewSet):
     )
     def list(self, request):
         """
-        Provides list of all cancer types as well as counts for cancer types,
-        labs, projects, and samples accounted for on the portal.
+        Provides list of counts for projects, cancer types, total samples,
+        and labs available on the portal.
         """
-        cancer_types_field_name = "diagnosis"
-        cancer_types_queryset = (
-            Sample.objects.distinct(cancer_types_field_name)
-            .exclude(diagnosis__in=NON_CANCER_TYPES)
-            .order_by(cancer_types_field_name)  # Must match distinct expression.
-            .values_list(cancer_types_field_name, flat=True)
+        cancer_types_count = len(
+            {
+                diagnosis
+                for diagnoses in Project.objects.values_list("diagnoses", flat=True)
+                for diagnosis in diagnoses
+                if diagnosis not in NON_CANCER_TYPES
+            }
         )
 
         return Response(
             {
-                "cancer_types": list(cancer_types_queryset),
-                "cancer_types_count": cancer_types_queryset.count(),
+                "cancer_types_count": cancer_types_count,
                 "labs_count": Project.objects.values("pi_name").distinct().count(),
                 "projects_count": Project.objects.count(),
                 "samples_count": len(
