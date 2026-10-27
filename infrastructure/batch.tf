@@ -9,6 +9,7 @@ module "batch" {
   dockerhub_account         = var.dockerhub_account
   region                    = var.region
   scpca_portal_bucket       = aws_s3_bucket.scpca_portal_bucket
+  scpca_portal_input_bucket = aws_s3_bucket.scpca_portal_input_bucket
   postgres_db               = aws_db_instance.postgres_db
   slack_notifications_email = var.slack_notifications_email
 
