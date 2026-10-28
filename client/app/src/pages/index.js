@@ -60,7 +60,7 @@ const ExposeBox = styled(Box)`
   }}
 `
 
-const Home = ({ stats }) => {
+const Home = ({ stats, cancer_types: cancerTypes }) => {
   const { emailListForm, setEmail } = useScPCAPortal()
   const {
     success,
@@ -83,6 +83,11 @@ const Home = ({ stats }) => {
         'alexs-light-blue-tint-60'
       ),
     []
+  )
+
+  const nonCancerTypes = ['Non-cancerous', 'Normal margin', 'Other']
+  const filteredCancerTypes = cancerTypes.filter(
+    (ct) => !nonCancerTypes.includes(ct)
   )
 
   // when we have more cancer types to display add this back
@@ -178,7 +183,7 @@ const Home = ({ stats }) => {
               align="center"
               pad={{ vertical: 'large' }}
             >
-              {stats.cancer_types.map((ct, i) => (
+              {filteredCancerTypes.map((ct, i) => (
                 <Link key={ct} href={`/projects?diagnoses=${ct}`}>
                   <Box
                     round
@@ -352,17 +357,21 @@ const Home = ({ stats }) => {
 }
 
 export const getStaticProps = async () => {
-  const statsRequest = await api.stats.get()
+  const [statsRequest, optionsRequest] = await Promise.all([
+    api.stats.get(),
+    api.options.projects.get()
+  ])
 
-  if (statsRequest.isOk) {
+  if (statsRequest.isOk && optionsRequest.isOk) {
     const stats = statsRequest.response
+    const cancer_types = optionsRequest.response.diagnoses
     return {
-      props: { stats },
+      props: { stats, cancer_types },
       revalidate: 60 * 60 * 24 * 7 // one week in seconds
     }
   }
 
-  return { props: { stats: { cancer_types: [] } }, revalidate: 60 }
+  return { props: { stats: null, cancer_types: [] }, revalidate: 60 }
 }
 
 export default Home
