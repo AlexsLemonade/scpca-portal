@@ -60,7 +60,7 @@ const ExposeBox = styled(Box)`
   }}
 `
 
-const Home = ({ stats, cancer_types: cancerTypes }) => {
+const Home = ({ stats, cancerTypes }) => {
   const { emailListForm, setEmail } = useScPCAPortal()
   const {
     success,
@@ -364,14 +364,14 @@ export const getStaticProps = async () => {
 
   if (statsRequest.isOk && optionsRequest.isOk) {
     const stats = statsRequest.response
-    const cancer_types = optionsRequest.response.diagnoses
+    const cancerTypes = optionsRequest.response.diagnoses
     return {
-      props: { stats, cancer_types },
+      props: { stats, cancerTypes },
       revalidate: 60 * 60 * 24 * 7 // one week in seconds
     }
   }
 
-  return { props: { stats: null, cancer_types: [] }, revalidate: 60 }
+  return { props: { stats: null, cancerTypes: [] }, revalidate: 60 }
 }
 
 export default Home
