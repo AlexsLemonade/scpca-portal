@@ -52,6 +52,83 @@ resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_bucket" {
   }
 }
 
+# Input bucket holding the data the API and Batch load from.
+# Prod holds released data; staging holds released and unreleased data.
+resource "aws_s3_bucket" "scpca_portal_input_bucket" {
+  bucket = "scpca-portal-input-${var.user}-${var.stage}"
+
+  tags = merge(
+    var.default_tags,
+    {
+      Name        = "scpca-portal-input-${var.user}-${var.stage}"
+      Environment = var.stage
+    }
+  )
+
+  # The data is costly to lose
+  lifecycle {
+    prevent_destroy = true
+  }
+}
+
+# BucketOwnerEnforced disables ACLs, so the portal account owns (and can read)
+# every object the science team uploads
+resource "aws_s3_bucket_ownership_controls" "scpca_portal_input_bucket" {
+  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+  rule {
+    object_ownership = "BucketOwnerEnforced"
+  }
+}
+
+resource "aws_s3_bucket_public_access_block" "scpca_portal_input_bucket" {
+  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+
+  block_public_acls   = true
+  block_public_policy = true
+}
+
+# TODO: do we want server side encryption for input bucket files?
+# resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_input_bucket" {
+#   bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+#
+#   rule {
+#     apply_server_side_encryption_by_default {
+#       sse_algorithm = "AES256"
+#     }
+#     bucket_key_enabled = true
+#   }
+# }
+
+# TODO: confirm science access policy and mechanism
+# resource "aws_s3_bucket_policy" "scpca_portal_input_bucket_science_access" {
+#   bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+#
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Sid    = "InputBucketScienceAccess"
+#         Effect = "Allow"
+#         Principal = {
+#           # Figure out exact mechanism to pass through uploaders
+#           "AWS" : var.input_bucket_uploaders
+#         }
+#         Action = [
+#           "s3:GetObject",
+#           "s3:PutObject",
+#           "s3:PutObjectTagging",
+#           "s3:DeleteObject",
+#           "s3:ListBucket",
+#         ]
+#         Resource = [
+#           "${aws_s3_bucket.scpca_portal_input_bucket.arn}",
+#           "${aws_s3_bucket.scpca_portal_input_bucket.arn}/*"
+#         ]
+#       }
+#     ]
+#   })
+# }
+
 resource "aws_s3_bucket" "scpca_portal_cert_bucket" {
   bucket        = "scpca-portal-cert-${var.user}-${var.stage}"
   force_destroy = var.stage == "prod" ? false : true
