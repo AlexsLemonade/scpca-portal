@@ -83,83 +83,51 @@ resource "aws_s3_bucket_ownership_controls" "scpca_portal_input_bucket" {
 resource "aws_s3_bucket_public_access_block" "scpca_portal_input_bucket" {
   bucket = aws_s3_bucket.scpca_portal_input_bucket.id
 
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
+  block_public_acls   = true
+  block_public_policy = true
 }
 
-resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_input_bucket" {
-  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+# TODO: do we want server side encryption for input bucket files?
+# resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_input_bucket" {
+#   bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+#
+#   rule {
+#     apply_server_side_encryption_by_default {
+#       sse_algorithm = "AES256"
+#     }
+#     bucket_key_enabled = true
+#   }
+# }
 
-  rule {
-    apply_server_side_encryption_by_default {
-      sse_algorithm = "AES256"
-    }
-    bucket_key_enabled = true
-  }
-}
-
-resource "aws_s3_bucket_versioning" "scpca_portal_input_bucket" {
-  count  = var.enable_input_bucket_versioning ? 1 : 0
-  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
-
-  versioning_configuration {
-    status = "Enabled"
-  }
-}
-
-# Only cleans up incomplete uploads; no data is ever expired
-resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_input_bucket" {
-  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
-
-  rule {
-    id     = "abort-incomplete-multipart-upload-${var.user}-${var.stage}"
-    status = "Enabled"
-    filter {}
-    abort_incomplete_multipart_upload {
-      days_after_initiation = 7
-    }
-  }
-}
-
-# Skipped when no uploaders are configured (e.g. dev stacks), since a policy
-# can't have an empty principal list
-resource "aws_s3_bucket_policy" "scpca_portal_input_bucket" {
-  count  = length(var.input_bucket_uploaders) > 0 ? 1 : 0
-  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
-
-  # The public access block must be in place before the policy is attached
-  depends_on = [aws_s3_bucket_public_access_block.scpca_portal_input_bucket]
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Sid    = "ScienceTeamWriteObject"
-        Effect = "Allow"
-        Principal = {
-          "AWS" : var.input_bucket_uploaders
-        }
-        Action = [
-          "s3:DeleteObject",
-          "s3:GetBucketLocation",
-          "s3:GetObject",
-          "s3:ListBucket",
-          "s3:PutObject",
-          "s3:PutObjectTagging",
-          "s3:AbortMultipartUpload",
-          "s3:ListBucketMultipartUploads",
-          "s3:ListMultipartUploadParts"
-        ]
-        Resource = [
-          "${aws_s3_bucket.scpca_portal_input_bucket.arn}",
-          "${aws_s3_bucket.scpca_portal_input_bucket.arn}/*"
-        ]
-      }
-    ]
-  })
-}
+# TODO: confirm science access policy and mechanism
+# resource "aws_s3_bucket_policy" "scpca_portal_input_bucket_science_access" {
+#   bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+#
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Sid    = "InputBucketScienceAccess"
+#         Effect = "Allow"
+#         Principal = {
+#           # Figure out exact mechanism to pass through uploaders
+#           "AWS" : var.input_bucket_uploaders
+#         }
+#         Action = [
+#           "s3:GetObject",
+#           "s3:PutObject",
+#           "s3:PutObjectTagging",
+#           "s3:DeleteObject",
+#           "s3:ListBucket",
+#         ]
+#         Resource = [
+#           "${aws_s3_bucket.scpca_portal_input_bucket.arn}",
+#           "${aws_s3_bucket.scpca_portal_input_bucket.arn}/*"
+#         ]
+#       }
+#     ]
+#   })
+# }
 
 resource "aws_s3_bucket" "scpca_portal_cert_bucket" {
   bucket        = "scpca-portal-cert-${var.user}-${var.stage}"
