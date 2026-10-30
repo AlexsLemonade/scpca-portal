@@ -149,8 +149,7 @@ class DatasetJobProcessor(JobProcessorABC):
         key = self.job.dataset.computed_file.s3_key
         bucket_name = self.job.dataset.computed_file.s3_bucket
         tags = self.job.dataset.s3_upload_tags
-        raise S3TaggingError(key, bucket_name, tags)
-
+        
         if not tags:
             return
 
