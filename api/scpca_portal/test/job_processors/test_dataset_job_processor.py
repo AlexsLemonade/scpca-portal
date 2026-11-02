@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from unittest.mock import patch
 
@@ -46,10 +47,9 @@ class TestDatasetJobProcessor(TestCase):
         )
 
         processor = DatasetJobProcessor(job)
-        step = "create_new_computed_file"
         exception = DatasetMissingLibrariesError()
 
-        processor.handle_missing_libraries(step, exception)
+        processor.handle_missing_libraries(exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
@@ -63,26 +63,41 @@ class TestDatasetJobProcessor(TestCase):
         )
 
         processor = DatasetJobProcessor(job)
-        step = "tag_new_computed_file"
         exception = S3TaggingError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
-        processor.handle_tag_failure(step, exception)
+        processor.handle_tag_failure(exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
         # Should send the slack notification for manual handling
         mock_mock_send_slack.assert_called_once_with(job)
 
-    def test_handle_retryable_exceptions(self):
+    @patch.dict(os.environ, {"AWS_BATCH_JOB_ATTEMPT": "1", "MAX_RETRY_ATTEMPTS": "3"})
+    def test_handle_retryable_exceptions_first_attempt_failure(self):
         job = JobFactory(
             state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
         )
 
         processor = DatasetJobProcessor(job)
-        step = "upload_new_computed_file"
         exception = S3UploadError("MOCK_KEY", "MOCK_BUCKET_NAME")
 
-        processor.handle_upload_failure(step, exception)
+        processor.handle_upload_failure(exception)
+
+        self.assertEqual(job.state, JobStates.FAILED)
+        self.assertEqual(job.failed_reason, f"{exception}")
+        # Should not create a new retry job
+        self.assertEqual(job.dataset.latest_job.state, JobStates.FAILED)
+
+    @patch.dict(os.environ, {"AWS_BATCH_JOB_ATTEMPT": "3", "MAX_RETRY_ATTEMPTS": "3"})
+    def test_handle_retryable_exceptions_last_attempt_failure(self):
+        job = JobFactory(
+            state=JobStates.PROCESSING, dataset=CCDLDatasetFactory(state=DatasetStates.PROCESSING)
+        )
+
+        processor = DatasetJobProcessor(job)
+        exception = S3UploadError("MOCK_KEY", "MOCK_BUCKET_NAME")
+
+        processor.handle_upload_failure(exception)
 
         self.assertEqual(job.state, JobStates.FAILED)
         self.assertEqual(job.failed_reason, f"{exception}")
