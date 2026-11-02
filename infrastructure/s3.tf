@@ -54,13 +54,13 @@ resource "aws_s3_bucket_lifecycle_configuration" "scpca_portal_bucket" {
 
 # Input bucket holding the data the API and Batch load from.
 # Prod holds released data; staging holds released and unreleased data.
-resource "aws_s3_bucket" "scpca_portal_input_bucket" {
-  bucket = "scpca-portal-input-${var.user}-${var.stage}"
+resource "aws_s3_bucket" "scpca_portal_inputs_bucket" {
+  bucket = "scpca-portal-inputs-${var.user}-${var.stage}"
 
   tags = merge(
     var.default_tags,
     {
-      Name        = "scpca-portal-input-${var.user}-${var.stage}"
+      Name        = "scpca-portal-inputs-${var.user}-${var.stage}"
       Environment = var.stage
     }
   )
@@ -73,23 +73,23 @@ resource "aws_s3_bucket" "scpca_portal_input_bucket" {
 
 # BucketOwnerEnforced disables ACLs, so the portal account owns (and can read)
 # every object the science team uploads
-resource "aws_s3_bucket_ownership_controls" "scpca_portal_input_bucket" {
-  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+resource "aws_s3_bucket_ownership_controls" "scpca_portal_inputs_bucket" {
+  bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
   rule {
     object_ownership = "BucketOwnerEnforced"
   }
 }
 
-resource "aws_s3_bucket_public_access_block" "scpca_portal_input_bucket" {
-  bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+resource "aws_s3_bucket_public_access_block" "scpca_portal_inputs_bucket" {
+  bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
 
   block_public_acls   = true
   block_public_policy = true
 }
 
 # TODO: do we want server side encryption for input bucket files?
-# resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_input_bucket" {
-#   bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+# resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_inputs_bucket" {
+#   bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
 #
 #   rule {
 #     apply_server_side_encryption_by_default {
@@ -100,8 +100,8 @@ resource "aws_s3_bucket_public_access_block" "scpca_portal_input_bucket" {
 # }
 
 # TODO: confirm science access policy and mechanism
-# resource "aws_s3_bucket_policy" "scpca_portal_input_bucket_science_access" {
-#   bucket = aws_s3_bucket.scpca_portal_input_bucket.id
+# resource "aws_s3_bucket_policy" "scpca_portal_inputs_bucket_science_access" {
+#   bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
 #
 #   policy = jsonencode({
 #     Version = "2012-10-17"
@@ -121,8 +121,8 @@ resource "aws_s3_bucket_public_access_block" "scpca_portal_input_bucket" {
 #           "s3:ListBucket",
 #         ]
 #         Resource = [
-#           "${aws_s3_bucket.scpca_portal_input_bucket.arn}",
-#           "${aws_s3_bucket.scpca_portal_input_bucket.arn}/*"
+#           "${aws_s3_bucket.scpca_portal_inputs_bucket.arn}",
+#           "${aws_s3_bucket.scpca_portal_inputs_bucket.arn}/*"
 #         ]
 #       }
 #     ]

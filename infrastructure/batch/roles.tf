@@ -105,7 +105,7 @@ resource "aws_iam_policy" "batch_job_s3_access" {
         # TODO: remove the old scpca-portal-input bucket after the cutover
         Resource = [
           "arn:aws:s3:::scpca-portal-input",
-          var.scpca_portal_input_bucket.arn
+          var.scpca_portal_inputs_bucket.arn
         ]
       },
       {
@@ -116,7 +116,7 @@ resource "aws_iam_policy" "batch_job_s3_access" {
         ]
         Resource = [
           "arn:aws:s3:::scpca-portal-input/*",
-          "${var.scpca_portal_input_bucket.arn}/*"
+          "${var.scpca_portal_inputs_bucket.arn}/*"
         ]
       },
       {
