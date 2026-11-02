@@ -87,17 +87,16 @@ resource "aws_s3_bucket_public_access_block" "scpca_portal_inputs_bucket" {
   block_public_policy = true
 }
 
-# TODO: do we want server side encryption for input bucket files?
-# resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_inputs_bucket" {
-#   bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
-#
-#   rule {
-#     apply_server_side_encryption_by_default {
-#       sse_algorithm = "AES256"
-#     }
-#     bucket_key_enabled = true
-#   }
-# }
+resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_inputs_bucket" {
+  bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
+
+  rule {
+    apply_server_side_encryption_by_default {
+      sse_algorithm = "AES256"
+    }
+    bucket_key_enabled = true
+  }
+}
 
 # TODO: confirm science access policy and mechanism
 # resource "aws_s3_bucket_policy" "scpca_portal_inputs_bucket_science_access" {
