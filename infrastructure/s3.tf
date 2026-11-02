@@ -98,35 +98,37 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "scpca_portal_inpu
   }
 }
 
-# TODO: confirm science access policy and mechanism
-# resource "aws_s3_bucket_policy" "scpca_portal_inputs_bucket_science_access" {
-#   bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
-#
-#   policy = jsonencode({
-#     Version = "2012-10-17"
-#     Statement = [
-#       {
-#         Sid    = "InputBucketScienceAccess"
-#         Effect = "Allow"
-#         Principal = {
-#           # Figure out exact mechanism to pass through uploaders
-#           "AWS" : var.input_bucket_uploaders
-#         }
-#         Action = [
-#           "s3:GetObject",
-#           "s3:PutObject",
-#           "s3:PutObjectTagging",
-#           "s3:DeleteObject",
-#           "s3:ListBucket",
-#         ]
-#         Resource = [
-#           "${aws_s3_bucket.scpca_portal_inputs_bucket.arn}",
-#           "${aws_s3_bucket.scpca_portal_inputs_bucket.arn}/*"
-#         ]
-#       }
-#     ]
-#   })
-# }
+# Science team access mirrors the cellbrowser bucket, reusing its uploaders
+# TODO: we're currently using the cellbrowser_uploaders var for the inputs bucket.
+# Decide whether to rename it to something more general or add a new variable.
+resource "aws_s3_bucket_policy" "scpca_portal_inputs_bucket_policy" {
+  bucket = aws_s3_bucket.scpca_portal_inputs_bucket.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "ScienceTeamWriteObject"
+        Effect = "Allow"
+        Principal = {
+          "AWS" : var.cellbrowser_uploaders
+        }
+        Action = [
+          "s3:DeleteObject",
+          "s3:GetBucketLocation",
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:PutObject",
+          "s3:PutObjectTagging"
+        ]
+        Resource = [
+          "${aws_s3_bucket.scpca_portal_inputs_bucket.arn}",
+          "${aws_s3_bucket.scpca_portal_inputs_bucket.arn}/*"
+        ]
+      }
+    ]
+  })
+}
 
 resource "aws_s3_bucket" "scpca_portal_cert_bucket" {
   bucket        = "scpca-portal-cert-${var.user}-${var.stage}"
