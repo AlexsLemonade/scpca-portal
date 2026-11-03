@@ -1,3 +1,5 @@
+import os
+
 from scpca_portal import notifications, s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
@@ -8,7 +10,7 @@ from scpca_portal.exceptions import (
     S3UploadError,
 )
 from scpca_portal.job_processors import JobProcessorABC
-from scpca_portal.models import ComputedFile, Job
+from scpca_portal.models import ComputedFile
 
 logger = get_and_configure_logger(__name__)
 
@@ -99,7 +101,7 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.apply_state(JobStates.FAILED, reason=f"{e}")
         self.job.save()
 
-        self.set_exit_code(Job.HALT_EXIT_CODE)
+        self.set_exit_code(os.environ["HALT_EXIT_CODE"])
 
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
@@ -132,7 +134,7 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.apply_state(JobStates.PROCESSING)
         self.job.save()
 
-        self.set_exit_code(Job.HALT_EXIT_CODE)
+        self.set_exit_code(os.environ["HALT_EXIT_CODE"])
 
         logger.info("Sending Slack notification for manual tagging.")
         notifications.send_slack_notification(self.job)

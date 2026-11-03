@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Tuple
 
@@ -131,7 +132,7 @@ class JobProcessorABC(ABC):
         return self._exit_code
 
     def set_exit_code(self, code: int) -> None:
-        self._exit_code = code
+        self._exit_code = int(code)
 
     # JobProcessorABC.run lifecycle hooks
     def on_run(self) -> None:
@@ -165,11 +166,11 @@ class JobProcessorABC(ABC):
                 self.on_step_start(step)
                 step_function()
             except Exception as e:
-                self.set_exit_code(Job.RETRY_EXIT_CODE)  # Retry an exception by default
+                self.set_exit_code(os.environ["RETRY_EXIT_CODE"])  # Retry an exception by default
                 if exception_handler := self._lookup_handler(step, e):
                     self.on_step_exception(step, e)
                     if exception_handler(e):
-                        continue  # Proceed to the next step
+                        continue
                 else:
                     self.on_uncaught_exception(step, e)
 

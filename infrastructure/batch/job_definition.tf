@@ -12,6 +12,8 @@ locals {
 
 locals {
   max_retry_attempts = 3
+  retry_exit_code    = "1"
+  halt_exit_code     = "3"
 }
 
 locals {
@@ -64,6 +66,14 @@ locals {
       {
         name  = "MAX_RETRY_ATTEMPTS",
         value = tostring(local.max_retry_attempts)
+      },
+      {
+        name  = "RETRY_EXIT_CODE",
+        value = local.retry_exit_code
+      },
+      {
+        name  = "HALT_EXIT_CODE",
+        value = local.halt_exit_code
       }
     ]
   }
@@ -143,7 +153,7 @@ resource "aws_batch_job_definition" "scpca_portal_fargate" {
     attempts = local.max_retry_attempts
     evaluate_on_exit {
       action       = "EXIT"
-      on_exit_code = "3"
+      on_exit_code = local.halt_exit_code
     }
   }
 
@@ -171,7 +181,7 @@ resource "aws_batch_job_definition" "scpca_portal_ec2" {
     attempts = local.max_retry_attempts
     evaluate_on_exit {
       action       = "EXIT"
-      on_exit_code = "3"
+      on_exit_code = local.halt_exit_code
     }
   }
 
