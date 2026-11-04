@@ -21,12 +21,9 @@ def send_email(
     body_text: str,
     body_html: str,
     *,
-    bcc_addresses: list[str] | None = None,
+    bcc_addresses: list[str] = [],
     sender: str = settings.EMAIL_SENDER,
 ) -> None:
-    if bcc_addresses is None:
-        bcc_addresses = []
-
     ses = boto3.client("ses", region_name=settings.AWS_REGION)
 
     ses.send_email(
