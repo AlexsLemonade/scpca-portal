@@ -218,14 +218,16 @@ const Project = ({ project, ccdlDatasets }) => {
   )
 }
 
-export const getServerSideProps = async ({ query: projectQuery }) => {
+export const getServerSideProps = async ({ query }) => {
+  const { scpca_id: projectId } = query
+
   const ccdlDatasetQuery = {
-    ccdl_project_id: projectQuery.scpca_id,
+    ccdl_project_id: projectId,
     limit: 100
   }
 
   const [projectRequest, ccdlDatasetRequest] = await Promise.all([
-    api.projects.get(projectQuery.scpca_id),
+    api.projects.get(projectId),
     api.ccdlDatasets.list(ccdlDatasetQuery)
   ])
 
@@ -241,7 +243,12 @@ export const getServerSideProps = async ({ query: projectQuery }) => {
     return { notFound: true }
   }
 
-  return { props: { project: null, ccdlDatasets: null } }
+  return {
+    props: {
+      project: null,
+      ccdlDatasets: null
+    }
+  }
 }
 
 export default Project
