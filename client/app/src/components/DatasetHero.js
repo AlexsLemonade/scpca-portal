@@ -9,7 +9,7 @@ import { Loader } from 'components/Loader'
 
 export const DatasetHero = ({ dataset }) => {
   const { getDatasetState } = useDataset()
-  const { isProcessing, isReady, isExpired } = getDatasetState(dataset)
+  const { isProcessing, isSucceeded, isExpired } = getDatasetState(dataset)
 
   const [loading, setLoading] = useState(true)
 
@@ -21,7 +21,7 @@ export const DatasetHero = ({ dataset }) => {
 
   return (
     <>
-      {(isExpired || isProcessing || isReady) && (
+      {(isExpired || isProcessing || isSucceeded) && (
         <Box
           justify="center"
           border={{ side: 'bottom', color: 'border-black', size: 'small' }}
@@ -30,10 +30,10 @@ export const DatasetHero = ({ dataset }) => {
         >
           {isExpired && <DatasetHeroExpired dataset={dataset} />}
           {isProcessing && <DatasetHeroProcessing />}
-          {isReady && <DatasetHeroReady dataset={dataset} />}
+          {isSucceeded && <DatasetHeroReady dataset={dataset} />}
         </Box>
       )}
-      {(isProcessing || isReady) && (
+      {(isProcessing || isSucceeded) && (
         <Box
           justify="center"
           border={{ side: 'bottom', color: 'border-black', size: 'small' }}

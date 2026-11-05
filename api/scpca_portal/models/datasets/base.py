@@ -1,18 +1,16 @@
 import sys
 import uuid
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
-from typing import Iterable, List, Set
+from typing import TYPE_CHECKING, Iterable, List, Set
 
 from django.conf import settings
 from django.contrib.contenttypes.fields import GenericRelation
 from django.db import models
 from django.db.models import QuerySet
-from django.utils.timezone import make_aware
 
-from typing_extensions import Self
-
-from scpca_portal import common, lockfile, metadata_file, readme_file, utils
+from scpca_portal import lockfile, metadata_file, readme_file, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import (
     DatasetDataProjectConfig,
@@ -28,6 +26,9 @@ from scpca_portal.models.library import Library
 from scpca_portal.models.original_file import OriginalFile
 from scpca_portal.models.project import Project
 from scpca_portal.models.sample import Sample
+
+if TYPE_CHECKING:
+    from scpca_portal.models import Job
 
 logger = get_and_configure_logger(__name__)
 
@@ -57,24 +58,9 @@ class DatasetABC(TimestampedModel, models.Model):
     includes_files_multiplexed = models.BooleanField(default=False)
     estimated_size_in_bytes = models.BigIntegerField(default=0)
 
-    # Non user-editable - set during processing
+    # Non user-editable: Set during processing, except 'EXPIRED' via cron job
     state = models.TextField(choices=DatasetStates, default=DatasetStates.CREATED)
-    started_at = models.DateTimeField(null=True)
-    is_started = models.BooleanField(default=False)
-    pending_at = models.DateTimeField(null=True)
-    is_pending = models.BooleanField(default=False)
-    processing_at = models.DateTimeField(null=True)
-    is_processing = models.BooleanField(default=False)
-    succeeded_at = models.DateTimeField(null=True)
-    is_succeeded = models.BooleanField(default=False)
-    failed_at = models.DateTimeField(null=True)
-    is_failed = models.BooleanField(default=False)
-    failed_reason = models.TextField(null=True)
     expires_at = models.DateTimeField(null=True)
-    is_expired = models.BooleanField(default=False)  # Set by cronjob
-    terminated_at = models.DateTimeField(null=True)
-    is_terminated = models.BooleanField(default=False)
-    terminated_reason = models.TextField(null=True)
 
     computed_file = models.OneToOneField(
         ComputedFile,
@@ -529,58 +515,57 @@ class DatasetABC(TimestampedModel, models.Model):
 
         return self.computed_file.get_dataset_download_url(self.download_filename)
 
-    def apply_job_state(self, job) -> None:
+    @property
+    def latest_job(self) -> "Job":
+        return self.jobs.order_by("-created_at").first()
+
+    def apply_job_state(self, *, save: bool = True) -> None:
         """
-        Sets the dataset state (flag, reason, timestamps) based on the given job.
-        Resets states before applying changes.
+        Syncs the dataset state with its latest job state.
+        Populates expired_at timestamp if required.
+        Optionally saves the dataset state.
         """
-        # Resets all state flags and reasons
-        for state in JobStates:
-            state_str = state.lower()
+        job = self.latest_job
+        if job is None:
+            return None
 
-            setattr(self, f"is_{state_str}", False)
-            reason_attr = f"{state_str}_reason"
+        match job.state:
+            # Datasets are considered PROCESSING
+            # when their jobs are PENDING
+            case JobStates.PENDING | JobStates.PROCESSING:
+                self.state = DatasetStates.PROCESSING
+            case JobStates.SUCCEEDED:
+                self.state = DatasetStates.SUCCEEDED
+            # TERMINATED jobs map to FAILED
+            # indicating that processing failed
+            case JobStates.FAILED | JobStates.TERMINATED:
+                self.state = DatasetStates.FAILED
 
-            if hasattr(self, reason_attr):
-                setattr(self, reason_attr, None)
-
-        # Resets timestamps (reset all for PENDING, otherwise FINAL_JOB_STATES)
-        reset_states = JobStates if state == JobStates.PENDING else common.FINAL_JOB_STATES
-        for state in reset_states:
-            setattr(self, f"{state.lower()}_at", None)
-
-        # Sets new state based on the given job
-        state_str = job.state.lower()
-        reason_attr = f"{state_str}_reason"
-
-        setattr(self, f"is_{state_str}", True)
-        setattr(self, f"{state_str}_at", make_aware(datetime.now()))
-
-        # Populate the expiration date if required
-        if state == JobStates.SUCCEEDED and self.expiration_delta:
+        if self.state == DatasetStates.SUCCEEDED and self.expiration_delta:
             self.expires_at = self.expiration_delta
 
-        if hasattr(self, f"{state_str}_reason"):
-            setattr(self, f"{state_str}_reason", getattr(job, reason_attr))
+        if save:
+            self.save()
 
     @classmethod
-    def bulk_update_state(cls, datasets: List[Self]) -> None:
+    def bulk_apply_job_state(cls, jobs: List["Job"], *, save: bool = True) -> None:
         """
-        Updates state attributes of the given datasets in bulk.
+        Syncs dataset states with the latest state of the given jobs.
+        Optionally saves the datasets.
+        NOTE: Since jobs have a dynamic Dataset relationship,
+        they are grouped by class to perform bulk update per table.
         """
-        STATE_UPDATE_ATTRS = [
-            "expires_at",
-            "is_pending",
-            "pending_at",
-            "is_processing",
-            "processing_at",
-            "is_succeeded",
-            "succeeded_at",
-            "is_failed",
-            "failed_at",
-            "failed_reason",
-            "is_terminated",
-            "terminated_at",
-            "terminated_reason",
-        ]
-        cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
+        STATE_UPDATE_ATTRS = ["state", "expires_at"]
+
+        synced_datasets = defaultdict(list)
+
+        for job in jobs:
+            dataset_cls = job.dataset_content_type.model_class()
+            synced_datasets[dataset_cls].append(job.dataset)
+
+        for dataset_cls, datasets in synced_datasets.items():
+            for dataset in datasets:
+                dataset.apply_job_state(save=False)
+
+            if save:
+                dataset_cls.objects.bulk_update(datasets, STATE_UPDATE_ATTRS)
