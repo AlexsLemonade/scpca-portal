@@ -11,6 +11,10 @@ locals {
 }
 
 locals {
+  max_retry_attempts = 3
+}
+
+locals {
   job_environment = {
     environment = [
       {
@@ -56,6 +60,10 @@ locals {
       {
         name  = "SLACK_NOTIFICATIONS_EMAIL",
         value = var.slack_notifications_email
+      },
+      {
+        name  = "MAX_RETRY_ATTEMPTS",
+        value = tostring(local.max_retry_attempts)
       }
     ]
   }
@@ -132,7 +140,7 @@ resource "aws_batch_job_definition" "scpca_portal_fargate" {
   ))
 
   retry_strategy {
-    attempts = 3
+    attempts = local.max_retry_attempts
   }
 
   propagate_tags = true
@@ -156,7 +164,7 @@ resource "aws_batch_job_definition" "scpca_portal_ec2" {
   )
 
   retry_strategy {
-    attempts = 3
+    attempts = local.max_retry_attempts
   }
 
   propagate_tags = true

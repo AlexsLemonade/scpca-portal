@@ -29,5 +29,5 @@ class Command(BaseCommand):
         if failed_jobs:
             logger.info(
                 f"{len(failed_jobs)} jobs failed due to max submission attempts"
-                f"({common.MAX_JOB_ATTEMPTS}) exceeded"
+                f"({common.MAX_JOB_SUBMISSION_ATTEMPTS}) exceeded"
             )

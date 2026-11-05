@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from typing import List
 
@@ -105,6 +106,12 @@ class Job(TimestampedModel):
     # Each instance downloads all dataset files, copies them to a zip file, and uploads the zip file
     MAX_FARGATE_SIZE_IN_BYTES = 100 * common.GB_IN_BYTES
 
+    @property
+    def is_last_batch_attempt(self) -> bool:
+        attempt = int(os.environ.get("AWS_BATCH_JOB_ATTEMPT", "1"))
+        max_attempts = int(os.environ["MAX_RETRY_ATTEMPTS"])
+        return attempt >= max_attempts
+
     def __str__(self) -> str:
         if self.batch_job_id:
             return f"Job {self.id} - {self.batch_job_id} - {self.state}"
@@ -140,7 +147,6 @@ class Job(TimestampedModel):
     def create_retry_job(self, *, save: bool = True) -> Self:
         """
         Prepares a new PENDING job for retry with:
-        - incremented attempt count
         - batch fields
         - the associated dataset
         By default, saves the new job as PENDING (state, timestamp).
@@ -153,7 +159,6 @@ class Job(TimestampedModel):
             raise JobInvalidRetryStateError(self)
 
         new_job = Job(
-            attempt=self.attempt + 1,
             batch_job_name=self.batch_job_name,
             batch_job_definition=self.batch_job_definition,
             batch_job_queue=self.batch_job_queue,
@@ -370,7 +375,7 @@ class Job(TimestampedModel):
         Increment a job's attempt count.
         If attempts exceed the max allotted job attempts, fail the job.
         """
-        if self.attempt >= common.MAX_JOB_ATTEMPTS:
+        if self.attempt >= common.MAX_JOB_SUBMISSION_ATTEMPTS:
             self.apply_state(JobStates.FAILED, "Unable to dispatch job to aws")
             self.save()
             return False
