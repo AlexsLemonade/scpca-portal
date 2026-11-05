@@ -42,7 +42,7 @@ class Project_SCPCP999990:
         "sample_count": 4,
         "scpca_id": SCPCA_ID,
         "seq_units": ["cell", "spot"],
-        "technologies": ["10Xv3", "visium"],
+        "technologies": ["10xv3", "visium"],
         "title": "Title1",
         "unavailable_samples_count": 1,
     }
@@ -69,7 +69,7 @@ class Project_SCPCP999990:
             "sex": "M",
             "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3"],
+            "technologies": ["10xv3"],
             "tissue_location": "tissue1",
             "treatment": "",
         }
@@ -150,7 +150,7 @@ class Project_SCPCP999990:
             "sex": "M",
             "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3"],
+            "technologies": ["10xv3"],
             "tissue_location": "tissue8",
             "treatment": "",
         }
@@ -176,7 +176,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999991:
@@ -205,7 +205,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999994:
@@ -217,7 +217,7 @@ class Project_SCPCP999990:
             "modality": Modalities.BULK_RNA_SEQ,
             "original_file_paths": [],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999997:
@@ -241,7 +241,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Summary1:
@@ -249,7 +249,7 @@ class Project_SCPCP999990:
             "diagnosis": "diagnosis1",
             "sample_count": 1,
             "seq_unit": "cell",
-            "technology": "10Xv3",
+            "technology": "10xv3",
         }
 
     class Summary2:
@@ -273,7 +273,7 @@ class Project_SCPCP999990:
             "diagnosis": "diagnosis5",
             "sample_count": 1,
             "seq_unit": "cell",
-            "technology": "10Xv3",
+            "technology": "10xv3",
         }
 
     class Contact1:
