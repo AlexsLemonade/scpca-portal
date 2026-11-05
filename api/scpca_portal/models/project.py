@@ -32,6 +32,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = ArrayField(models.TextField(), default=list)
+    additional_processing = models.TextField(blank=True, null=True)
     additional_restrictions = models.TextField(blank=True, null=True)
     diagnoses = ArrayField(models.TextField(), default=list)
     diagnoses_counts = models.JSONField(default=dict)
@@ -39,6 +40,7 @@ class Project(CommonDataAttributes, TimestampedModel):
     downloadable_sample_count = models.IntegerField(default=0)
     has_single_cell_data = models.BooleanField(default=False)
     has_spatial_data = models.BooleanField(default=False)
+    has_additional_documentation = models.BooleanField(default=False)
     human_readable_pi_name = models.TextField()
     includes_anndata = models.BooleanField(default=False)
     includes_cell_lines = models.BooleanField(default=False)
