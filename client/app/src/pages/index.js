@@ -371,7 +371,7 @@ export const getStaticProps = async () => {
     }
   }
 
-  return { props: { stats: null, cancerTypes: [] }, revalidate: 60 }
+  return { props: { stats: {}, cancerTypes: [] }, revalidate: 60 }
 }
 
 export default Home
