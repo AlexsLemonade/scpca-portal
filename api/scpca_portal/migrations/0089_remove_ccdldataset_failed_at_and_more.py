@@ -21,14 +21,25 @@ def map_dataset_states(apps, schema_editor):
             is_terminated=False,
             is_expired=False,
         ).update(state="CREATED")
+
         # PROCESSING
         Dataset.objects.filter(Q(is_pending=True) | Q(is_processing=True)).update(
             state="PROCESSING"
         )
+
         # SUCCEEDED
         Dataset.objects.filter(is_succeeded=True).update(state="SUCCEEDED")
-        # FAILED
-        Dataset.objects.filter(Q(is_failed=True) | Q(is_terminated=True)).update(state="FAILED")
+
+        # FAILED or PROCESSING if the latest job is PENDING
+        failed_datasets = Dataset.objects.filter(Q(is_failed=True) | Q(is_terminated=True))
+        for dataset in failed_datasets:
+            latest_job = dataset.jobs.order_by("-created_at").first()
+
+            if latest_job.state == "PENDING":
+                Dataset.objects.filter(id=dataset.id).update(state="PROCESSING")
+            else:
+                Dataset.objects.filter(id=dataset.id).update(state="FAILED")
+
         # EXPIRED
         Dataset.objects.filter(is_expired=True).update(state="EXPIRED")
 
@@ -41,124 +52,125 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(map_dataset_states, reverse_code=migrations.RunPython.noop),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="failed_at",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="failed_reason",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="is_expired",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="is_failed",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="is_pending",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="is_processing",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="is_started",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="is_succeeded",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="is_terminated",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="pending_at",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="processing_at",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="started_at",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="succeeded_at",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="terminated_at",
-        ),
-        migrations.RemoveField(
-            model_name="ccdldataset",
-            name="terminated_reason",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="failed_at",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="failed_reason",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="is_expired",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="is_failed",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="is_pending",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="is_processing",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="is_started",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="is_succeeded",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="is_terminated",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="pending_at",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="processing_at",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="started_at",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="succeeded_at",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="terminated_at",
-        ),
-        migrations.RemoveField(
-            model_name="userdataset",
-            name="terminated_reason",
-        ),
+        # TODO: Remove the fields for the existing DB records once data population is verified
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="failed_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="failed_reason",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="is_expired",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="is_failed",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="is_pending",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="is_processing",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="is_started",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="is_succeeded",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="is_terminated",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="pending_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="processing_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="started_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="succeeded_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="terminated_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="ccdldataset",
+        #     name="terminated_reason",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="failed_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="failed_reason",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="is_expired",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="is_failed",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="is_pending",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="is_processing",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="is_started",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="is_succeeded",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="is_terminated",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="pending_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="processing_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="started_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="succeeded_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="terminated_at",
+        # ),
+        # migrations.RemoveField(
+        #     model_name="userdataset",
+        #     name="terminated_reason",
+        # ),
     ]
