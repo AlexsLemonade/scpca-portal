@@ -1,4 +1,4 @@
-from scpca_portal import notifications, s3, utils
+from scpca_portal import s3, utils
 from scpca_portal.config.logging import get_and_configure_logger
 from scpca_portal.enums import JobStates
 from scpca_portal.exceptions import (
@@ -50,7 +50,7 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.save()
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
-            notifications.send_dataset_job_error_email(self.job)
+            self.job.send_error_email()
 
     def on_run_done(self) -> None:
         self.job.save()
@@ -82,7 +82,7 @@ class DatasetJobProcessor(JobProcessorABC):
         self.job.dataset.save()
         if self.job.dataset.email:
             logger.info("Sending dataset job error email.")
-            notifications.send_dataset_job_error_email(self.job)
+            self.job.send_error_email()
 
     def handle_upload_failure(self, step: str, e: Exception) -> None:
         self.job.apply_state(JobStates.FAILED, reason="Failed to upload the computed file to S3.")
@@ -94,7 +94,7 @@ class DatasetJobProcessor(JobProcessorABC):
         # Notify about S3 tagging failure via Slack to enable manual tagging
         self.job.apply_state(JobStates.FAILED, reason="Failed to tag the computed file on S3.")
         logger.info("Send Slack notification for manual tagging alert.")
-        notifications.send_computed_file_tagging_error_email(self.job)
+        self.job.send_tagging_error_notification()
 
     def upload_new_computed_file(self) -> None:
         key = self.job.dataset.computed_file.s3_key
@@ -118,4 +118,4 @@ class DatasetJobProcessor(JobProcessorABC):
 
     def send_notification(self) -> None:
         if self.job.dataset.email:
-            notifications.send_dataset_job_success_email(self.job)
+            self.job.send_success_email()
