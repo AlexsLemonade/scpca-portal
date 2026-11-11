@@ -152,14 +152,20 @@ class UserDataset(DatasetABC):
             {
                 "name": "Single-cell samples with CITE-seq",
                 "filter": {"has_cite_seq_data": True},
-                "exclude": [{"is_multiplexed": True}, {"metadata__seq_unit": "nucleus"}],
+                "exclude": [
+                    {"is_multiplexed": True},
+                    {"metadata__seq_unit": "nucleus"},
+                ],
                 "samples": single_cell_samples,
                 "libraries": single_cell_libraries,
             },
             {
                 "name": "Single-cell multiplexed samples",
                 "filter": {"is_multiplexed": True},
-                "exclude": [{"metadata__seq_unit": "nucleus"}, {"has_cite_seq_data": True}],
+                "exclude": [
+                    {"metadata__seq_unit": "nucleus"},
+                    {"has_cite_seq_data": True},
+                ],
                 "samples": single_cell_samples,
                 "libraries": single_cell_libraries,
             },
@@ -280,16 +286,12 @@ class UserDataset(DatasetABC):
         """
         Return a list of projects with additional processing details.
         """
-        projects = self.projects.filter(additional_processing__isnull=False).values(
-            "scpca_id", "additional_processing", "has_additional_documentation"
-        )
-
         return {
-            project["scpca_id"]: {
-                "additional_processing": project["additional_processing"],
-                "has_additional_documentation": project["has_additional_documentation"],
+            project.scpca_id: {
+                "additional_processing": project.additional_processing,
+                "has_additional_documentation": project.has_additional_documentation,
             }
-            for project in projects
+            for project in self.projects
         }
 
     def get_modality_count_mismatch_projects(self) -> List[str]:
@@ -352,7 +354,9 @@ class UserDataset(DatasetABC):
         Returns the count of the datasets that have been marked as expired.
         """
         expired_datasets = cls.objects.filter(
-            is_succeeded=True, is_expired=False, expires_at__lt=make_aware(datetime.now())
+            is_succeeded=True,
+            is_expired=False,
+            expires_at__lt=make_aware(datetime.now()),
         )
 
         ComputedFile.objects.filter(userdataset__in=expired_datasets).delete()
