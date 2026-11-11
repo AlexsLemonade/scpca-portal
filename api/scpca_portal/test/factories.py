@@ -19,7 +19,7 @@ class ProjectSummaryFactory(factory.django.DjangoModelFactory):
 
     diagnosis = "AML"
     seq_unit = "cell"
-    technology = "10Xv2_5prime"
+    technology = "10xv2_5prime"
 
     sample_count = 28
 
@@ -82,7 +82,7 @@ class LeafProjectFactory(factory.django.DjangoModelFactory):
     diagnoses = ["AML", "Normal"]
     diagnoses_counts = {"AML": 20, "Normal": 40}
     seq_units = ["cell"]
-    technologies = ["10Xv2_5prime", "CITE-seq"]
+    technologies = ["10xv2_5prime", "CITE-seq"]
     has_bulk_rna_seq = True
     modalities = ["CITE_SEQ"]
     organisms = ["Homo sapiens"]
@@ -135,7 +135,7 @@ class SampleFactory(factory.django.DjangoModelFactory):
     seq_units = ["cell"]
     sex = "M"
     subdiagnosis = "NA"
-    technologies = ["10Xv3"]
+    technologies = ["10xv3"]
     tissue_location = "posterior fossa"
 
 
@@ -156,7 +156,7 @@ class LibraryFactory(factory.django.DjangoModelFactory):
         lambda library_obj: {
             "scpca_library_id": library_obj.scpca_id,
             "scpca_sample_id": "SCPCS000000",
-            "technology": "10Xv3",
+            "technology": "10xv3",
             "seq_unit": "cell",
             "is_multiplexed": False,
             "has_citeseq": False,

@@ -6,11 +6,14 @@ The [Single-cell Pediatric Cancer Atlas](https://scpca.alexslemonade.org) is a d
 
 ## Contents
 
-This download includes associated metadata for samples from project [PROJECT_ID_0](https://scpca.alexslemonade.org/projects/PROJECT_ID_0) in the ScPCA portal.
+This is a portal-wide download you can find more information about your download [in ScPCA docs.](https://scpca.readthedocs.io/en/development/download_files.html#portal-wide-downloads)
 
-The metadata included in this download contains sample, library, and project-related metadata (e.g., age, sex, diagnosis, sequencing unit, etc.) along with any relevant processing metadata (e.g., software versions, filtering methods used, etc.).
-
-See the [Downloadable files](https://scpca.readthedocs.io/en/stable/download_files.html) section in our documentation for more detailed information on files included in the download.
+|Project ID|Additional Processing|
+|:---------|:--------------------|
+|[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|https://scpca.readthedocs.io/en/development/SCPCP999990.html|
+|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)||
+|[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)||
+|[SCPCP999994](https://scpca.alexslemonade.org/projects/SCPCP999994)||
 
 ## CHANGELOG
 
@@ -30,13 +33,18 @@ For more information, please see [the How to Cite section of our documentation](
 
 ### Citing this project
 
-To cite data from PROJECT_ID_0, please see the project abstract and publication information at [PROJECT_ID_0 page.](https://scpca.alexslemonade.org/projects/PROJECT_ID_0)
+To cite data from a specific project please find the project abstract and publication information on the project page.
+
+- [SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)
+- [SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)
+- [SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)
+- [SCPCP999994](https://scpca.alexslemonade.org/projects/SCPCP999994)
 
 ### Citing the ScPCA Portal
 
-When citing the ScPCA Portal, please cite the following preprint:
+When citing the ScPCA Portal, please cite the following publication:
 
-Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2024 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. _bioRxiv._ https://doi.org/10.1101/2024.04.19.590243
+Hawkins A. G., J. A. Shapiro, S. J. Spielman, D. S. Mejia, D. V. Prasad, et al., 2026 The Single-cell Pediatric Cancer Atlas: Data portal and open-source tools for single-cell transcriptomics of pediatric tumors. Cell Genom. 6:101283. https://doi.org/10.1016/j.xgen.2026.101283
 
 ## Terms of Use
 
@@ -44,4 +52,9 @@ In using these data, you agree to our [Terms of Use](https://scpca.alexslemonade
 
 ### Additional Restrictions
 
-This dataset is designated as research or academic purposes only.
+|Project ID|Data Usage Restrictions|
+|:---------|:----------------------|
+|[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|Research or academic purposes only|
+|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)|Research or academic purposes only|
+|[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)|Research or academic purposes only|
+|[SCPCP999994](https://scpca.alexslemonade.org/projects/SCPCP999994)|Research or academic purposes only|

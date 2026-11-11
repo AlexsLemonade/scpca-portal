@@ -41,6 +41,7 @@ class UserDataset(DatasetABC):
     modality_count_mismatch_projects = ArrayField(models.TextField(), default=list)
     project_sample_counts = models.JSONField(default=dict)
     project_titles = models.JSONField(default=dict)
+    project_additional_processing = models.JSONField(default=dict)
 
     def __str__(self) -> str:
         return f"User Dataset {self.id}"
@@ -61,6 +62,7 @@ class UserDataset(DatasetABC):
         self.modality_count_mismatch_projects = self.get_modality_count_mismatch_projects()
         self.project_sample_counts = self.get_project_sample_counts()
         self.project_titles = self.get_project_titles()
+        self.project_additional_processing = self.get_project_additional_processing()
 
         super().save(*args, **kwargs)
 
@@ -153,14 +155,20 @@ class UserDataset(DatasetABC):
             {
                 "name": "Single-cell samples with CITE-seq",
                 "filter": {"has_cite_seq_data": True},
-                "exclude": [{"is_multiplexed": True}, {"metadata__seq_unit": "nucleus"}],
+                "exclude": [
+                    {"is_multiplexed": True},
+                    {"metadata__seq_unit": "nucleus"},
+                ],
                 "samples": single_cell_samples,
                 "libraries": single_cell_libraries,
             },
             {
                 "name": "Single-cell multiplexed samples",
                 "filter": {"is_multiplexed": True},
-                "exclude": [{"metadata__seq_unit": "nucleus"}, {"has_cite_seq_data": True}],
+                "exclude": [
+                    {"metadata__seq_unit": "nucleus"},
+                    {"has_cite_seq_data": True},
+                ],
                 "samples": single_cell_samples,
                 "libraries": single_cell_libraries,
             },
@@ -275,6 +283,18 @@ class UserDataset(DatasetABC):
     def get_project_titles(self) -> Dict:
         return {
             scpca_id: title for scpca_id, title in self.projects.values_list("scpca_id", "title")
+        }
+
+    def get_project_additional_processing(self) -> Dict:
+        """
+        Return a list of projects with additional processing details.
+        """
+        return {
+            project.scpca_id: {
+                "additional_processing": project.additional_processing,
+                "has_additional_documentation": project.has_additional_documentation,
+            }
+            for project in self.projects
         }
 
     def get_modality_count_mismatch_projects(self) -> List[str]:
