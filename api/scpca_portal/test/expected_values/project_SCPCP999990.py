@@ -8,6 +8,7 @@ class Project_SCPCP999990:
     VALUES = {
         "abstract": "Abstract1",
         "additional_restrictions": "Research or academic purposes only",
+        "additional_processing": "metaprograms",
         "diagnoses": ["diagnosis1", "diagnosis2", "diagnosis5"],
         "diagnoses_counts": {"diagnosis1": 1, "diagnosis2": 1, "diagnosis5": 2},
         "disease_timings": ["Initial diagnosis"],
@@ -17,6 +18,7 @@ class Project_SCPCP999990:
         "has_multiplexed_data": False,
         "has_single_cell_data": True,
         "has_spatial_data": True,
+        "has_additional_documentation": True,
         "human_readable_pi_name": "PI1",
         "includes_anndata": True,
         "includes_cell_lines": False,
@@ -42,7 +44,7 @@ class Project_SCPCP999990:
         "sample_count": 4,
         "scpca_id": SCPCA_ID,
         "seq_units": ["cell", "spot"],
-        "technologies": ["10Xv3", "visium"],
+        "technologies": ["10xv3", "visium"],
         "title": "Title1",
         "unavailable_samples_count": 1,
     }
@@ -69,7 +71,7 @@ class Project_SCPCP999990:
             "sex": "M",
             "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3"],
+            "technologies": ["10xv3"],
             "tissue_location": "tissue1",
             "treatment": "",
         }
@@ -150,7 +152,7 @@ class Project_SCPCP999990:
             "sex": "M",
             "seq_units": ["cell"],
             "subdiagnosis": "NA",
-            "technologies": ["10Xv3"],
+            "technologies": ["10xv3"],
             "tissue_location": "tissue8",
             "treatment": "",
         }
@@ -176,7 +178,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999990/SCPCL999990_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999991:
@@ -205,7 +207,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999991/SCPCL999991_spatial/spatial/tissue_positions_list.csv",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999994:
@@ -217,7 +219,7 @@ class Project_SCPCP999990:
             "modality": Modalities.BULK_RNA_SEQ,
             "original_file_paths": [],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Library_SCPCL999997:
@@ -241,7 +243,7 @@ class Project_SCPCP999990:
                 "SCPCP999990/SCPCS999997/SCPCL999997_unfiltered_rna.h5ad",
             ],
             "scpca_id": SCPCA_ID,
-            "workflow_version": "v0.8.8",
+            "workflow_version": "v0.10.4",
         }
 
     class Summary1:
@@ -249,7 +251,7 @@ class Project_SCPCP999990:
             "diagnosis": "diagnosis1",
             "sample_count": 1,
             "seq_unit": "cell",
-            "technology": "10Xv3",
+            "technology": "10xv3",
         }
 
     class Summary2:
@@ -273,7 +275,7 @@ class Project_SCPCP999990:
             "diagnosis": "diagnosis5",
             "sample_count": 1,
             "seq_unit": "cell",
-            "technology": "10Xv3",
+            "technology": "10xv3",
         }
 
     class Contact1:

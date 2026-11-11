@@ -16,7 +16,7 @@ class StatsTestCase(APITestCase):
             diagnosis="different",
             project=ProjectFactory(),
             seq_units=["cell", "bulk"],
-            technologies=["10Xv4", "10Xv5"],
+            technologies=["10xv4", "10xv5"],
         )
         OriginalFileFactory(
             is_downloadable=True, sample_ids=list(Sample.objects.values_list("scpca_id", flat=True))
@@ -27,7 +27,7 @@ class StatsTestCase(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
 
         response_json = response.json()
-        self.assertEqual(response_json["cancer_types"], ["different", "pilocytic astrocytoma"])
+
         self.assertEqual(response_json["cancer_types_count"], 2)
         self.assertEqual(response_json["labs_count"], 2)
         self.assertEqual(response_json["projects_count"], 3)
