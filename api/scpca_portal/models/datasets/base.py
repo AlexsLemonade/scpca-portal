@@ -45,25 +45,6 @@ class DatasetABC(TimestampedModel, models.Model):
     email = models.EmailField(null=True)
     start = models.BooleanField(default=False)
 
-    # TODO: Remove the legacy fields after verifying datasets' state are correctly populated
-    # Starts: Temporarily add them back to keep models and schema consistent for tests
-    started_at = models.DateTimeField(null=True)
-    is_started = models.BooleanField(default=False)
-    pending_at = models.DateTimeField(null=True)
-    is_pending = models.BooleanField(default=False)
-    processing_at = models.DateTimeField(null=True)
-    is_processing = models.BooleanField(default=False)
-    succeeded_at = models.DateTimeField(null=True)
-    is_succeeded = models.BooleanField(default=False)
-    failed_at = models.DateTimeField(null=True)
-    is_failed = models.BooleanField(default=False)
-    failed_reason = models.TextField(null=True)
-    terminated_at = models.DateTimeField(null=True)
-    is_terminated = models.BooleanField(default=False)
-    terminated_reason = models.TextField(null=True)
-    is_expired = models.BooleanField(default=False)
-    # Ends: Temporarily add them back to keep models and schema consistent for tests
-
     # Hashes
     data_hash = models.CharField(max_length=32, null=True)
     metadata_hash = models.CharField(max_length=32, null=True)
