@@ -6,22 +6,17 @@ import { Icon } from 'components/Icon'
 
 export const ProjectAdditionalProcessing = ({
   projectId,
-  additionalProcessingDetails
+  additionalProcessing,
+  hasAdditionalDocumentation = false
 }) => {
-  if (!Object.keys(additionalProcessingDetails).length)
-    return <Text italic>Not Specified</Text>
-
-  const {
-    additional_processing: additionalProcessing,
-    has_additional_documentation: hasLink
-  } = additionalProcessingDetails
+  if (!additionalProcessing) return <Text italic>Not Specified</Text>
 
   const docsLink = `${projectId}.html`
 
   return (
     <Box direction="row" gap="xsmall">
       <Text>{additionalProcessing}</Text>
-      {hasLink && (
+      {hasAdditionalDocumentation && (
         <Link href={getDocsUrl(docsLink)} newTab>
           <Icon size="small" name="Help" />
         </Link>

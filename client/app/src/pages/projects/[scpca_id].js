@@ -40,13 +40,6 @@ const Project = ({ project, ccdlDatasets }) => {
     (d) => d.format === 'METADATA'
   )
 
-  const additionalProcessingDetails = project.additional_processing
-    ? {
-        additional_processing: project.additional_processing,
-        has_additional_documentation: project.has_additional_documentation
-      }
-    : {}
-
   // Disable DatasetAddSamplesModal if all samples are added
   useEffect(() => {
     const datasetProjectData = getMyDatasetProjectDataSamples(project)
@@ -89,8 +82,9 @@ const Project = ({ project, ccdlDatasets }) => {
                       value: (
                         <ProjectAdditionalProcessing
                           projectId={project.scpca_id}
-                          additionalProcessingDetails={
-                            additionalProcessingDetails
+                          additionalProcessing={project.additional_processing}
+                          hasAdditionalDocumentation={
+                            project.has_additional_documentation
                           }
                         />
                       )
