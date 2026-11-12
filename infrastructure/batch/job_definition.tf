@@ -11,6 +11,12 @@ locals {
 }
 
 locals {
+  max_retry_attempts = 3
+  retry_exit_code    = "1"
+  halt_exit_code     = "3"
+}
+
+locals {
   job_environment = {
     environment = [
       {
@@ -56,6 +62,18 @@ locals {
       {
         name  = "SLACK_NOTIFICATIONS_EMAIL",
         value = var.slack_notifications_email
+      },
+      {
+        name  = "MAX_RETRY_ATTEMPTS",
+        value = tostring(local.max_retry_attempts)
+      },
+      {
+        name  = "RETRY_EXIT_CODE",
+        value = local.retry_exit_code
+      },
+      {
+        name  = "HALT_EXIT_CODE",
+        value = local.halt_exit_code
       }
     ]
   }
@@ -132,7 +150,11 @@ resource "aws_batch_job_definition" "scpca_portal_fargate" {
   ))
 
   retry_strategy {
-    attempts = 3
+    attempts = local.max_retry_attempts
+    evaluate_on_exit {
+      action       = "EXIT"
+      on_exit_code = local.halt_exit_code
+    }
   }
 
   propagate_tags = true
@@ -156,7 +178,11 @@ resource "aws_batch_job_definition" "scpca_portal_ec2" {
   )
 
   retry_strategy {
-    attempts = 3
+    attempts = local.max_retry_attempts
+    evaluate_on_exit {
+      action       = "EXIT"
+      on_exit_code = local.halt_exit_code
+    }
   }
 
   propagate_tags = true
