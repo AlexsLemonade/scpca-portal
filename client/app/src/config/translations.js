@@ -33,7 +33,7 @@ export const values = {
   '.rds': 'SingleCellExperiment (.rds)',
   '.h5ad': 'AnnData (.h5ad)',
   // Kit technology names
-  '10Xflex_v1.1_multi': 'GEM-X Flex v1'
+  '10xflex_v1.1_multi': 'GEM-X Flex v1'
 }
 
 // Alternate presentation

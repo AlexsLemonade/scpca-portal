@@ -1,3 +1,5 @@
+import csv
+import io
 from unittest.mock import patch
 from zipfile import ZipFile
 
@@ -5,9 +7,9 @@ from django.conf import settings
 from django.core.management import call_command
 from django.test import TestCase
 
-from scpca_portal import loader, metadata_parser, utils
+from scpca_portal import common, loader, metadata_parser, utils
 from scpca_portal.enums import CCDLDatasetNames
-from scpca_portal.models import CCDLDataset, ComputedFile, UserDataset
+from scpca_portal.models import CCDLDataset, ComputedFile, Project, UserDataset
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import LibraryFactory, ProjectFactory, SampleFactory
 
@@ -91,6 +93,57 @@ class TestGetFile(TestCase):
             value,
         ) in (
             test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999990.COMPUTED_FILE_VALUES.items()  # noqa
+        ):
+            msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
+            self.assertEqual(getattr(computed_file, attribute), value, msg)
+
+        # CHECK COMPUTED FILE AND DATASET RELATIONSHIP
+        self.assertIsNotNone(dataset.computed_file)
+        self.assertEqual(dataset.computed_file, computed_file)
+
+    def test_get_ccdl_dataset_file_with_gem_x_flex_libraries(self):
+        utils.create_data_dirs()
+
+        ccdl_name = CCDLDatasetNames.SINGLE_CELL_SINGLE_CELL_EXPERIMENT.value
+        project_id = "SCPCP999994"
+
+        dataset, _ = CCDLDataset.get_or_find(ccdl_name, project_id)
+        dataset.save()
+
+        computed_file = ComputedFile.get_dataset_file(dataset)
+
+        # CHECK ZIP FILE
+        with ZipFile(dataset.computed_file_local_path) as project_zip:
+            # Check if file list is as expected
+            self.assertListEqual(
+                sorted(project_zip.namelist()),
+                test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999994.COMPUTED_FILE_LIST,
+            )
+
+            tsv_path = "SCPCP999994_single-cell/single-cell_metadata.tsv"
+            with project_zip.open(tsv_path) as raw_file:
+                with io.TextIOWrapper(raw_file, encoding="utf-8") as tsv_file:
+                    project_metadata = list(csv.DictReader(tsv_file, delimiter=common.TAB))
+
+        self.assertEqual(len(project_metadata), 2)
+
+        # CHECK LIBRARY ID IN GENERATED METADATA
+        # Ensure Sample ID suffix is excluded
+        project = Project.objects.filter(scpca_id=project_id).first()
+        expected_library_ids = [
+            library_id.split("-", 1)[0]
+            for library_id in project.libraries.values_list("scpca_id", flat=True)
+        ]
+        actual_library_ids = [row["scpca_library_id"] for row in project_metadata]
+        self.assertEqual(actual_library_ids, expected_library_ids)
+
+        # CHECK COMPUTED FILE ATTRIBUTES
+        self.assertIsNotNone(computed_file)
+        for (
+            attribute,
+            value,
+        ) in (
+            test_data.CCDLDatasetSingleCellSingleCellExperimentSCPCP999994.COMPUTED_FILE_VALUES.items()  # noqa
         ):
             msg = f"The actual and expected `{attribute}` values differ in {computed_file}"
             self.assertEqual(getattr(computed_file, attribute), value, msg)

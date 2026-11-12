@@ -87,7 +87,13 @@ export const ProjectHeader = ({ project, linked = false }) => {
           />
         </Box>
         <Box align={responsive('start', 'end')}>
-          <Badge badge="Kit" label={project.technologies.join(', ')} />
+          {[project.technologies].map((technology) => (
+            <Badge
+              key={technology}
+              badge="Kit"
+              label={getReadable(technology)}
+            />
+          ))}
         </Box>
       </Grid>
 

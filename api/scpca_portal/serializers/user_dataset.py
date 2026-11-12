@@ -41,6 +41,7 @@ class UserDatasetSerializer(serializers.ModelSerializer):
             "project_sample_counts",
             "project_titles",
             "state",
+            "project_additional_processing",
             "expires_at",
             "computed_file",
         )

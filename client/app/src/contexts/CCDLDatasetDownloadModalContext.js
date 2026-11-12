@@ -1,3 +1,4 @@
+import { useRouter } from 'next/router'
 import React, { createContext, useEffect, useState } from 'react'
 import { useScPCAPortal } from 'hooks/useScPCAPortal'
 import { useAnalytics } from 'hooks/useAnalytics'
@@ -9,6 +10,7 @@ import { getReadable } from 'helpers/getReadable'
 import { getReadableOptions } from 'helpers/getReadableOptions'
 import { sortOnKeyByOrder } from 'helpers/sortOnKeyByOrder'
 import { formatOrder, modalityOrder } from 'config/ccdlDatasets'
+import { ccdlNames } from 'config/ccdlDatasets'
 
 export const CCDLDatasetDownloadModalContext = createContext({})
 
@@ -39,6 +41,55 @@ export const CCDLDatasetDownloadModalContextProvider = ({
   const [modalityOptions, setModalityOptions] = useState([])
   const [formatOptions, setFormatOptions] = useState([])
 
+  // CCDI deep links for valid CCDLNames
+  const [isDeepLinkError, setIsDeepLinkError] = useState(false) // For displaying a warning message
+  const { query, pathname, replace } = useRouter()
+  const { ccdl_name: ccdlName, ...remainingQuery } = query
+  // Remove the warning message and ccdlName query from URL
+  const removeDeepLink = () => {
+    replace(
+      {
+        pathname,
+        query: remainingQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+    setIsDeepLinkError(false)
+  }
+
+  const getFormatLabel = (d) =>
+    d.ccdl_modality === 'SPATIAL'
+      ? getReadable('SPATIAL_SPACERANGER')
+      : getReadable(d.format)
+
+  // Set a dataset for deep link matching ccdlName
+  useEffect(() => {
+    if (!ccdlName || !datasets || datasets.length === 0) return
+
+    const dataset = datasets.find((d) => d.ccdl_name === ccdlName)
+    const isValid = ccdlNames.includes(ccdlName) && dataset
+
+    if (isValid) {
+      setModality(dataset.ccdl_modality)
+      setFormat(dataset.format)
+      setIncludesMerged(dataset.includes_files_merged)
+      setExcludeMultiplexed(dataset.includes_files_multiplexed === false)
+    } else {
+      setSelectedDataset(datasets[0])
+      setIsDeepLinkError(true)
+    }
+
+    setShowing(true)
+  }, [ccdlName, datasets])
+
+  // Call removeDeepLink when a user's download option change selects a different dataset
+  useEffect(() => {
+    if (!isDeepLinkError) return
+
+    if (selectedDataset.id !== datasets[0].id) removeDeepLink()
+  }, [selectedDataset])
+
   // on datasets change either reset values or set modality defaults
   useEffect(() => {
     if (!datasets || datasets.length === 0) {
@@ -55,8 +106,11 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       setModalityOptions([])
       setFormatOptions([])
     } else {
-      const [defaultModality] = modalityOrder
-      setModality(defaultModality)
+      if (!modality) {
+        const [defaultModality] = modalityOrder
+        setModality(defaultModality)
+      }
+
       setModalityOptions(
         sortOnKeyByOrder(
           getReadableOptions(datasets.map((d) => d.ccdl_modality)),
@@ -72,7 +126,6 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         datasets.some((dataset) => dataset.includes_files_multiplexed)
       )
     }
-
     // reset download state vars on datasets change
     setDownloadDataset(false)
     setDownloadableDataset(null)
@@ -83,17 +136,14 @@ export const CCDLDatasetDownloadModalContextProvider = ({
     if (modality) {
       const [defaultFormat] = formatOrder
       setFormat(defaultFormat)
+
       setFormatOptions(
         sortOnKeyByOrder(
           uniqueArrayByKey(
             datasets
               .filter((d) => d.ccdl_modality === modality)
               .map((d) => ({
-                label:
-                  // We override this to present the spatial format
-                  d.ccdl_modality === 'SPATIAL'
-                    ? getReadable('SPATIAL_SPACERANGER')
-                    : getReadable(d.format),
+                label: getFormatLabel(d), // We override this to present the spatial format
                 value: d.format
               })),
             'value'
@@ -165,7 +215,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
       } else if (downloadRequest.status === 403) {
         await createToken()
       } else {
-        // NOTE: there isnt much we can do here to recover.
+        // NOTE: there isn't much we can do here to recover.
         console.error(
           'An error occurred while trying to get the download url for:',
           selectedDataset.id
@@ -208,6 +258,7 @@ export const CCDLDatasetDownloadModalContextProvider = ({
         selectedDataset,
         isMergedObjectsAvailable,
         isMultiplexedAvailable,
+        isDeepLinkError,
         modalityOptions,
         formatOptions,
         downloadDataset,

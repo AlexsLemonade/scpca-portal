@@ -16,6 +16,7 @@ import { Link } from 'components/Link'
 import { PageMeta } from 'components/PageMeta'
 import { ProjectHeader } from 'components/ProjectHeader'
 import { ProjectAbstractDetail } from 'components/ProjectAbstractDetail'
+import { ProjectAdditionalProcessing } from 'components/ProjectAdditionalProcessing'
 import { ProjectAdditionalRestrictions } from 'components/ProjectAdditionalRestrictions'
 import { ProjectPublicationsDetail } from 'components/ProjectPublicationsDetail'
 import { ProjectExternalAccessionsDetail } from 'components/ProjectExternalAccessionsDetail'
@@ -74,6 +75,18 @@ const Project = ({ project, ccdlDatasets }) => {
                       label: 'Abstract',
                       value: (
                         <ProjectAbstractDetail abstract={project.abstract} />
+                      )
+                    },
+                    {
+                      label: 'Additional Processing',
+                      value: (
+                        <ProjectAdditionalProcessing
+                          projectId={project.scpca_id}
+                          additionalProcessing={project.additional_processing}
+                          hasAdditionalDocumentation={
+                            project.has_additional_documentation
+                          }
+                        />
                       )
                     },
                     {
@@ -218,14 +231,16 @@ const Project = ({ project, ccdlDatasets }) => {
   )
 }
 
-export const getServerSideProps = async ({ query: projectQuery }) => {
+export const getServerSideProps = async ({ query }) => {
+  const { scpca_id: projectId } = query
+
   const ccdlDatasetQuery = {
-    ccdl_project_id: projectQuery.scpca_id,
+    ccdl_project_id: projectId,
     limit: 100
   }
 
   const [projectRequest, ccdlDatasetRequest] = await Promise.all([
-    api.projects.get(projectQuery.scpca_id),
+    api.projects.get(projectId),
     api.ccdlDatasets.list(ccdlDatasetQuery)
   ])
 
@@ -241,7 +256,12 @@ export const getServerSideProps = async ({ query: projectQuery }) => {
     return { notFound: true }
   }
 
-  return { props: { project: null, ccdlDatasets: null } }
+  return {
+    props: {
+      project: null,
+      ccdlDatasets: null
+    }
+  }
 }
 
 export default Project

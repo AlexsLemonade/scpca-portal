@@ -37,7 +37,9 @@ DEPLOY_ENVS = {
     "AWS_SECRET_ACCESS_KEY": "AWS credential accessing input bucket or any project resources.",
     "ENABLE_FEATURE_PREVIEW": "Turn on in-progress features. You probably want this set to True",
     "CELLBROWSER_SECURITY_TOKEN": "Cellbrowser security token for requests.",
-    "CELLBROWSER_UPLOADERS": "List of IAM User ARNS allowed to upload to cellbrowser bucket.",
+    "CELLBROWSER_UPLOADERS": (
+        "List of IAM User ARNS allowed to upload to cellbrowser and inputs buckets."
+    ),
 }
 
 # Everything needs access to the system env.
