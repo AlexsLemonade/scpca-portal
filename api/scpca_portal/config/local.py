@@ -18,7 +18,7 @@ class Local(Common):
     AWS_REGION = "us-east-1"
 
     # AWS S3
-    # TODO: update this when we decide what to do with the dev input bucket
+    # TODO: update this downstream after we decide what to do with dev input bucket
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-input"
     AWS_S3_OUTPUT_BUCKET_NAME = "scpca-local-data"
 

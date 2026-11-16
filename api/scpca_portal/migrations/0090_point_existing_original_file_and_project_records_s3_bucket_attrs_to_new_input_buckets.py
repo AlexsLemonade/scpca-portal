@@ -6,8 +6,6 @@ OLD_INPUT_BUCKET = "scpca-portal-input"
 
 
 def update_input_bucket(apps, from_bucket: str, to_bucket: str) -> None:
-    # No-op where the setting still points at the old bucket (local, dev stacks).
-    # In tests it runs, but against an empty test database.
     if from_bucket == to_bucket:
         return
 
@@ -19,6 +17,8 @@ def update_input_bucket(apps, from_bucket: str, to_bucket: str) -> None:
 
 
 def apply_input_bucket(apps, schema_editor):
+    # No-op where the setting still (for now) points at the old bucket (local, dev stacks).
+    # In tests it runs, but against an empty test database.
     update_input_bucket(apps, OLD_INPUT_BUCKET, settings.AWS_S3_INPUT_BUCKET_NAME)
 
 
