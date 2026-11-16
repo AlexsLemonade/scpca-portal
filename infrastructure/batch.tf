@@ -6,6 +6,7 @@ module "batch" {
   scpca_portal_subnet_1a = aws_subnet.scpca_portal_1a
 
   # job_definition envars
+  django_configuration       = local.django_configuration
   dockerhub_account          = var.dockerhub_account
   region                     = var.region
   scpca_portal_bucket        = aws_s3_bucket.scpca_portal_bucket

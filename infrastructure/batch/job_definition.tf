@@ -15,7 +15,7 @@ locals {
     environment = [
       {
         name  = "DJANGO_CONFIGURATION"
-        value = "Production"
+        value = var.django_configuration
       },
       {
         name  = "DJANGO_DEBUG"
@@ -44,6 +44,10 @@ locals {
       {
         name  = "AWS_S3_BUCKET_NAME"
         value = var.scpca_portal_bucket.bucket
+      },
+      {
+        name  = "AWS_S3_INPUT_BUCKET_NAME"
+        value = var.scpca_portal_inputs_bucket.bucket
       },
       {
         name  = "SENTRY_ENV"
