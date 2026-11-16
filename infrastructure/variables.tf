@@ -108,6 +108,7 @@ locals {
   stage_django_configurations = {
     prod    = "Production"
     staging = "Staging"
+    dev     = "Dev"
   }
 
   django_configuration = local.stage_django_configurations[var.stage]
