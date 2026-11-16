@@ -1,11 +1,34 @@
 import React from 'react'
 import { useRouter } from 'next/router'
 import { Box, Text } from 'grommet'
+import { api } from 'api'
 import { Button } from 'components/Button'
 import ErrorImage from '../images/503-illustration.svg'
 
+// Refresh the locally stored dataset in case a stale shape caused the error
+const refreshLocalDataset = async () => {
+  try {
+    const stored = JSON.parse(window.localStorage.getItem('dataset'))
+    if (!stored?.id) return
+
+    const datasetRequest = await api.datasets.get(stored.id)
+    if (!datasetRequest.isOk) return
+
+    window.localStorage.setItem(
+      'dataset',
+      JSON.stringify(datasetRequest.response)
+    )
+  } catch (error) {
+    console.error(error)
+  }
+}
+
 const ErrorPage = () => {
   const router = useRouter()
+
+  React.useEffect(() => {
+    refreshLocalDataset()
+  }, [])
 
   React.useEffect(() => {
     const forceRefresh = (url) => {
