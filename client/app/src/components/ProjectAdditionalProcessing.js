@@ -9,7 +9,9 @@ export const ProjectAdditionalProcessing = ({
   additionalProcessing,
   hasAdditionalDocumentation = false
 }) => {
-  if (!additionalProcessing) return <Text italic>Not Specified</Text>
+  // "NA" is stored for projects without additional processing
+  if (!additionalProcessing || additionalProcessing === 'NA')
+    return <Text italic>Not Specified</Text>
 
   const docsLink = `${projectId}.html`
 
