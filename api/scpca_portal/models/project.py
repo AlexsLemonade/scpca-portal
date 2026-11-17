@@ -91,6 +91,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         return locked_projects
 
     @property
+    def has_additional_processing(self) -> bool:
+        """Returns True if the project's metadata specifies additional processing."""
+        return self.additional_processing != common.NA
+
+    @property
     def modality_samples(self) -> Dict[str, List[str]]:
         """Return a dictionary of lists containing sample IDs, grouped by modality."""
         return {
