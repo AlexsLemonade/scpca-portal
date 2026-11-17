@@ -32,7 +32,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = ArrayField(models.TextField(), default=list)
-    additional_processing = models.TextField(blank=True, null=True)
+    additional_processing = models.TextField(default=common.NA)
     additional_restrictions = models.TextField(blank=True, null=True)
     diagnoses = ArrayField(models.TextField(), default=list)
     diagnoses_counts = models.JSONField(default=dict)
@@ -89,6 +89,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         cls.objects.bulk_update(locked_projects, ["is_locked"])
 
         return locked_projects
+
+    @property
+    def has_additional_processing(self) -> bool:
+        """Returns True if the project's metadata specifies additional processing."""
+        return self.additional_processing != common.NA
 
     @property
     def modality_samples(self) -> Dict[str, List[str]]:

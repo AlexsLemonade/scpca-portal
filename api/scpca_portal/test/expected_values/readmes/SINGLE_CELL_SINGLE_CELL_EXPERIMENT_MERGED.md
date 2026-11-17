@@ -19,9 +19,6 @@ This is a portal-wide download you can find more information about your download
 |Project ID|Additional Processing|
 |:---------|:--------------------|
 |[SCPCP999990](https://scpca.alexslemonade.org/projects/SCPCP999990)|https://scpca.readthedocs.io/en/development/SCPCP999990.html|
-|[SCPCP999991](https://scpca.alexslemonade.org/projects/SCPCP999991)||
-|[SCPCP999992](https://scpca.alexslemonade.org/projects/SCPCP999992)||
-|[SCPCP999994](https://scpca.alexslemonade.org/projects/SCPCP999994)||
 
 ## CHANGELOG
 
