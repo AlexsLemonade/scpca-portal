@@ -40,6 +40,7 @@ SUBMITTER_WHITELIST = {
     "rokita",
     "soragni",
     "pushel",
+    "wernig_zorc",
 }
 
 # Modalities default sort order
