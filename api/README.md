@@ -151,6 +151,14 @@ If you would like to purge a project and its samples and libraries from the db, 
 sportal api:manage purge_project --scpca-id SCPCP000001
 ```
 
+Purging a project does not remove its CCDL datasets. To delete a purged project's CCDL datasets and their computed files (from the db and the S3 output bucket), use the `purge_ccdl_datasets` command:
+
+```
+sportal api:manage purge_ccdl_datasets --scpca-id SCPCP000001
+```
+
+By default the command refuses to run if the project still exists. Pass `--allow-existing-project` to delete the CCDL datasets of an existing project anyway.
+
 ### Create CCDL Datasets Configuration Options
 > [!NOTE]
 > **Local limitation.** Running `create_ccdl_datasets` against the local Docker environment only inserts database records with `computed_file=null`. It does not submit Batch jobs or populate S3. Full end-to-end execution requires the `dev` server on cloud, which also requires an SSO profile.
@@ -242,6 +250,11 @@ Details of the `sync_original_files` can be found in the Syncing the Creating Us
 To purge a project from the database, run the following command:
 ```bash
 ./run_command.sh purge_project --scpca-id SCPCP000001
+```
+
+To then delete the purged project's CCDL datasets and their computed files from the db and S3:
+```bash
+./run_command.sh purge_ccdl_datasets --scpca-id SCPCP000001
 ```
 ## Cloud Deployments
 

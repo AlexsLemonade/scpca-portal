@@ -10,6 +10,7 @@ from scpca_portal.models import CCDLDataset, ComputedFile, Project
 from scpca_portal.test import expected_values as test_data
 from scpca_portal.test.factories import (
     CCDLDatasetFactory,
+    DatasetComputedFileFactory,
     LeafComputedFileFactory,
     LibraryFactory,
     OriginalFileFactory,
@@ -219,3 +220,46 @@ class TestCCDLDataset(TestCase):
         # no computed file
         dataset = CCDLDatasetFactory()
         self.assertIsNone(dataset.download_url)
+
+    @patch("scpca_portal.s3.aws_s3.delete_object")
+    def test_purge(self, mock_delete_object):
+        dataset = CCDLDatasetFactory(computed_file=DatasetComputedFileFactory())
+        computed_file = dataset.computed_file
+
+        dataset.purge()
+
+        # Should delete the dataset and its computed file from the db and s3
+        self.assertFalse(CCDLDataset.objects.filter(id=dataset.id).exists())
+        self.assertFalse(ComputedFile.objects.filter(id=computed_file.id).exists())
+        mock_delete_object.assert_called_once_with(
+            Bucket=computed_file.s3_bucket, Key=computed_file.s3_key
+        )
+
+        # Should delete a dataset without a computed file
+        mock_delete_object.reset_mock()
+        dataset = CCDLDatasetFactory()
+        dataset.purge()
+        self.assertFalse(CCDLDataset.objects.filter(id=dataset.id).exists())
+        mock_delete_object.assert_not_called()
+
+    @patch("scpca_portal.s3.aws_s3.delete_object")
+    def test_purge_project_datasets(self, mock_delete_object):
+        project_datasets = [
+            CCDLDatasetFactory(
+                ccdl_project_id="SCPCP999990", computed_file=DatasetComputedFileFactory()
+            )
+            for _ in range(2)
+        ]
+        other_dataset = CCDLDatasetFactory(ccdl_project_id="SCPCP999991")
+
+        purged_count = CCDLDataset.purge_project_datasets("SCPCP999990")
+
+        # Should purge only the project's datasets and return the count
+        self.assertEqual(purged_count, len(project_datasets))
+        for dataset in project_datasets:
+            self.assertFalse(CCDLDataset.objects.filter(id=dataset.id).exists())
+        self.assertEqual(mock_delete_object.call_count, len(project_datasets))
+        self.assertTrue(CCDLDataset.objects.filter(id=other_dataset.id).exists())
+
+        # Should return 0 when the project has no datasets
+        self.assertEqual(CCDLDataset.purge_project_datasets("SCPCP000000"), 0)
