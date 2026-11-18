@@ -19,7 +19,6 @@ class TestLoadMetadata(TestCase):
         self.reload_existing = False
         self.reload_locked = False
         self.scpca_project_id = None
-        self.update_s3 = False
         self.submitter_whitelist = common.SUBMITTER_WHITELIST
 
         # Handle patching in setUp function
@@ -78,7 +77,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.update_s3,
         )
 
         input_bucket_name = "input_bucket_name"
@@ -89,7 +87,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             input_bucket_name,
             self.reload_existing,
-            self.update_s3,
         )
 
     def test_clean_up_input_data(self):
@@ -109,7 +106,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.update_s3,
         )
 
         reload_existing = True
@@ -119,7 +115,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             reload_existing,
-            self.update_s3,
         )
 
     def test_reload_locked(self):
@@ -130,7 +125,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.update_s3,
         )
 
         reload_locked = True
@@ -140,7 +134,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.update_s3,
         )
 
     def test_scpca_project_id(self):
@@ -151,27 +144,6 @@ class TestLoadMetadata(TestCase):
         self.load_metadata(scpca_project_id=scpca_project_id)
         self.mock_load_projects_metadata.assert_called_with([scpca_project_id])
 
-    def test_update_s3(self):
-        self.load_metadata()
-        self.assertMethodsCalled()
-        self.mock_create_project.assert_called_once_with(
-            self.projects_metadata[0],
-            self.submitter_whitelist,
-            self.input_bucket_name,
-            self.reload_existing,
-            self.update_s3,
-        )
-
-        update_s3 = True
-        self.load_metadata(update_s3=update_s3)
-        self.mock_create_project.assert_called_with(
-            self.projects_metadata[0],
-            self.submitter_whitelist,
-            self.input_bucket_name,
-            self.reload_existing,
-            update_s3,
-        )
-
     def test_submitter_whitelist(self):
         self.load_metadata()
         self.assertMethodsCalled()
@@ -180,7 +152,6 @@ class TestLoadMetadata(TestCase):
             self.submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.update_s3,
         )
 
         submitter_whitelist = {"submitter"}
@@ -190,7 +161,6 @@ class TestLoadMetadata(TestCase):
             submitter_whitelist,
             self.input_bucket_name,
             self.reload_existing,
-            self.update_s3,
         )
 
     def test_load_projects_metadata_failure(self):

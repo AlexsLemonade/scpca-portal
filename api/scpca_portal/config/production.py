@@ -14,8 +14,6 @@ class Production(Common):
     # https://docs.djangoproject.com/en/2.0/ref/settings/#allowed-hosts
     ALLOWED_HOSTS = ["*"]
 
-    UPDATE_S3_DATA = True
-
     # AWS S3
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-input"
     AWS_S3_OUTPUT_BUCKET_NAME = os.getenv("AWS_S3_BUCKET_NAME")

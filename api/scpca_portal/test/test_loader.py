@@ -32,7 +32,6 @@ class TestLoader(TransactionTestCase):
             submitter_whitelist={"scpca"},
             input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
             reload_existing=True,
-            update_s3=False,
         )
 
     def purge_extra_samples(self, project: Project, samples_of_interest: List[str]) -> None:

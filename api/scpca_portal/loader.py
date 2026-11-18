@@ -77,7 +77,6 @@ def create_project(
     submitter_whitelist: Set[str],
     input_bucket_name: str,
     reload_existing: bool,
-    update_s3: bool,
 ) -> Project | None:
     """
     Validate that a project can be processed, creates it, and return the newly created project.

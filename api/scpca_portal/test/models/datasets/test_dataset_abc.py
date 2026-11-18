@@ -30,7 +30,6 @@ class TestDatasetABC(TestCase):
                 submitter_whitelist={"scpca"},
                 input_bucket_name=bucket,
                 reload_existing=True,
-                update_s3=False,
             )
 
     def test_original_files_property(self):
