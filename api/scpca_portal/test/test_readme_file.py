@@ -41,7 +41,6 @@ class TestReadmeFileContents(TestCase):
                 submitter_whitelist={"scpca"},
                 input_bucket_name=bucket,
                 reload_existing=True,
-                update_s3=False,
             )
 
     def test_readme_file_ALL_METADATA(self):

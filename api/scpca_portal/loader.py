@@ -77,7 +77,6 @@ def create_project(
     submitter_whitelist: Set[str],
     input_bucket_name: str,
     reload_existing: bool,
-    update_s3: bool,
 ) -> Project | None:
     """
     Validate that a project can be processed, creates it, and return the newly created project.
@@ -92,7 +91,7 @@ def create_project(
         if _can_purge_project(project, reload_existing=reload_existing):
             # Purge existing projects so they can be re-added.
             logger.info(f"Purging '{project}")
-            project.purge(delete_from_s3=update_s3)
+            project.purge()
         else:
             return
 
