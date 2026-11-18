@@ -145,10 +145,10 @@ The `--clean-up-input-data` flag can help you control the projects input data si
 sportal api:manage load_metadata --clean-up-input-data
 ```
 
-If you would like to purge a project from the db and remove its files from the S3 output bucket, the `purge_project` command should be used, as follows:
+If you would like to purge a project and its samples and libraries from the db, the `purge_project` command should be used, as follows:
 
 ```
-sportal api:manage purge_project --scpca-project-id SCPCP000001
+sportal api:manage purge_project --scpca-id SCPCP000001
 ```
 
 ### Create CCDL Datasets Configuration Options
@@ -239,9 +239,9 @@ User datasets are created via the `/v1/datasets/` API endpoint (see [Local Data 
 Details of the `sync_original_files` can be found in the Syncing the Creating User Datasets header in the Local Data Management section above.
 
 ### Purge Project
-To purge a project from the database (and from S3 if so desired), run the following command:
+To purge a project from the database, run the following command:
 ```bash
-./run_command.sh purge_project --scpca-id SCPCP000001 --delete-from-s3
+./run_command.sh purge_project --scpca-id SCPCP000001
 ```
 ## Cloud Deployments
 

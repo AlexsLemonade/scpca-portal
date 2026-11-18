@@ -173,23 +173,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.update_project_sample_aggregate_counts()
         self.update_project_summaries_aggregate_properties()
 
-    def purge(self, delete_from_s3: bool = False) -> None:
+    def purge(self) -> None:
         """Purges project and its related data."""
-        self.purge_computed_files(delete_from_s3)
         for sample in self.samples.all():
             sample.purge()
 
         self.delete()
-
-    def purge_computed_files(self, delete_from_s3: bool = False) -> None:
-        """Purges all computed files associated with the project instance."""
-        # Delete project's sample computed files
-        for sample in self.samples.all():
-            sample.purge_computed_files(delete_from_s3)
-
-        # Delete project's project computed files
-        for computed_file in self.project_computed_files.all():
-            computed_file.purge(delete_from_s3)
 
     def update_project_modality_properties(self) -> None:
         """

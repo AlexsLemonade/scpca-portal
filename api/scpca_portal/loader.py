@@ -92,7 +92,7 @@ def create_project(
         if _can_purge_project(project, reload_existing=reload_existing):
             # Purge existing projects so they can be re-added.
             logger.info(f"Purging '{project}")
-            project.purge(delete_from_s3=update_s3)
+            project.purge()
         else:
             return
 
