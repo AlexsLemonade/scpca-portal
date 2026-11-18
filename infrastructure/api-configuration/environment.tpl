@@ -1,5 +1,5 @@
 PORT=8081
-DJANGO_CONFIGURATION=Production
+DJANGO_CONFIGURATION=${django_configuration}
 DJANGO_DEBUG=False
 DJANGO_SECRET_KEY=${django_secret_key}
 DATABASE_HOST=${database_host}
@@ -13,6 +13,7 @@ AWS_BATCH_EC2_JOB_QUEUE_NAME=${aws_batch_ec2_job_queue_name}
 AWS_BATCH_EC2_JOB_DEFINITION_NAME=${aws_batch_ec2_job_definition_name}
 AWS_REGION=${aws_region}
 AWS_S3_BUCKET_NAME=${aws_s3_bucket_name}
+AWS_S3_INPUT_BUCKET_NAME=${aws_s3_input_bucket_name}
 AWS_SES_DOMAIN=${aws_ses_domain}
 SENTRY_DSN=${sentry_dsn}
 SENTRY_ENV=${sentry_env}

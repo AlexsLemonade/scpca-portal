@@ -3,6 +3,7 @@ variable "scpca_portal_vpc" { default = "" }
 variable "scpca_portal_subnet_1a" { default = "" }
 
 # job_definition envars
+variable "django_configuration" { default = "" }
 variable "dockerhub_account" { default = "" }
 variable "django_secret_key" { default = "" }
 variable "database_password" { default = "" }

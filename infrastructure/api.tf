@@ -67,6 +67,7 @@ resource "aws_instance" "api_server_1" {
       api_environment = templatefile(
         "api-configuration/environment.tpl",
         {
+          django_configuration                  = local.django_configuration
           django_secret_key                     = var.django_secret_key
           database_host                         = aws_db_instance.postgres_db.address
           database_port                         = aws_db_instance.postgres_db.port
@@ -79,6 +80,7 @@ resource "aws_instance" "api_server_1" {
           aws_batch_ec2_job_definition_name     = module.batch.job_definition_name_ec2
           aws_region                            = var.region
           aws_s3_bucket_name                    = aws_s3_bucket.scpca_portal_bucket.id
+          aws_s3_input_bucket_name              = aws_s3_bucket.scpca_portal_inputs_bucket.id
           aws_ses_domain                        = local.ses_domain
           sentry_dsn                            = var.sentry_dsn
           sentry_env                            = var.sentry_env
