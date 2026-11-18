@@ -10,7 +10,7 @@ from django.core.management import call_command
 from django.test import TransactionTestCase
 
 from scpca_portal import loader, metadata_parser, utils
-from scpca_portal.models import Project
+from scpca_portal.models import Library, Project, Sample
 from scpca_portal.test import expected_values as test_data
 
 
@@ -32,7 +32,6 @@ class TestLoader(TransactionTestCase):
             submitter_whitelist={"scpca"},
             input_bucket_name=settings.AWS_S3_INPUT_BUCKET_NAME,
             reload_existing=True,
-            update_s3=False,
         )
 
     def purge_extra_samples(self, project: Project, samples_of_interest: List[str]) -> None:
@@ -626,3 +625,36 @@ class TestLoader(TransactionTestCase):
         ).first()
         self.assertIsNotNone(publication)
         self.assertObjectProperties(publication, test_data.Project_SCPCP999994.Publication2.VALUES)
+
+    def test_reload_existing_project(self):
+        utils.create_data_dirs()
+        project_id = test_data.Project_SCPCP999991.SCPCA_ID
+
+        # Metadata is loaded for each call because creating a project mutates the metadata dict
+        original_project = self.create_project(self.load_project_metadata(project_id))
+        original_sample_pks = set(original_project.samples.values_list("pk", flat=True))
+        original_library_pks = set(original_project.libraries.values_list("pk", flat=True))
+        original_sample_ids = set(original_project.samples.values_list("scpca_id", flat=True))
+        original_library_ids = set(original_project.libraries.values_list("scpca_id", flat=True))
+
+        # Should not reload an existing project without reload_existing
+        self.assertIsNone(
+            self.create_project(self.load_project_metadata(project_id), reload_existing=False)
+        )
+        self.assertTrue(Project.objects.filter(pk=original_project.pk).exists())
+
+        # Should purge and recreate an existing project with reload_existing
+        reloaded_project = self.create_project(self.load_project_metadata(project_id))
+        self.assertEqual(Project.objects.filter(scpca_id=project_id).count(), 1)
+        self.assertNotEqual(reloaded_project.pk, original_project.pk)
+        self.assertSetEqual(
+            set(reloaded_project.samples.values_list("scpca_id", flat=True)), original_sample_ids
+        )
+        self.assertSetEqual(
+            set(reloaded_project.libraries.values_list("scpca_id", flat=True)),
+            original_library_ids,
+        )
+
+        # Should not leave behind any of the original samples or libraries
+        self.assertFalse(Sample.objects.filter(pk__in=original_sample_pks).exists())
+        self.assertFalse(Library.objects.filter(pk__in=original_library_pks).exists())

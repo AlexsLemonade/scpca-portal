@@ -32,7 +32,7 @@ class Project(CommonDataAttributes, TimestampedModel):
 
     abstract = models.TextField()
     additional_metadata_keys = ArrayField(models.TextField(), default=list)
-    additional_processing = models.TextField(blank=True, null=True)
+    additional_processing = models.TextField(default=common.NA)
     additional_restrictions = models.TextField(blank=True, null=True)
     diagnoses = ArrayField(models.TextField(), default=list)
     diagnoses_counts = models.JSONField(default=dict)
@@ -89,6 +89,11 @@ class Project(CommonDataAttributes, TimestampedModel):
         cls.objects.bulk_update(locked_projects, ["is_locked"])
 
         return locked_projects
+
+    @property
+    def has_additional_processing(self) -> bool:
+        """Returns True if the project's metadata specifies additional processing."""
+        return self.additional_processing != common.NA
 
     @property
     def modality_samples(self) -> Dict[str, List[str]]:
@@ -168,23 +173,12 @@ class Project(CommonDataAttributes, TimestampedModel):
         self.update_project_sample_aggregate_counts()
         self.update_project_summaries_aggregate_properties()
 
-    def purge(self, delete_from_s3: bool = False) -> None:
+    def purge(self) -> None:
         """Purges project and its related data."""
-        self.purge_computed_files(delete_from_s3)
         for sample in self.samples.all():
             sample.purge()
 
         self.delete()
-
-    def purge_computed_files(self, delete_from_s3: bool = False) -> None:
-        """Purges all computed files associated with the project instance."""
-        # Delete project's sample computed files
-        for sample in self.samples.all():
-            sample.purge_computed_files(delete_from_s3)
-
-        # Delete project's project computed files
-        for computed_file in self.project_computed_files.all():
-            computed_file.purge(delete_from_s3)
 
     def update_project_modality_properties(self) -> None:
         """

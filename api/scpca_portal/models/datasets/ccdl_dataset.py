@@ -139,6 +139,26 @@ class CCDLDataset(DatasetABC):
 
         return created_datasets, updated_datasets
 
+    def purge(self) -> None:
+        """Purges the dataset and its computed file from the db and s3."""
+        if self.computed_file:
+            self.computed_file.purge(delete_from_s3=True)
+        self.delete()
+
+    @classmethod
+    def purge_project_datasets(cls, scpca_id: str) -> int:
+        """
+        Purges all ccdl datasets for the passed project id.
+        Returns the number of purged datasets.
+        """
+        purged_count = 0
+        for dataset in cls.objects.filter(ccdl_project_id=scpca_id):
+            logger.info(f"Purging '{dataset}'")
+            dataset.purge()
+            purged_count += 1
+
+        return purged_count
+
     @property
     def download_filename(self) -> str:
         output_format = "-".join(self.format.split("_")).lower()

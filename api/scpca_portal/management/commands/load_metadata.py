@@ -33,9 +33,6 @@ class Command(BaseCommand):
             default=settings.CLEAN_UP_DATA,
         )
         parser.add_argument(
-            "--update-s3", action=BooleanOptionalAction, default=settings.UPDATE_S3_DATA
-        )
-        parser.add_argument(
             "--submitter-whitelist",
             type=self.comma_separated_set,
             default=common.SUBMITTER_WHITELIST,
@@ -72,7 +69,6 @@ class Command(BaseCommand):
         reload_existing: bool,
         reload_locked: bool,
         scpca_project_id: str,
-        update_s3: bool,
         submitter_whitelist: Set[str],
         **kwargs,
     ) -> None:
@@ -109,7 +105,7 @@ class Command(BaseCommand):
             # validate that a project can be added to the db,
             # then creates it, all its samples and libraries, and all other relations
             if project := loader.create_project(
-                project_metadata, submitter_whitelist, input_bucket_name, reload_existing, update_s3
+                project_metadata, submitter_whitelist, input_bucket_name, reload_existing
             ):
                 if clean_up_input_data:
                     logger.info(f"Cleaning up '{project}' input files")

@@ -204,7 +204,7 @@ def get_additional_processing_table_rows(
     additional_processing_rows: set[AdditionalProcessingContentRow] = set()
 
     for project in dataset.projects:
-        if project.additional_processing:
+        if project.has_additional_processing:
             additional_processing_rows.add(
                 AdditionalProcessingContentRow(project, get_additional_processing_link(project))
             )
