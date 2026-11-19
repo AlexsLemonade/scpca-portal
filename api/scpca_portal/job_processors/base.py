@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 from abc import ABC, abstractmethod
 from typing import Callable, Dict, List, Tuple
 
@@ -26,7 +27,7 @@ class JobProcessorABC(ABC):
       methods (as strings) that should be executed when the corresponding
       exception is raised in the given step.
 
-    Step functions take no arguements.
+    Step functions take no arguments.
     Exception handler functions take the error as an argument.
 
     The base class handles the plumbing:
@@ -82,8 +83,9 @@ class JobProcessorABC(ABC):
 
     def __init__(self, job: Job):
         self._job = job
+        self._exit_code = 0
 
-        # fail if this doesnt work
+        # fail if this doesn't work
         self._steps_functions: List[Callable] = []
         self._init_step_functions()
 
@@ -125,7 +127,14 @@ class JobProcessorABC(ABC):
     def job(self) -> Job:
         return self._job
 
-    # JobProcessorABC.run lIfecycle hooks
+    @property
+    def exit_code(self) -> int:
+        return self._exit_code
+
+    def set_exit_code(self, code: int) -> None:
+        self._exit_code = int(code)
+
+    # JobProcessorABC.run lifecycle hooks
     def on_run(self) -> None:
         pass
 
@@ -157,8 +166,11 @@ class JobProcessorABC(ABC):
                 self.on_step_start(step)
                 step_function()
             except Exception as e:
+                self.set_exit_code(os.environ["RETRY_EXIT_CODE"])  # Retry an exception by default
                 if exception_handler := self._lookup_handler(step, e):
-                    exception_handler(e)
+                    self.on_step_exception(step, e)
+                    if exception_handler(e):
+                        continue
                 else:
                     self.on_uncaught_exception(step, e)
 
