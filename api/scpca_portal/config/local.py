@@ -5,6 +5,8 @@ from scpca_portal.config.common import Common
 
 
 class Local(Common):
+    """Settings for local development in Docker Compose."""
+
     DEBUG = True
 
     # Mail

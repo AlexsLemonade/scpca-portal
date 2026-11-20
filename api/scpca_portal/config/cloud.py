@@ -9,6 +9,12 @@ from scpca_portal.strtobool import strtobool
 
 
 class Cloud(Common):
+    """Base settings shared by all cloud deploys (production, staging, dev).
+
+    Not used directly: each deploy has its own config class that inherits from
+    this one and overrides only what differs for that environment.
+    """
+
     SECRET_KEY = os.getenv("DJANGO_SECRET_KEY")
     # Site.
     # https://docs.djangoproject.com/en/2.0/ref/settings/#allowed-hosts

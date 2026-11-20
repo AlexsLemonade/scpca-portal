@@ -11,6 +11,12 @@ BASE_DIR = Path(__file__).parent.parent
 
 
 class Common(Configuration):
+    """Base settings shared by every environment (local, test and cloud deploys).
+
+    Environment-specific config classes inherit from this one and override only
+    what differs for that environment.
+    """
+
     INSTALLED_APPS = (
         "django.contrib.auth",
         "django.contrib.contenttypes",
