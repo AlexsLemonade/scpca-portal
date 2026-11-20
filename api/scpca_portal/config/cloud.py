@@ -43,8 +43,6 @@ class Cloud(Common):
         }
     }
 
-    PRODUCTION = True
-
     CLEAN_UP_DATA = True
 
     ENABLE_FEATURE_PREVIEW = strtobool(os.getenv("ENABLE_FEATURE_PREVIEW", "false"))

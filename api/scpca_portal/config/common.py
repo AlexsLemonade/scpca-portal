@@ -109,9 +109,6 @@ class Common(Configuration):
     # https://docs.djangoproject.com/en/dev/ref/settings/#debug
     DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "no"))
 
-    # Indicates running in prod environment.
-    PRODUCTION = False
-
     # Management commands should remove locally downloaded or created data.
     CLEAN_UP_DATA = False
 
