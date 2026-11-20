@@ -4,6 +4,11 @@ from scpca_portal.config.local import Local
 
 
 class Test(Local):
+    """Settings for running the test suite, locally and in CI.
+
+    Inherits from Local and overrides only what the tests need.
+    """
+
     # AWS S3
     # Note: Data must be resynced when test bucket is updated
     AWS_S3_INPUT_BUCKET_NAME = "scpca-portal-public-test-inputs/2026-09-01"
