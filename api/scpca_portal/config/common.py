@@ -11,6 +11,12 @@ BASE_DIR = Path(__file__).parent.parent
 
 
 class Common(Configuration):
+    """Base settings shared by every environment (local, test and cloud deploys).
+
+    Environment-specific config classes inherit from this one and override only
+    what differs for that environment.
+    """
+
     INSTALLED_APPS = (
         "django.contrib.auth",
         "django.contrib.contenttypes",
@@ -108,9 +114,6 @@ class Common(Configuration):
     # Set DEBUG to False as a default for safety.
     # https://docs.djangoproject.com/en/dev/ref/settings/#debug
     DEBUG = strtobool(os.getenv("DJANGO_DEBUG", "no"))
-
-    # Indicates running in prod environment.
-    PRODUCTION = False
 
     # Management commands should remove locally downloaded or created data.
     CLEAN_UP_DATA = False
