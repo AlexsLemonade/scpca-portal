@@ -195,14 +195,13 @@ while true; do
     -H "API-KEY: $API_TOKEN"
   )
 
-  IS_SUCCEEDED=$(echo "$DATASET_RESPONSE" | jq '.is_succeeded')
-  IS_FAILED=$(echo "$DATASET_RESPONSE" | jq '.is_failed')
+  STATE=$(echo "$DATASET_RESPONSE" | jq '.state')
 
-  if [ "$IS_SUCCEEDED" = "true" ]; then
+  if [ "$STATE" = "SUCCEEDED" ]; then
     break
   fi
 
-  if [ "$IS_FAILED" = "true" ]; then
+  if [ "$STATE" = "FAILED" ]; then
     echo "Dataset processing failed. Exiting..."
     exit 1
   fi

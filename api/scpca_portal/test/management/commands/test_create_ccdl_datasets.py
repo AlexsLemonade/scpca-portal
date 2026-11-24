@@ -4,7 +4,7 @@ from django.core.management import call_command
 from django.test import TestCase
 
 from scpca_portal.enums.job_states import JobStates
-from scpca_portal.test.factories import JobFactory
+from scpca_portal.test.factories import CCDLDatasetFactory, JobFactory
 
 
 class TestCreateCCDLDatasets(TestCase):
@@ -27,7 +27,9 @@ class TestCreateCCDLDatasets(TestCase):
     def test_retry_failed_jobs(
         self, mock_create_or_update_ccdl_datasets, mock_submit_ccdl_datasets
     ):
-        failed_jobs = [JobFactory(state=JobStates.FAILED) for _ in range(3)]
+        failed_jobs = [
+            JobFactory(dataset=CCDLDatasetFactory(), state=JobStates.FAILED) for _ in range(3)
+        ]
         mock_create_or_update_ccdl_datasets.return_value = [], []
         mock_submit_ccdl_datasets.return_value = [], failed_jobs
 
